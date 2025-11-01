@@ -847,211 +847,52 @@ GET /api/state?format=json&since={seq}
 ## Questions to Resolve Before Migration
 
 ### 1. Authentication Strategy
-**Question**: What authentication approach works best for an offline-first PWA?
+**Decision**: Simple API Token (chosen for simplicity and offline-first support)
 
-#### Option A: Simple API Token (Simplest)
 **How it works**:
-- User logs in once, receives a long-lived token (UUID)
+- User logs in once, receives a long-lived token (64-char hex string)
 - Token stored in IndexedDB
-- Token sent with every API request in header
-- No expiration (or very long, like 1 year)
-
-**Pros**:
-- ✅ Extremely simple to implement
-- ✅ Works perfectly offline (token always valid)
-- ✅ No token refresh complexity
-- ✅ Minimal code (~50 lines total)
-- ✅ No external libraries needed
-
-**Cons**:
-- ❌ If token stolen, valid until manually revoked
-- ❌ No automatic expiration
-- ❌ User must manually logout on shared devices
+- Token sent with every API request in Authorization header
+- No automatic expiration (manual revocation via logout)
 
 **Implementation**:
 ```php
 // Server: Generate token on login
-$token = bin2hex(random_bytes(32)); // Simple UUID
-// Store: user_id, token, created_at
+$token = bin2hex(random_bytes(32)); // 64-char hex string
+// Store in tokens table: token, user_id, created_at, last_used_at, revoked_at
 
 // Validate on each request
-$user_id = getUserIdFromToken($_SERVER['HTTP_AUTHORIZATION']);
+function getUserFromToken($authHeader) {
+  $token = str_replace('Bearer ', '', $authHeader);
+  // Query tokens table WHERE token = ? AND revoked_at IS NULL
+  return $user_id;
+}
 ```
 
 ```typescript
 // Client: Store and use
-await db.auth.put({ id: 'current', token: 'abc123...', userId: 'user-123' });
-// Send with requests
+await db.auth.put({ 
+  id: 'current', 
+  token: 'abc123...', 
+  userId: 'user-123',
+  createdAt: Date.now()
+});
+
+// Send with all requests
 headers: { 'Authorization': `Bearer ${auth.token}` }
 ```
 
-**Best for**: Single-user or trusted environment, simplicity priority
-
----
-
-#### Option B: Long-Lived JWT (Moderate Complexity)
-**How it works**:
-- User logs in, receives JWT with 30-day expiration
-- JWT stored in IndexedDB
-- JWT sent with every API request
-- Server validates signature and expiration
-- Optional: Refresh token for renewal
-
-**Pros**:
-- ✅ Automatic expiration (better security)
-- ✅ Stateless (server doesn't store sessions)
-- ✅ Can include user info in token (no DB lookup)
-- ✅ Industry standard approach
-- ✅ Works offline (token valid until expiration)
-
-**Cons**:
-- ❌ Requires JWT library (adds ~10KB)
-- ❌ More complex implementation (~200 lines)
-- ❌ Need refresh token logic for long sessions
-- ❌ Can't revoke without blacklist
-
-**Libraries**:
-- **PHP**: `firebase/php-jwt` (most popular, 2.5K stars)
-- **JS**: `jose` (modern, secure, 4K stars) or built-in Web Crypto API
-
-**Implementation**:
-```php
-// Server: composer require firebase/php-jwt
-use Firebase\JWT\JWT;
-$payload = ['user_id' => $user_id, 'exp' => time() + (30 * 86400)];
-$jwt = JWT::encode($payload, $secret_key, 'HS256');
-```
-
-```typescript
-// Client: npm install jose
-import { jwtVerify } from 'jose';
-// Or just store and send (server validates)
-headers: { 'Authorization': `Bearer ${jwt}` }
-```
-
-**Best for**: Multi-user app, moderate security needs, willing to add libraries
-
----
-
-#### Option C: Session Cookie + Stored Token Hybrid (Balanced)
-**How it works**:
-- User logs in, server creates session + returns token
-- Token stored in IndexedDB for offline use
-- Cookie used when online (automatic)
-- Token used as fallback when cookie unavailable
-
-**Pros**:
-- ✅ Secure cookie handling (HttpOnly, Secure)
-- ✅ Works offline with stored token
-- ✅ Can revoke sessions server-side
-- ✅ Familiar session pattern
-- ✅ No JWT library needed
-
-**Cons**:
-- ❌ More complex (two auth mechanisms)
-- ❌ Need to handle both cookie and token
-- ❌ Session storage on server
-- ❌ Token still needs manual revocation
-
-**Implementation**:
-```php
-// Server: Create session + return token
-session_start();
-$_SESSION['user_id'] = $user_id;
-$token = bin2hex(random_bytes(32));
-// Store token in DB for offline validation
-return ['session_id' => session_id(), 'offline_token' => $token];
-```
-
-```typescript
-// Client: Cookie auto-sent when online, use token as fallback
-const auth = await db.auth.get('current');
-if (navigator.onLine) {
-  // Cookie automatically sent
-  fetch('/api/push', { credentials: 'include' });
-} else {
-  // Use stored token
-  fetch('/api/push', { headers: { 'Authorization': `Bearer ${auth.token}` }});
-}
-```
-
-**Best for**: Want session benefits but need offline support
-
----
-
-#### Option D: Short-Lived JWT + Refresh Token (Most Secure)
-**How it works**:
-- Access token (JWT, 1 hour expiration)
-- Refresh token (long-lived, 30 days)
-- Refresh token rotates on each use
-- Both stored in IndexedDB
-
-**Pros**:
-- ✅ Best security (short-lived access tokens)
-- ✅ Can revoke refresh tokens
-- ✅ Industry best practice
-- ✅ Works offline (until access token expires)
-
-**Cons**:
-- ❌ Most complex implementation (~400 lines)
-- ❌ Requires JWT library
-- ❌ Refresh token rotation logic
-- ❌ Need to handle token refresh during sync
-- ❌ Offline period limited to access token lifetime
-
-**Implementation**:
-```php
-// Server: Two tokens
-$access_token = JWT::encode(['user_id' => $user_id, 'exp' => time() + 3600], $secret);
-$refresh_token = bin2hex(random_bytes(32));
-// Store refresh token in DB with expiration
-```
-
-```typescript
-// Client: Check expiration before sync
-if (auth.accessTokenExpiresAt < Date.now()) {
-  const newTokens = await refreshAccessToken(auth.refreshToken);
-  await db.auth.put({ id: 'current', ...newTokens });
-}
-```
-
-**Best for**: High security requirements, multi-user SaaS, compliance needs
-
----
-
-### Recommendation Matrix
-
-| Criteria | Option A | Option B | Option C | Option D |
-|----------|----------|----------|----------|----------|
-| **Simplicity** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐ |
-| **Security** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Offline Support** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| **Code Size** | ~50 lines | ~200 lines | ~250 lines | ~400 lines |
-| **Dependencies** | None | 1 library | None | 1 library |
-| **Revocation** | Manual | Blacklist | Server-side | Server-side |
-
-### Our Recommendation: **Option A (Simple API Token)**
-
-**Reasoning**:
-1. You're building for personal/small team use (not public SaaS)
-2. Offline-first is critical - token must always work
-3. Simplicity aligns with your tech stack (Alpine.js, SQLite, Slim)
-4. Can always upgrade to Option B later if needed
-5. Security adequate for use case (HTTPS + secure storage)
+**Security considerations**:
+- Always use HTTPS in production
+- Token stored in IndexedDB (more secure than localStorage)
+- Logout revokes token on server (sets revoked_at timestamp)
+- Can track last_used_at for activity monitoring
+- Future: Can add token expiration if needed
 
 **When to reconsider**:
-- Opening to public users (→ Option B)
-- Compliance requirements (→ Option D)
-- Shared device usage common (→ Option C)
-- Need automatic token expiration (→ Option B)
-
-**Implementation Path**:
-1. Start with Option A
-2. Add logout functionality (token revocation)
-3. Monitor for security concerns
-4. Upgrade to Option B if user base grows
-
-Would you like me to update the spec with your chosen option?
+- Opening to public users → Consider JWT with expiration
+- Compliance requirements → Consider short-lived tokens + refresh
+- Shared device usage → Add automatic token expiration
 
 ### 2. Verse Reference Format
 **Question**: How should we store and display verse references?
