@@ -140,7 +140,6 @@ sync: {
 **From SPA Demo**:
 - `translation` - Bible translation field
 - `favorite` - quick access flag
-- `success` - review success tracking
 
 **From OpLog Starter**:
 - `id` - UUID v4 for all entities
