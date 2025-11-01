@@ -27,7 +27,7 @@ The goal is to create a modern, offline-first Bible memory app that combines the
 - **Language**: PHP 8+
 - **Database**: SQLite (development and production)
 - **Server**: Nginx/Apache
-- **Auth**: Session-based with secure password hashing
+- **Auth**: Simple token-based (after initial login) with secure password hashing
 
 **Rationale**:
 - Alpine.js provides reactivity without heavy framework overhead
@@ -98,6 +98,14 @@ settings: {
   updatedAt: number        // Epoch ms - for LWW conflict resolution
 }
 
+// Auth storage (for simple token-based auth)
+auth: {
+  id: string,              // "current" - single record
+  token: string,           // 64-char hex string from server
+  userId: string,          // UUID v4
+  createdAt: number        // Epoch ms - when token was issued
+}
+
 // Sync infrastructure (from OpLog starter)
 outbox: {
   op_id: string,           // UUID v4
@@ -160,18 +168,18 @@ CREATE TABLE users (
 
 CREATE INDEX idx_users_email ON users(email);
 
--- Sessions (for proper auth)
-CREATE TABLE sessions (
-  session_id TEXT PRIMARY KEY,        -- UUID v4
+-- API Tokens (simple token-based auth)
+CREATE TABLE tokens (
+  token TEXT PRIMARY KEY,             -- 64-char hex string (32 bytes)
   user_id TEXT NOT NULL,
   created_at INTEGER NOT NULL,        -- Epoch ms
-  expires_at INTEGER NOT NULL,        -- Epoch ms
-  last_activity_at INTEGER NOT NULL,  -- Epoch ms
+  last_used_at INTEGER,               -- Epoch ms - for tracking activity
+  revoked_at INTEGER,                 -- Epoch ms - NULL if active
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_sessions_user ON sessions(user_id);
-CREATE INDEX idx_sessions_expires ON sessions(expires_at);
+CREATE INDEX idx_tokens_user ON tokens(user_id);
+CREATE INDEX idx_tokens_revoked ON tokens(revoked_at);
 
 -- Operation log (source of truth - from oplog pattern)
 CREATE TABLE ops (
@@ -771,36 +779,34 @@ type SettingOp = {
 ```
 POST /api/register
   Body: { email, password }
-  Response: { user_id, session_id }
-  Sets-Cookie: session_id (HttpOnly, Secure, SameSite=Strict)
+  Response: { user_id, token }
 
 POST /api/login
   Body: { email, password }
-  Response: { user_id, session_id }
-  Sets-Cookie: session_id (HttpOnly, Secure, SameSite=Strict)
+  Response: { user_id, token }
 
 POST /api/logout
-  Cookie: session_id
+  Headers: { Authorization: Bearer <token> }
   Response: { ok: true }
-  Clears-Cookie: session_id
+  Note: Revokes token on server
 ```
 
 ### Sync
 ```
 POST /api/push
-  Cookie: session_id
+  Headers: { Authorization: Bearer <token> }
   Body: { client_id, ops: [...] }
   Response: { ok, acked_ids, cursor }
 
 GET /api/pull?since={cursor}&limit={limit}
-  Cookie: session_id
+  Headers: { Authorization: Bearer <token> }
   Response: { cursor, ops: [...] }
 ```
 
 ### State (Admin/Debug)
 ```
 GET /api/state?format=json&since={seq}
-  Cookie: session_id
+  Headers: { Authorization: Bearer <token> }
   Response: { verses: [...], reviews: [...], stats: {...} }
 ```
 
