@@ -23,18 +23,25 @@ The goal is to create a modern, offline-first Bible memory app that combines the
 - **Language**: TypeScript
 
 **Backend**:
-- **Framework**: Slim Framework (PHP micro-framework)
-- **Language**: PHP 8+
+- **Framework**: Raw PHP (improved structure with shared bootstrap) for phase 1.  Slim Framework for later phase.
+- **Language**: PHP 8.0+
 - **Database**: SQLite (development and production)
-- **Server**: Nginx/Apache
-- **Auth**: Simple token-based (after initial login) with secure password hashing
+- **Server**: Any PHP-capable server (Apache/Nginx/built-in)
+- **Auth**: Simple token-based with secure password hashing
+- **Configuration**: .env file for settings
 
 **Rationale**:
 - Alpine.js provides reactivity without heavy framework overhead
 - Dexie.js enables true offline-first with unlimited storage
-- Slim Framework adds structure while staying lightweight
+- Raw PHP keeps it simple for 3 endpoints (can migrate to Slim later if needed)
 - SQLite is perfect for single-user or small team usage
 - TypeScript adds type safety to client code
+- .env file provides flexible configuration management
+
+**Phase 1 Build Strategy**:
+- Vite compiles TypeScript to JavaScript
+- Alpine.js and Tailwind CSS loaded from CDN (zero config)
+- Phase 2 will bundle everything and purge Tailwind for optimization
 
 ---
 

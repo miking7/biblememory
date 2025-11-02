@@ -603,15 +603,98 @@ Before starting Phase 1 implementation, we need decisions on:
 
 ---
 
-## Questions for You
+## Decisions Made
 
-To move forward efficiently, please provide guidance on:
+All questions have been answered. Here are the confirmed decisions for Phase 1:
 
-1. **Reference format**: Should we implement the full book mapping now, and how should we handle verse ranges?
-2. **Phase 1 scope**: Should we include tags, translation, and favorite fields in Phase 1?
-3. **Review modes**: Reference mode only, or all four modes in Phase 1?
-4. **Authentication**: Should we hash tokens in the database for security?
-5. **Development setup**: Any preference for local development environment?
-6. **Timeline**: What's the target timeline for Phase 1 completion?
+### 1. Data Model
+- **1.1 Reference Format**: Add `refSort` field to UI (allow manual edits). Defer auto-mapping/parsing to Phase 2. Note questions about ranges/chapters for Phase 2 implementation.
+- **1.2 Multi-Paragraph Content**: Strip leading/trailing whitespace. Allow multiple consecutive line breaks. Normalize all pasted line breaks to `\n` before storing.
+- **1.3 Tags**: Use legacy format for UI input (comma-separated with `=` for values). Implement parser. Validate: alphanumeric + dots/hyphens, max 50 chars for keys, max 100 chars for values. Case-insensitive matching.
 
-Once we have clarity on these points, we can proceed confidently with implementation.
+### 2. Review Algorithm
+- **2.1 Thresholds**: Use spec's clean thresholds (7, 56, 112 days)
+- **2.2 Probability**: Calculate once per day, store daily flag
+- **2.3 Manual Override**: Allow manual category setting with visual indicator
+
+### 3. Sync Implementation
+- **3.1 Initial Sync**: Pull all operations (cursor=0), paginate if >1000
+- **3.2 Conflict Resolution**: Use `ts_server` for LWW, `op_id` as tiebreaker
+- **3.3 Offline Limits**: Allow outbox growth, warn at 500, error at 2000
+
+### 4. Authentication & Security
+- **4.1 Token Generation**: Use `random_bytes(32)` → `bin2hex()`, hash with `password_hash()` in database
+- **4.2 Password Requirements**: Minimum 8 characters, no complexity requirements, use PASSWORD_DEFAULT
+- **4.3 Registration Flow**: Email format validation only, return error on duplicate, auto-login after registration
+
+### 5. UI/UX
+- **5.1 Keyboard Shortcuts**: Implement shortcuts for all Phase 1 functionality. Note outstanding shortcuts for future phases.
+- **5.2 Mobile Optimization**: No swipe gestures in Phase 1. Note for Phase 2.
+- **5.3 Verse List Sorting**: Default sort by `refSort`, add dropdown for other options, save preference
+
+### 6. Data Migration
+- **6.1 Legacy Data Import**: Defer export/import capability to later phase. **NOTE FOR FUTURE**: Create export script for legacy app, JSON format, transform tags.
+- **6.2 Sample Data**: CSV is just for understanding legacy data, no import needed
+
+### 7. Development Environment
+- **7.1 Local Setup**: SQLite only (dev + prod). No specific environment recommendation - user can use any PHP environment.
+- **7.2 Build Process**: **TypeScript with Vite**. Use CDN for Alpine.js and Tailwind in Phase 1. Bundle in Phase 2 for optimization.
+
+### 8. Testing
+- **8.1 Testing Scope**: Manual testing only for Phase 1
+- **8.2 Test Data**: Create seed script using sample CSV data. Show button in settings when data is empty.
+
+### 9. Deployment
+- **9.1 Hosting**: PHP 8.0+, SQLite3, PDO, JSON extensions. Provide Apache .htaccess and Nginx config. HTTPS required for production.
+- **9.2 Database**: SQLite only for now. Don't document yet. No schema versioning in Phase 1.
+
+### 10. Feature Scope
+- **10.1 Phase 1 Features**: Include tags, translation, and favorite fields
+- **10.2 Review Modes**: Reference mode only (show reference, click to reveal content)
+
+### 11. Code Organization
+- **11.1 File Structure**: Separate auth endpoints. Use `.env` file (not `config.php`). Utility functions in `lib.php`.
+- **11.2 TypeScript**: Target ES2020, ES modules, strict mode enabled, no path aliases
+
+### 12. Documentation
+- **12.1 User Documentation**: Simple README. Keyboard shortcut hints in app - **DEFER TO LATER PHASE**.
+- **12.2 Developer Documentation**: Document sync protocol and review algorithm
+
+## Technology Stack Confirmed
+
+**Frontend:**
+- TypeScript (compiled with Vite)
+- Alpine.js 3.x (CDN in Phase 1, bundle in Phase 2)
+- Tailwind CSS (Play CDN in Phase 1, bundled + purged in Phase 2)
+- Dexie.js for IndexedDB
+- Vite for dev server and TypeScript compilation
+
+**Backend:**
+- PHP 8.0+
+- SQLite (dev and production)
+- Simple token-based authentication
+- .env for configuration
+
+**Build Process:**
+- Phase 1: Vite compiles TypeScript only, Alpine/Tailwind from CDN
+- Phase 2: Bundle everything, purge Tailwind CSS for optimization
+
+## Items Noted for Future Phases
+
+**Phase 2:**
+- Auto-mapping for `refSort` field (reference → machine format)
+- Additional review modes (hints, first letters, flash cards)
+- Mobile swipe gestures
+- Bundle Alpine.js and Tailwind CSS
+- Purge Tailwind CSS (~10-20KB vs 3.5MB)
+- Keyboard shortcut hints in UI
+- Legacy data export/import functionality
+
+**Later Phases:**
+- Automated testing
+- Schema versioning
+- Meditation/application prompts
+
+## Ready for Implementation
+
+All critical decisions have been made. The project is ready to proceed with Phase 1 implementation.
