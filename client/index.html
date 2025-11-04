@@ -4,183 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bible Memory App</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script type="module" src="/src/main.ts"></script>
-    <style>
-        * {
-            font-family: 'Inter', sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1e3a8a 0%, #312e81 50%, #1e293b 100%);
-            min-height: 100vh;
-        }
-        
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .gradient-text {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .btn-premium {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-        }
-        
-        .btn-premium:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
-        }
-        
-        .btn-gold {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
-        }
-        
-        .btn-gold:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.6);
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-        }
-        
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
-        }
-        
-        .btn-warning {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
-        }
-        
-        .btn-warning:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(249, 115, 22, 0.6);
-        }
-        
-        .stat-card {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
-        }
-        
-        .verse-card {
-            transition: all 0.3s ease;
-            border: 1px solid rgba(148, 163, 184, 0.2);
-        }
-        
-        .verse-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border-color: rgba(59, 130, 246, 0.3);
-        }
-        
-        .tab-button {
-            position: relative;
-            transition: all 0.3s ease;
-        }
-        
-        .tab-button.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
-            border-radius: 3px 3px 0 0;
-        }
-        
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-        
-        .review-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
-            border: 2px solid rgba(59, 130, 246, 0.2);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-        }
-        
-        .badge-notification {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: .7;
-            }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Multi-paragraph verse support - preserve line breaks and indentation */
-        .verse-content {
-            white-space: pre-wrap;
-        }
-
-        .offline-indicator {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(239, 68, 68, 0.9);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            z-index: 1000;
-        }
-
-        .online-indicator {
-            background: rgba(16, 185, 129, 0.9);
-        }
-    </style>
 </head>
 <body>
-    <div x-data="bibleMemoryApp()" class="container mx-auto px-4 py-8 max-w-5xl">
+    <div id="app" x-data="bibleMemoryApp()" class="container mx-auto px-4 py-8 max-w-5xl">
         <!-- Offline/Online Indicator -->
         <div x-show="!isOnline" class="offline-indicator">
             📡 Offline - Changes will sync when online
@@ -513,5 +342,7 @@
             </div>
         </div>
     </div>
+    
+    <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

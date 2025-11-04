@@ -1,0 +1,100 @@
+# Bible Memory App - Nginx Configuration Example
+# 
+# This is a sample Nginx configuration for the Bible Memory App.
+# Adjust paths and server names according to your setup.
+
+server {
+    listen 80;
+    server_name biblememory.example.com;
+    
+    # Document root points to the public directory
+    root /path/to/biblememory/server/public;
+    index index.php index.html;
+    
+    # Logging
+    access_log /var/log/nginx/biblememory-access.log;
+    error_log /var/log/nginx/biblememory-error.log;
+    
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/json application/xml+rss;
+    
+    # Static assets from dist/ - cache for 1 year
+    location /assets/ {
+        alias /path/to/biblememory/server/public/dist/assets/;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+    }
+    
+    # API endpoints - route to PHP
+    location /api/ {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+    
+    # PHP processing
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;  # Adjust PHP version as needed
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+    
+    # SPA fallback - all other requests go to index.php
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+    
+    # Deny access to sensitive files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+    
+    location ~ \.(env|sql|md|log)$ {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+    
+    # Deny access to vendor and other sensitive directories
+    location ~ ^/(vendor|node_modules|storage|database)/ {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+}
+
+# SSL Configuration (recommended for production)
+# Uncomment and configure after obtaining SSL certificate
+#
+# server {
+#     listen 443 ssl http2;
+#     server_name biblememory.example.com;
+#     
+#     ssl_certificate /path/to/ssl/cert.pem;
+#     ssl_certificate_key /path/to/ssl/key.pem;
+#     
+#     # SSL settings
+#     ssl_protocols TLSv1.2 TLSv1.3;
+#     ssl_ciphers HIGH:!aNULL:!MD5;
+#     ssl_prefer_server_ciphers on;
+#     
+#     # ... rest of configuration same as above ...
+# }
+#
+# # Redirect HTTP to HTTPS
+# server {
+#     listen 80;
+#     server_name biblememory.example.com;
+#     return 301 https://$server_name$request_uri;
+# }
