@@ -7,46 +7,55 @@
  * - All other requests serve the SPA
  */
 
-// Get the request URI
+// Get the request URI and method
 $requestUri = $_SERVER['REQUEST_URI'];
 $requestPath = parse_url($requestUri, PHP_URL_PATH);
+$requestMethod = $_SERVER['REQUEST_METHOD'];
 
 // Remove any query string for routing decisions
 $path = strtok($requestPath, '?');
 
-// Route API requests
+// API Routes
+$apiRoutes = [
+    'POST /api/register' => __DIR__ . '/../api/register.php',
+    'POST /api/login' => __DIR__ . '/../api/login.php',
+    'POST /api/logout' => __DIR__ . '/../api/logout.php',
+    'POST /api/push' => __DIR__ . '/../api/push.php',
+    'GET /api/pull' => __DIR__ . '/../api/pull.php',
+    'POST /api/migrate' => __DIR__ . '/../api/migrate.php',
+];
+
+// Check if this is an API request
 if (strpos($path, '/api/') === 0) {
-    // Extract the API endpoint
-    $endpoint = substr($path, 5); // Remove '/api/' prefix
+    $route = $requestMethod . ' ' . $path;
     
-    // Map endpoints to files
-    $apiFiles = [
-        'register' => __DIR__ . '/../api/register.php',
-        'login' => __DIR__ . '/../api/login.php',
-        'logout' => __DIR__ . '/../api/logout.php',
-        'push' => __DIR__ . '/../api/push.php',
-        'pull' => __DIR__ . '/../api/pull.php',
-        'migrate' => __DIR__ . '/../api/migrate.php',
-    ];
-    
-    // Remove .php extension if present
-    $endpoint = str_replace('.php', '', $endpoint);
-    
-    if (isset($apiFiles[$endpoint]) && file_exists($apiFiles[$endpoint])) {
-        require $apiFiles[$endpoint];
+    if (isset($apiRoutes[$route]) && file_exists($apiRoutes[$route])) {
+        require $apiRoutes[$route];
         exit;
     } else {
         http_response_code(404);
         header('Content-Type: application/json');
-        echo json_encode(['error' => 'API endpoint not found']);
+        echo json_encode([
+            'error' => 'API endpoint not found',
+            'path' => $path,
+            'method' => $requestMethod
+        ]);
         exit;
     }
 }
 
-// Serve static assets from dist/ if they exist
-if (strpos($path, '/assets/') === 0) {
+// For PHP's built-in server, let it serve static files directly
+if (php_sapi_name() === 'cli-server') {
+    $file = __DIR__ . '/dist' . $path;
+    if (is_file($file)) {
+        return false; // Let PHP's built-in server handle it
+    }
+}
+
+// Serve static assets from dist/
+if (strpos($path, '/assets/') === 0 || $path === '/favicon.ico') {
     $assetPath = __DIR__ . '/dist' . $path;
-    if (file_exists($assetPath)) {
+    if (file_exists($assetPath) && is_file($assetPath)) {
         // Determine content type
         $ext = pathinfo($assetPath, PATHINFO_EXTENSION);
         $contentTypes = [
@@ -57,6 +66,7 @@ if (strpos($path, '/assets/') === 0) {
             'jpeg' => 'image/jpeg',
             'gif' => 'image/gif',
             'svg' => 'image/svg+xml',
+            'ico' => 'image/x-icon',
             'woff' => 'font/woff',
             'woff2' => 'font/woff2',
             'ttf' => 'font/ttf',
