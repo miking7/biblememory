@@ -68,6 +68,19 @@ CREATE VIEW IF NOT EXISTS current_verses AS
         AND json_extract(o2.data_json, '$.id') = json_extract(ops.data_json, '$.id')
     );
 
+-- View for reviews (derived from ops)
+CREATE VIEW IF NOT EXISTS reviews_view AS
+  SELECT 
+    user_id,
+    json_extract(data_json, '$.id') as review_id,
+    json_extract(data_json, '$.verseId') as verse_id,
+    json_extract(data_json, '$.reviewType') as review_type,
+    json_extract(data_json, '$.createdAt') as created_at,
+    ts_server
+  FROM ops
+  WHERE entity = 'review'
+    AND action = 'add';
+
 -- View for user stats
 CREATE VIEW IF NOT EXISTS user_stats AS
   SELECT 
