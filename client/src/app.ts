@@ -24,30 +24,43 @@ import {
 } from "./sync";
 
 // Schedule automatic sync (only called when authenticated)
-function scheduleSync() {
+function scheduleSync(app: any) {
   console.log("Starting sync schedule...");
+  
+  // Helper to sync and reload UI
+  const syncAndReload = async () => {
+    try {
+      await syncNow();
+      // Reload verses and stats after sync
+      await app.loadVerses();
+      await app.updateStats();
+      console.log("Sync completed and UI updated");
+    } catch (err) {
+      console.error("Sync failed:", err);
+    }
+  };
   
   // Initial sync
   if (navigator.onLine) {
-    syncNow().catch(err => console.error("Initial sync failed:", err));
+    syncAndReload();
   }
   
   // Sync every 60 seconds if online
   setInterval(() => {
     if (navigator.onLine) {
-      syncNow().catch(err => console.error("Periodic sync failed:", err));
+      syncAndReload();
     }
   }, 60_000);
   
   // Sync when coming back online
   window.addEventListener("online", () => {
-    syncNow().catch(err => console.error("Online sync failed:", err));
+    syncAndReload();
   });
   
   // Sync when tab becomes visible
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && navigator.onLine) {
-      syncNow().catch(err => console.error("Visibility sync failed:", err));
+      syncAndReload();
     }
   });
 }
@@ -125,7 +138,7 @@ export function bibleMemoryApp() {
       
       // Start sync schedule only if authenticated
       if (this.isAuthenticated) {
-        scheduleSync();
+        scheduleSync(this);
       }
       
       console.log("App initialized successfully");
@@ -188,7 +201,7 @@ export function bibleMemoryApp() {
         this.closeAuthModal();
         
         // Start sync (will merge local and server data)
-        scheduleSync();
+        scheduleSync(this);
         
         // Reload data (will include server verses)
         await this.loadVerses();
@@ -249,7 +262,7 @@ export function bibleMemoryApp() {
         }
         
         // Start sync (this will migrate local data)
-        scheduleSync();
+        scheduleSync(this);
         
         // Reload data
         await this.loadVerses();
