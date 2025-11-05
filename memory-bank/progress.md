@@ -96,46 +96,54 @@
 
 ## What's Left to Build
 
-### Phase 1.5: Authentication UI (In Progress)
+### Phase 1.5: Authentication UI (Complete ✅)
 
-**Status:** Planning Complete, Implementation Starting  
+**Status:** Implementation Complete, Testing in Progress  
+**Completed:** January 6, 2025  
 **Goal:** Add optional authentication with smart prompts for multi-device sync
 
 #### Core Features
-- [ ] Authentication state management in app
-- [ ] Persistent auth banner (anonymous and authenticated states)
-- [ ] Authentication modal (login/register forms)
-- [ ] Strategic prompts (after 3 verses, after first review, before export)
-- [ ] Data migration on signup (sync local verses to server)
-- [ ] Account menu in header (user email, sync status, logout)
-- [ ] Sync status indicator (local-only, synced, syncing, error)
-- [ ] Modified sync behavior (only sync when authenticated)
+- [x] Authentication state management in app
+- [x] Persistent auth banner (anonymous and authenticated states)
+- [x] Authentication modal (login/register forms)
+- [x] Data migration on signup (sync local verses to server)
+- [x] Sync status indicator in banner
+- [x] Modified sync behavior (only sync when authenticated)
+- ⏭️ Strategic prompts (deferred - optional enhancement)
+- ⏭️ Account menu in header (covered by banner)
 
 #### User Experience
-- [ ] App works fully without authentication (local-only mode)
-- [ ] Users can add/edit/review verses immediately
-- [ ] Dismissible banner encourages signup
-- [ ] Seamless migration of local data on signup
-- [ ] Clear sync status indicators
-- [ ] Logout preserves local data
+- [x] App works fully without authentication (local-only mode)
+- [x] Users can add/edit/review verses immediately
+- [x] Banner encourages signup (not dismissible - always visible)
+- [x] Seamless migration of local data on signup
+- [x] Clear sync status indicators in banner
+- [x] Logout preserves local data
 
 #### Technical Implementation
-- [ ] Add auth state to Alpine.js app
-- [ ] Build auth banner component
-- [ ] Build auth modal with forms
-- [ ] Implement strategic prompt logic
-- [ ] Add data migration function
-- [ ] Update sync.ts to check authentication
-- [ ] Add localStorage tracking for prompts
-- [ ] Style all components with glass-morphism
+- [x] Add auth state to Alpine.js app
+- [x] Build auth banner component (two states)
+- [x] Build auth modal with forms (login/register toggle)
+- [x] Add data migration function
+- [x] Update sync.ts to check authentication
+- [x] Style all components with glass-morphism
+- [x] **Bug Fix:** Fixed API routing (removed .php extensions)
+- ⏭️ Strategic prompt logic (deferred)
+- ⏭️ localStorage tracking for prompts (deferred)
 
 #### Testing
-- [ ] Anonymous user flow (use without auth)
-- [ ] Authentication flow (login/register)
+- [ ] Anonymous user flow (use without auth) - **In Progress**
+- [ ] Authentication flow (login/register) - **In Progress**
 - [ ] Data migration (local verses sync on signup)
 - [ ] Authenticated user flow (sync, logout)
 - [ ] Multi-device sync
 - [ ] Edge cases (offline, token expiry, errors)
+
+#### Bug Fixes
+- [x] **API Routing Issue** - Client was calling `/api/register.php` but server expected `/api/register`
+  - **Solution:** Updated client to use RESTful URLs (removed .php extensions)
+  - **Files Changed:** `client/src/sync.ts`
+  - **Rationale:** Modern convention, future-proof, cleaner API design
 
 **See:** `memory-bank/authentication-implementation-plan.md` for detailed plan
 

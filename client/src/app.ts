@@ -64,6 +64,7 @@ export function bibleMemoryApp() {
     showAuthModal: false,
     authMode: 'login' as 'login' | 'register',
     authLoading: false,
+    showUserMenu: false,
     
     // Auth form
     authForm: {
