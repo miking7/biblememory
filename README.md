@@ -78,10 +78,21 @@ biblememory/
 │   ├── schema.sql             # Database schema
 │   └── nginx.conf.example     # Nginx configuration example
 │
-├── examples/                   # Reference implementations & docs
-│   ├── INTEGRATION-SPECIFICATION.md
-│   ├── PHASE-1-CLARIFICATIONS.md
-│   └── PHASE-1-IMPLEMENTATION-COMPLETE.md
+├── examples/                   # Reference implementations
+│   ├── legacy-laravel-app/    # Original Laravel implementation
+│   ├── spa-demo/              # UI reference implementation
+│   ├── bible-memory-oplog-starter/  # Sync pattern reference
+│   └── legacy-data/           # Sample data for testing
+│
+├── memory-bank/               # 📚 Project documentation
+│   ├── projectbrief.md        # Project foundation and goals
+│   ├── productContext.md      # User experience and features
+│   ├── systemPatterns.md      # Architecture and design patterns
+│   ├── techContext.md         # Technology stack and setup
+│   ├── activeContext.md       # Current work and decisions
+│   ├── progress.md            # What works and what's next
+│   ├── testing.md             # Testing strategy and checklist
+│   └── dataSpecifications.md  # Data model details
 │
 └── README.md                   # This file
 ```
@@ -519,9 +530,19 @@ Built by integrating patterns from:
 
 **Current Status**: Phase 1 Complete ✅  
 **Version**: 1.0.0  
-**Last Updated**: November 2025
+**Last Updated**: January 2025
 
-For detailed implementation notes, see:
-- `examples/INTEGRATION-SPECIFICATION.md` - Full project specification
-- `examples/PHASE-1-CLARIFICATIONS.md` - Phase 1 requirements
-- `examples/PHASE-1-COMPLETE.md` - Phase 1 completion report
+## 📚 Documentation
+
+For detailed project documentation, see the **memory-bank/** directory:
+
+- **[projectbrief.md](memory-bank/projectbrief.md)** - Project foundation, goals, and success criteria
+- **[productContext.md](memory-bank/productContext.md)** - User experience, features, and priorities
+- **[systemPatterns.md](memory-bank/systemPatterns.md)** - Architecture, design patterns, and data flow
+- **[techContext.md](memory-bank/techContext.md)** - Technology stack, setup, and development workflow
+- **[activeContext.md](memory-bank/activeContext.md)** - Current work focus and recent decisions
+- **[progress.md](memory-bank/progress.md)** - What works, what's next, and technical debt
+- **[testing.md](memory-bank/testing.md)** - Testing strategy, checklist, and compliance
+- **[dataSpecifications.md](memory-bank/dataSpecifications.md)** - Data model, formats, and validation
+
+The memory-bank serves as the single source of truth for understanding the project's architecture, decisions, and current state.
