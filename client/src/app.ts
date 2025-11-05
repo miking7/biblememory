@@ -11,10 +11,19 @@ import {
   parseTags,
   formatTags
 } from "./actions";
-import { syncNow } from "./sync";
+import { 
+  syncNow, 
+  isAuthenticated, 
+  login, 
+  register, 
+  logout,
+  getCurrentUserId 
+} from "./sync";
 
-// Schedule automatic sync
+// Schedule automatic sync (only called when authenticated)
 function scheduleSync() {
+  console.log("Starting sync schedule...");
+  
   // Initial sync
   if (navigator.onLine) {
     syncNow().catch(err => console.error("Initial sync failed:", err));
@@ -48,6 +57,21 @@ export function bibleMemoryApp() {
     verses: [] as Verse[],
     searchQuery: '',
     isOnline: navigator.onLine,
+    
+    // Authentication state
+    isAuthenticated: false,
+    userEmail: '',
+    showAuthModal: false,
+    authMode: 'login' as 'login' | 'register',
+    authLoading: false,
+    
+    // Auth form
+    authForm: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+      error: ''
+    },
     
     // Add verse form
     newVerse: {
@@ -84,14 +108,174 @@ export function bibleMemoryApp() {
         this.isOnline = false;
       });
       
+      // Check authentication status
+      await this.checkAuth();
+      
       // Load initial data
       await this.loadVerses();
       await this.updateStats();
       
-      // Start sync schedule
-      scheduleSync();
+      // Start sync schedule only if authenticated
+      if (this.isAuthenticated) {
+        scheduleSync();
+      }
       
       console.log("App initialized successfully");
+    },
+    
+    // Check authentication status
+    async checkAuth() {
+      try {
+        this.isAuthenticated = await isAuthenticated();
+        if (this.isAuthenticated) {
+          const userId = await getCurrentUserId();
+          // For now, just show user ID. We'll get email from auth table later
+          this.userEmail = userId || 'user@example.com';
+        }
+      } catch (error) {
+        console.error("Failed to check auth:", error);
+        this.isAuthenticated = false;
+      }
+    },
+    
+    // Open auth modal
+    openAuthModal(mode: 'login' | 'register' = 'login') {
+      this.authMode = mode;
+      this.authForm.email = '';
+      this.authForm.password = '';
+      this.authForm.confirmPassword = '';
+      this.authForm.error = '';
+      this.showAuthModal = true;
+    },
+    
+    // Close auth modal
+    closeAuthModal() {
+      this.showAuthModal = false;
+      this.authForm.error = '';
+    },
+    
+    // Handle login
+    async handleLogin() {
+      this.authForm.error = '';
+      
+      // Validation
+      if (!this.authForm.email || !this.authForm.password) {
+        this.authForm.error = 'Please enter email and password';
+        return;
+      }
+      
+      this.authLoading = true;
+      
+      try {
+        // Check if user has local verses before logging in
+        const localVerseCount = this.verses.length;
+        
+        await login(this.authForm.email, this.authForm.password);
+        
+        // Update auth state
+        this.isAuthenticated = true;
+        this.userEmail = this.authForm.email;
+        
+        // Close modal
+        this.closeAuthModal();
+        
+        // Start sync (will merge local and server data)
+        scheduleSync();
+        
+        // Reload data (will include server verses)
+        await this.loadVerses();
+        
+        console.log("Login successful");
+        
+        // Notify user if they had local verses
+        if (localVerseCount > 0) {
+          console.log(`Syncing ${localVerseCount} local verses with server...`);
+        }
+      } catch (error: any) {
+        console.error("Login failed:", error);
+        this.authForm.error = error.message || 'Login failed. Please try again.';
+      } finally {
+        this.authLoading = false;
+      }
+    },
+    
+    // Handle registration
+    async handleRegister() {
+      this.authForm.error = '';
+      
+      // Validation
+      if (!this.authForm.email || !this.authForm.password) {
+        this.authForm.error = 'Please enter email and password';
+        return;
+      }
+      
+      if (this.authForm.password.length < 8) {
+        this.authForm.error = 'Password must be at least 8 characters';
+        return;
+      }
+      
+      if (this.authForm.password !== this.authForm.confirmPassword) {
+        this.authForm.error = 'Passwords do not match';
+        return;
+      }
+      
+      this.authLoading = true;
+      
+      try {
+        // Check if user has local verses before registering
+        const localVerseCount = this.verses.length;
+        
+        await register(this.authForm.email, this.authForm.password);
+        
+        // Update auth state
+        this.isAuthenticated = true;
+        this.userEmail = this.authForm.email;
+        
+        // Close modal
+        this.closeAuthModal();
+        
+        // If user had local verses, they'll be synced automatically
+        if (localVerseCount > 0) {
+          console.log(`Migrating ${localVerseCount} local verses to server...`);
+          // The sync will happen automatically via scheduleSync
+        }
+        
+        // Start sync (this will migrate local data)
+        scheduleSync();
+        
+        // Reload data
+        await this.loadVerses();
+        
+        console.log("Registration successful");
+        if (localVerseCount > 0) {
+          alert(`Welcome! Your ${localVerseCount} verses are being synced to your account.`);
+        }
+      } catch (error: any) {
+        console.error("Registration failed:", error);
+        this.authForm.error = error.message || 'Registration failed. Please try again.';
+      } finally {
+        this.authLoading = false;
+      }
+    },
+    
+    // Handle logout
+    async handleLogout() {
+      if (!confirm('Are you sure you want to logout? Your local data will be preserved.')) {
+        return;
+      }
+      
+      try {
+        await logout();
+        
+        // Update auth state
+        this.isAuthenticated = false;
+        this.userEmail = '';
+        
+        console.log("Logout successful");
+      } catch (error) {
+        console.error("Logout failed:", error);
+        alert("Logout failed. Please try again.");
+      }
     },
     
     // Load verses from database
