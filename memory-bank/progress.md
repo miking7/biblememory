@@ -22,6 +22,8 @@
 - Search and filter functionality
 - Unicode-insensitive search (handles accented characters)
 - Context-aware empty states (distinguishes no verses vs. no search results)
+- Tag display in My Verses (footer with metadata) and Review (inline with translation)
+- Translation badge inline with verse title in My Verses
 
 #### Data Management
 - IndexedDB storage via Dexie.js (7 tables)

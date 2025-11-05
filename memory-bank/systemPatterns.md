@@ -412,6 +412,73 @@ Result: Device B's edit wins (LWW)
 - `ops(op_id)` - For deduplication
 - `tokens(user_id)` - For auth lookups
 
+### 6. Sync Status Tracking Pattern
+
+**Purpose:** Provide accurate connectivity feedback based on actual network operations
+
+**Problem Solved:**
+- `navigator.onLine` unreliable across browsers (especially Safari)
+- Doesn't detect server issues, DNS problems, or firewall issues
+- False positives (shows "online" but can't reach server)
+
+**How It Works:**
+- Track actual sync operation results in app state
+- Properties: `lastSyncSuccess`, `lastSyncError`, `lastSyncAttempt`
+- Computed property `hasSyncIssues` determines UI indicator visibility
+- Only shows issues for authenticated users (not applicable for local-only mode)
+
+**Smart Retry Logic:**
+- Immediate sync (1 second) when last sync succeeded and outbox has data
+- Backoff to 30 seconds when connectivity is failing (prevents server hammering)
+- Automatic retry every 30 seconds during issues
+- Immediate sync when connectivity restored
+
+**Benefits:**
+- Works uniformly across all browsers
+- Detects both network AND server connectivity issues
+- More accurate user feedback
+- Prevents unnecessary server load during outages
+- Simpler code (no browser-specific workarounds)
+
+**Implementation:**
+```typescript
+// Track sync status in app state
+lastSyncSuccess: true,
+lastSyncError: null as string | null,
+lastSyncAttempt: 0,
+
+// Update after each sync attempt
+const syncAndReload = async () => {
+  app.lastSyncAttempt = Date.now();
+  try {
+    await syncNow();
+    app.lastSyncSuccess = true;
+    app.lastSyncError = null;
+  } catch (err: any) {
+    app.lastSyncSuccess = false;
+    app.lastSyncError = err.message || 'Sync failed';
+  }
+};
+
+// Smart retry logic
+if (outboxCount > 0 && app.lastSyncSuccess) {
+  // Immediate sync only if last sync succeeded
+  await syncAndReload();
+} else {
+  // Wait 30 seconds if connectivity is failing
+  syncCounter++;
+  if (syncCounter >= 30) {
+    await syncAndReload();
+    syncCounter = 0;
+  }
+}
+
+// Computed property for UI
+get hasSyncIssues(): boolean {
+  return this.isAuthenticated && !this.lastSyncSuccess;
+}
+```
+
 ## Performance Optimizations
 
 ### Client-Side

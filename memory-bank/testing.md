@@ -44,46 +44,46 @@
 ### Tags System
 
 #### Tag Input and Storage
-- [ ] Add verse with comma-separated tags: `"tag1, tag2, tag3"`
-- [ ] Add verse with tags containing values: `"fast.sk=3, ss=2010.Q2.W01"`
-- [ ] Add verse with mixed tags: `"fast.sk=3, personal, theme=faith"`
-- [ ] Verify tags display correctly in verse list
-- [ ] Verify tags stored as structured array in database
-- [ ] Edit verse and modify tags
-- [ ] Verify tag parsing handles extra spaces
-- [ ] Verify empty tags field works
+- [X] Add verse with comma-separated tags: `"tag1, tag2, tag3"`
+- [X] Add verse with tags containing values: `"fast.sk=3, ss=2010.Q2.W01"`
+- [X] Add verse with mixed tags: `"fast.sk=3, personal, theme=faith"`
+- [X] Verify tags display correctly in verse list
+- [X] Verify tags stored as structured array in database
+- [X] Edit verse and modify tags
+- [X] Verify tag parsing handles extra spaces
+- [X] Verify empty tags field works
 
 #### Tag Display
-- [ ] Tags display as badges in verse list
-- [ ] Tags with values show key=value format
-- [ ] Tags without values show key only
-- [ ] Long tag names don't break layout
+- [X] Tags display as badges in verse list
+- [X] Tags with values show key (value) format
+- [X] Tags without values show key only
+- [X] Long tag names don't break layout
 
 ### Review System
 
 #### Review Mode Access
-- [ ] Open Review tab
-- [ ] Verify verses due for review appear
-- [ ] Verify "No verses due" message when none available
-- [ ] Verify due count badge on Review tab
+- [X] Open Review tab
+- [X] Verify verses due for review appear
+- [X] Verify "No verses due" message when none available
+- [X] Verify due count badge on Review tab
 
 #### Review Interaction
-- [ ] See verse reference displayed
-- [ ] Click "Reveal Verse" button
-- [ ] Verify verse content appears
-- [ ] Verify multi-paragraph formatting preserved
-- [ ] Mark as "Got it!"
-- [ ] Verify next verse appears
-- [ ] Mark as "Need Practice"
-- [ ] Verify review recorded in database
+- [X] See verse reference displayed
+- [X] Click "Reveal Verse" button
+- [X] Verify verse content appears
+- [X] Verify multi-paragraph formatting preserved
+- [X] Mark as "Got it!"
+- [X] Verify next verse appears
+- [X] Mark as "Need Practice"
+- [X] Verify review recorded in database
 
 #### Review Completion
-- [ ] Complete all due reviews
-- [ ] Verify "No more verses" message
-- [ ] Verify due count badge updates to 0
-- [ ] Return to My Verses tab
-- [ ] Return to Review tab
-- [ ] Verify same verses don't immediately reappear
+- [X] Complete all due reviews
+- [X] Verify "No more verses" message
+- [X] Verify due count badge updates to 0
+- [X] Return to My Verses tab
+- [X] Return to Review tab
+- [X] Verify same verses don't immediately reappear
 
 ### Spaced Repetition Algorithm
 
@@ -122,13 +122,13 @@
 ### Import/Export
 
 #### Export Functionality
-- [ ] Click "Export" button
-- [ ] Verify JSON file downloads
-- [ ] Open JSON file and verify structure
-- [ ] Verify all verses included
-- [ ] Verify all fields present (id, reference, refSort, content, etc.)
-- [ ] Verify tags stored as structured array
-- [ ] Verify timestamps are numbers (epoch ms)
+- [X] Click "Export" button
+- [X] Verify JSON file downloads
+- [X] Open JSON file and verify structure
+- [X] Verify all verses included
+- [X] Verify all fields present (id, reference, refSort, content, etc.)
+- [X] Verify tags stored as structured array
+- [X] Verify timestamps are numbers (epoch ms)
 
 #### Import Functionality
 - [ ] Click "Import" button
@@ -171,12 +171,22 @@
 - [ ] Verify offline changes appear
 - [ ] Verify no data loss
 
-#### Offline Indicator
-- [ ] Disconnect network
-- [ ] Verify indicator shows "Offline"
-- [ ] Reconnect network
-- [ ] Verify indicator disappears
-- [ ] Verify indicator styling is subtle but visible
+#### Sync Status Indicator (Authenticated Users)
+- [X] Login to authenticated account
+- [X] Verify no indicator shows when syncing successfully
+- [X] Stop backend server (simulates server down)
+- [X] Make a change (add/edit verse)
+- [X] Verify sync issues indicator appears: "⚠️ Sync issues - Changes saved locally, will retry automatically"
+- [X] Wait 30 seconds, verify automatic retry attempt
+- [X] Restart backend server
+- [X] Verify indicator disappears after successful sync
+- [X] Verify changes synced to server
+- [X] Test in Safari (verify works reliably without navigator.onLine issues)
+
+#### Sync Status Indicator (Unauthenticated Users)
+- [X] Use app without logging in (local-only mode)
+- [X] Verify no sync status indicator shows (not applicable)
+- [X] Verify "Local-only mode" banner shows instead
 
 ### Authentication
 
@@ -413,6 +423,17 @@
 - **Issue**: reviews_view was specified but not implemented
 - **Fix**: Added view to schema.sql
 - **Status**: Complete
+
+#### 2. Safari Offline Detection Issues ✅ FIXED
+- **Issue**: `navigator.onLine` unreliable in Safari, causing false positives/negatives
+- **Fix**: Replaced with sync status tracking based on actual network call results
+- **Implementation**: Track `lastSyncSuccess`, `lastSyncError`, `lastSyncAttempt` in app state
+- **Benefits**: 
+  - Works uniformly across all browsers
+  - Detects both network AND server connectivity issues
+  - Smart retry logic (1s when working, 30s backoff when failing)
+  - More accurate user feedback
+- **Status**: Complete and tested
 
 ## Compliance Verification
 

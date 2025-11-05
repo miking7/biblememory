@@ -38,9 +38,9 @@
     </div>
 
     <div id="app" class="container mx-auto px-4 py-8 max-w-5xl">
-        <!-- Offline/Online Indicator -->
-        <div x-show="!isOnline" class="offline-indicator">
-            📡 Offline - Changes will sync when online
+        <!-- Sync Issues Indicator -->
+        <div x-show="hasSyncIssues" class="offline-indicator">
+            ⚠️ Sync issues - currently offline. Changes saved locally.
         </div>
 
         <!-- Header -->
@@ -245,8 +245,8 @@
                     <template x-for="verse in filteredVerses" :key="verse.id">
                         <div class="verse-card bg-gradient-to-br from-white to-slate-50 rounded-xl p-6 shadow-md">
                             <div class="flex justify-between items-start mb-3">
-                                <div>
-                                    <h3 class="font-bold text-xl text-slate-800 mb-1" x-text="verse.reference"></h3>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h3 class="font-bold text-xl text-slate-800" x-text="verse.reference"></h3>
                                     <span x-show="verse.translation" 
                                           class="text-xs text-slate-500 font-medium px-2 py-1 bg-slate-100 rounded"
                                           x-text="verse.translation"></span>
@@ -265,9 +265,18 @@
                                 </div>
                             </div>
                             <p class="verse-content text-slate-700 mb-3 leading-relaxed" x-text="verse.content"></p>
-                            <div class="flex justify-between items-center text-xs text-slate-500 font-medium">
-                                <span x-text="'Added: ' + new Date(verse.createdAt).toLocaleDateString()"></span>
-                                <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded" x-text="verse.reviewCat"></span>
+                            <div class="flex flex-wrap justify-between items-center gap-2 text-xs text-slate-500 font-medium">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span x-text="'Added: ' + new Date(verse.createdAt).toLocaleDateString()"></span>
+                                    <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded" x-text="verse.reviewCat"></span>
+                                    <template x-if="verse.tags && verse.tags.length > 0">
+                                        <div class="flex flex-wrap items-center gap-1">
+                                            <template x-for="tag in verse.tags" :key="tag.key">
+                                                <span class="px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs font-medium" x-text="formatTagForDisplay(tag)"></span>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
                         </div>
                     </template>
@@ -296,9 +305,16 @@
                         <div class="review-card rounded-2xl p-10 min-h-[350px] flex flex-col justify-center items-center">
                             <div class="text-center mb-8">
                                 <h3 class="text-4xl font-bold text-slate-800 mb-2" x-text="currentReviewVerse.reference"></h3>
-                                <span x-show="currentReviewVerse.translation" 
-                                      class="text-sm text-slate-500 font-medium px-3 py-1 bg-slate-100 rounded-full"
-                                      x-text="currentReviewVerse.translation"></span>
+                                <div class="flex flex-wrap items-center justify-center gap-2 mt-3">
+                                    <span x-show="currentReviewVerse.translation" 
+                                          class="text-sm text-slate-500 font-medium px-3 py-1 bg-slate-100 rounded-full"
+                                          x-text="currentReviewVerse.translation"></span>
+                                    <template x-if="currentReviewVerse.tags && currentReviewVerse.tags.length > 0">
+                                        <template x-for="tag in currentReviewVerse.tags" :key="tag.key">
+                                            <span class="text-sm text-purple-700 font-medium px-3 py-1 bg-purple-50 rounded-full" x-text="formatTagForDisplay(tag)"></span>
+                                        </template>
+                                    </template>
+                                </div>
                             </div>
 
                             <div x-show="!showVerseText" class="text-center">

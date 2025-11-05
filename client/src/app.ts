@@ -39,33 +39,38 @@ function scheduleSync(app: any) {
   
   // Helper to sync and reload UI
   const syncAndReload = async () => {
+    app.lastSyncAttempt = Date.now();
     try {
       await syncNow();
       // Reload verses and stats after sync
       await app.loadVerses();
       await app.updateStats();
+      
+      // Update sync status
+      app.lastSyncSuccess = true;
+      app.lastSyncError = null;
       console.log("Sync completed and UI updated");
-    } catch (err) {
+    } catch (err: any) {
+      // Update sync status
+      app.lastSyncSuccess = false;
+      app.lastSyncError = err.message || 'Sync failed';
       console.error("Sync failed:", err);
     }
   };
   
   // Initial sync
-  if (navigator.onLine) {
-    syncAndReload();
-  }
+  syncAndReload();
   
   // Adaptive sync with 1-second check interval
   let syncCounter = 0;
   
   setInterval(async () => {
-    if (!navigator.onLine) return;
-    
     // Check if there's pending data in outbox
     const outboxCount = await db.outbox.count();
     
-    if (outboxCount > 0) {
-      // Immediate sync when there's pending data
+    if (outboxCount > 0 && app.lastSyncSuccess) {
+      // Only do immediate sync if last sync succeeded
+      // If connectivity is failing, wait for normal 30-second interval
       console.log(`Outbox has ${outboxCount} pending operations, syncing now...`);
       await syncAndReload();
       syncCounter = 0; // Reset counter after sync
@@ -73,7 +78,7 @@ function scheduleSync(app: any) {
       // Increment counter for periodic sync
       syncCounter++;
       
-      // Periodic sync every 30 seconds when idle
+      // Periodic sync every 30 seconds
       if (syncCounter >= 30) {
         console.log("Periodic sync (30 seconds elapsed)");
         await syncAndReload();
@@ -82,14 +87,9 @@ function scheduleSync(app: any) {
     }
   }, 1000); // Check every 1 second
   
-  // Sync when coming back online
-  window.addEventListener("online", () => {
-    syncAndReload();
-  });
-  
   // Sync when tab becomes visible
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && navigator.onLine) {
+    if (document.visibilityState === "visible") {
       syncAndReload();
     }
   });
@@ -102,7 +102,11 @@ export function bibleMemoryApp() {
     currentTab: 'add',
     verses: [] as Verse[],
     searchQuery: '',
-    isOnline: navigator.onLine,
+    
+    // Sync status tracking (replaces navigator.onLine)
+    lastSyncSuccess: true,
+    lastSyncError: null as string | null,
+    lastSyncAttempt: 0,
     
     // Authentication state
     isAuthenticated: false,
@@ -151,14 +155,6 @@ export function bibleMemoryApp() {
       // Set default startedAt to today
       this.newVerse.startedAtInput = epochToDateString(getTodayMidnight());
       
-      // Set up online/offline detection
-      window.addEventListener('online', () => {
-        this.isOnline = true;
-      });
-      window.addEventListener('offline', () => {
-        this.isOnline = false;
-      });
-      
       // Check authentication status
       await this.checkAuth();
       
@@ -167,6 +163,7 @@ export function bibleMemoryApp() {
       await this.updateStats();
       
       // Start sync schedule only if authenticated
+      // Sync status will be tracked via actual sync results
       if (this.isAuthenticated) {
         scheduleSync(this);
       }
@@ -469,6 +466,14 @@ export function bibleMemoryApp() {
         .replace(/[\u0300-\u036f]/g, ''); // Remove diacritics
     },
     
+    // Format a single tag for display
+    formatTagForDisplay(tag: { key: string; value: string }): string {
+      if (tag.value) {
+        return `${tag.key} (${tag.value})`;
+      }
+      return tag.key;
+    },
+    
     // Get filtered verses based on search
     get filteredVerses(): Verse[] {
       if (!this.searchQuery) {
@@ -485,6 +490,12 @@ export function bibleMemoryApp() {
     // Check if we have verses but search returned no results
     get hasVersesButNoSearchResults(): boolean {
       return this.verses.length > 0 && this.filteredVerses.length === 0 && this.searchQuery.length > 0;
+    },
+    
+    // Get sync status indicator (replaces isOnline)
+    get hasSyncIssues(): boolean {
+      // Only show sync issues if authenticated and last sync failed
+      return this.isAuthenticated && !this.lastSyncSuccess;
     },
     
     // Get verses due for review
