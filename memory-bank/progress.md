@@ -74,9 +74,13 @@
 
 #### Import/Export
 - Export all verses to JSON
-- Import verses from JSON
-- Preserves all metadata (tags, dates, etc.)
-- Handles duplicates gracefully
+- Import verses from JSON with smart ID handling
+- Updates existing verses (matching IDs)
+- Adds new verses with collision-safe UUIDs (non-matching IDs)
+- Preserves all metadata (tags, dates, timestamps)
+- Merges imported data with existing data for missing fields
+- Clear pre/post-import feedback with counts
+- Review history preserved during updates
 
 #### Backend API
 - PHP 8.0+ with strict types

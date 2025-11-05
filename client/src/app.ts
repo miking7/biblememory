@@ -590,25 +590,76 @@ export function bibleMemoryApp() {
           throw new Error("Invalid file format");
         }
         
-        if (!confirm(`Import ${imported.length} verses? This will add to your existing verses.`)) {
+        // Analyze what will be updated vs added
+        const existingIds = new Set(this.verses.map(v => v.id));
+        let updateCount = 0;
+        let addCount = 0;
+        
+        for (const verse of imported) {
+          if (verse.id && existingIds.has(verse.id)) {
+            updateCount++;
+          } else {
+            addCount++;
+          }
+        }
+        
+        // Confirm with user
+        const message = updateCount > 0 
+          ? `Import will update ${updateCount} existing verse${updateCount !== 1 ? 's' : ''} and add ${addCount} new verse${addCount !== 1 ? 's' : ''}. Continue?`
+          : `Import ${addCount} new verse${addCount !== 1 ? 's' : ''}?`;
+        
+        if (!confirm(message)) {
           return;
         }
         
         // Import each verse
         for (const verse of imported) {
-          await addVerse({
-            reference: verse.reference,
-            refSort: verse.refSort || verse.reference,
-            content: verse.content || verse.text,
-            translation: verse.translation || '',
-            tags: verse.tags || []
-          });
+          const hasExistingId = verse.id && existingIds.has(verse.id);
+          
+          if (hasExistingId) {
+            // Update existing verse - merge with existing data for missing fields
+            const existing = this.verses.find(v => v.id === verse.id);
+            if (existing) {
+              await updateVerse(verse.id, {
+                reference: verse.reference ?? existing.reference,
+                refSort: verse.refSort ?? existing.refSort,
+                content: verse.content ?? verse.text ?? existing.content,
+                translation: verse.translation ?? existing.translation,
+                tags: verse.tags ?? existing.tags,
+                startedAt: verse.startedAt ?? existing.startedAt,
+                reviewCat: verse.reviewCat ?? existing.reviewCat,
+                favorite: verse.favorite ?? existing.favorite,
+                // Use imported timestamps if present, otherwise keep existing
+                createdAt: verse.createdAt ?? existing.createdAt,
+                updatedAt: verse.updatedAt ?? Date.now()
+              });
+            }
+          } else {
+            // Add new verse with new UUID (to avoid collisions)
+            // Keep imported timestamps if present
+            await addVerse({
+              reference: verse.reference,
+              refSort: verse.refSort || verse.reference,
+              content: verse.content || verse.text,
+              translation: verse.translation || '',
+              tags: verse.tags || [],
+              startedAt: verse.startedAt,
+              reviewCat: verse.reviewCat,
+              favorite: verse.favorite,
+              createdAt: verse.createdAt,
+              updatedAt: verse.updatedAt
+            });
+          }
         }
         
         // Reload verses
         await this.loadVerses();
         
-        alert('Verses imported successfully!');
+        const successMessage = updateCount > 0
+          ? `Successfully updated ${updateCount} verse${updateCount !== 1 ? 's' : ''} and added ${addCount} new verse${addCount !== 1 ? 's' : ''}!`
+          : `Successfully imported ${addCount} verse${addCount !== 1 ? 's' : ''}!`;
+        
+        alert(successMessage);
         
       } catch (error) {
         console.error("Failed to import verses:", error);

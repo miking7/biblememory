@@ -131,22 +131,32 @@
 - [X] Verify timestamps are numbers (epoch ms)
 
 #### Import Functionality
-- [ ] Click "Import" button
-- [ ] Select valid JSON file
-- [ ] Verify verses imported successfully
-- [ ] Verify imported verses appear in list
-- [ ] Verify all fields preserved
-- [ ] Import same file again
-- [ ] Verify duplicates handled gracefully
-- [ ] Import file with invalid JSON
-- [ ] Verify error message displayed
+- [X] Click "Import" button
+- [X] Select valid JSON file with new verses
+- [X] Verify confirmation shows "Import X new verses?"
+- [X] Verify verses imported successfully
+- [X] Verify imported verses appear in list
+- [X] Verify all fields preserved (including timestamps)
+- [X] Import same file again
+- [X] Verify confirmation shows "Import will update X existing verses and add 0 new verses"
+- [X] Verify no duplicates created (existing verses updated)
+- [X] Verify timestamps preserved from import file
+- [X] Import file with some matching IDs, some new
+- [X] Verify confirmation shows correct update/add counts
+- [X] Verify matching IDs updated, new IDs get new UUIDs
+- [X] Import file with missing fields
+- [X] Verify existing data preserved for missing fields (updates)
+- [X] Verify sensible defaults used for missing fields (new verses)
+- [X] Import file with invalid JSON
+- [X] Verify error message displayed
+- [X] Verify review history preserved after import updates
 
 #### Import/Export Round Trip
-- [ ] Export all verses
-- [ ] Delete all verses
-- [ ] Import exported file
-- [ ] Verify all verses restored
-- [ ] Verify all data intact (tags, dates, etc.)
+- [X] Export all verses
+- [X] Delete all verses
+- [X] Import exported file
+- [X] Verify all verses restored
+- [X] Verify all data intact (tags, dates, etc.)
 
 ### Offline Mode
 
@@ -163,13 +173,13 @@
 - [ ] Verify reviews recorded
 
 #### Sync After Offline
-- [ ] Reconnect network
-- [ ] Verify offline indicator disappears
-- [ ] Wait for automatic sync (or trigger manually)
-- [ ] Verify operations synced to server
-- [ ] Open app on different device/browser
-- [ ] Verify offline changes appear
-- [ ] Verify no data loss
+- [X] Reconnect network
+- [X] Verify offline indicator disappears
+- [X] Wait for automatic sync (or trigger manually)
+- [X] Verify operations synced to server
+- [X] Open app on different device/browser
+- [X] Verify offline changes appear
+- [X] Verify no data loss
 
 #### Sync Status Indicator (Authenticated Users)
 - [X] Login to authenticated account
@@ -231,14 +241,14 @@
 ### Multi-Device Sync
 
 #### Basic Sync
-- [ ] Add verse on Device A
-- [ ] Wait for sync (or trigger manually)
-- [ ] Open app on Device B
-- [ ] Verify verse appears on Device B
-- [ ] Edit verse on Device B
-- [ ] Wait for sync
-- [ ] Refresh Device A
-- [ ] Verify changes appear on Device A
+- [X] Add verse on Device A
+- [X] Wait for sync (or trigger manually)
+- [X] Open app on Device B
+- [X] Verify verse appears on Device B
+- [X] Edit verse on Device B
+- [X] Wait for sync
+- [X] Refresh Device A
+- [X] Verify changes appear on Device A
 
 #### Conflict Resolution (LWW)
 - [ ] Disconnect both devices from network
@@ -251,14 +261,14 @@
 - [ ] Verify both devices show same final state
 
 #### Sync Timing
-- [ ] Make change on Device A
-- [ ] Verify sync happens within 60 seconds
-- [ ] Make change while offline
-- [ ] Reconnect network
-- [ ] Verify sync happens immediately
-- [ ] Switch to different tab
-- [ ] Switch back to app tab
-- [ ] Verify sync happens on visibility change
+- [X] Make change on Device A
+- [X] Verify sync happens within 60 seconds
+- [X] Make change while offline
+- [X] Reconnect network
+- [X] Verify sync happens immediately
+- [X] Switch to different tab
+- [X] Switch back to app tab
+- [X] Verify sync happens on visibility change
 
 ### Edge Cases
 

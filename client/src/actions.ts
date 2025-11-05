@@ -69,6 +69,10 @@ export async function addVerse(verse: {
   translation: string;
   tags: Array<{ key: string; value: string }>;
   startedAt?: number;
+  reviewCat?: string;
+  favorite?: boolean;
+  createdAt?: number;
+  updatedAt?: number;
 }) {
   const now = Date.now();
   const id = uuid();
@@ -79,12 +83,12 @@ export async function addVerse(verse: {
     refSort: verse.refSort.trim(),
     content: normalizeContent(verse.content),
     translation: verse.translation.trim(),
-    reviewCat: 'auto',
+    reviewCat: verse.reviewCat ?? 'auto',
     startedAt: verse.startedAt ?? getTodayMidnight(),
     tags: verse.tags,
-    favorite: false,
-    createdAt: now,
-    updatedAt: now
+    favorite: verse.favorite ?? false,
+    createdAt: verse.createdAt ?? now,
+    updatedAt: verse.updatedAt ?? now
   };
 
   await db.transaction('rw', db.verses, db.outbox, async () => {
@@ -111,6 +115,8 @@ export async function updateVerse(id: string, updates: {
   reviewCat?: string;
   startedAt?: number | null;
   favorite?: boolean;
+  createdAt?: number;
+  updatedAt?: number;
 }) {
   const now = Date.now();
 
@@ -121,7 +127,7 @@ export async function updateVerse(id: string, updates: {
     const updated: Verse = {
       ...existing,
       ...updates,
-      updatedAt: now
+      updatedAt: updates.updatedAt ?? now
     };
 
     // Normalize content if it was updated
