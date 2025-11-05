@@ -26,7 +26,7 @@ export async function pushOps(): Promise<void> {
     }
 
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE}/push.php`, {
+    const response = await fetch(`${API_BASE}/push`, {
       method: "POST",
       headers,
       body: JSON.stringify({
@@ -70,7 +70,7 @@ export async function pullOps(): Promise<void> {
 
     const headers = await getAuthHeaders();
     const response = await fetch(
-      `${API_BASE}/pull.php?since=${cursor}&limit=500`,
+      `${API_BASE}/pull?since=${cursor}&limit=500`,
       { headers }
     );
 
@@ -196,7 +196,7 @@ export async function getCurrentUserId(): Promise<string | null> {
 
 // Login
 export async function login(email: string, password: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/login.php`, {
+  const response = await fetch(`${API_BASE}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password })
@@ -223,7 +223,7 @@ export async function login(email: string, password: string): Promise<void> {
 
 // Register
 export async function register(email: string, password: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/register.php`, {
+  const response = await fetch(`${API_BASE}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password })
@@ -253,7 +253,7 @@ export async function logout(): Promise<void> {
   try {
     // Try to notify server
     const headers = await getAuthHeaders();
-    await fetch(`${API_BASE}/logout.php`, {
+    await fetch(`${API_BASE}/logout`, {
       method: "POST",
       headers
     });
