@@ -2,7 +2,7 @@
 
 ## What Works
 
-### ✅ Core Application (Phase 1 Complete)
+### ✅ Core Application (Phase 1 Mostly Complete)
 
 #### Build System & Development
 - Modern build pipeline with Vite 5.x
@@ -95,6 +95,49 @@
 - Foreign key constraints
 
 ## What's Left to Build
+
+### Phase 1.5: Authentication UI (In Progress)
+
+**Status:** Planning Complete, Implementation Starting  
+**Goal:** Add optional authentication with smart prompts for multi-device sync
+
+#### Core Features
+- [ ] Authentication state management in app
+- [ ] Persistent auth banner (anonymous and authenticated states)
+- [ ] Authentication modal (login/register forms)
+- [ ] Strategic prompts (after 3 verses, after first review, before export)
+- [ ] Data migration on signup (sync local verses to server)
+- [ ] Account menu in header (user email, sync status, logout)
+- [ ] Sync status indicator (local-only, synced, syncing, error)
+- [ ] Modified sync behavior (only sync when authenticated)
+
+#### User Experience
+- [ ] App works fully without authentication (local-only mode)
+- [ ] Users can add/edit/review verses immediately
+- [ ] Dismissible banner encourages signup
+- [ ] Seamless migration of local data on signup
+- [ ] Clear sync status indicators
+- [ ] Logout preserves local data
+
+#### Technical Implementation
+- [ ] Add auth state to Alpine.js app
+- [ ] Build auth banner component
+- [ ] Build auth modal with forms
+- [ ] Implement strategic prompt logic
+- [ ] Add data migration function
+- [ ] Update sync.ts to check authentication
+- [ ] Add localStorage tracking for prompts
+- [ ] Style all components with glass-morphism
+
+#### Testing
+- [ ] Anonymous user flow (use without auth)
+- [ ] Authentication flow (login/register)
+- [ ] Data migration (local verses sync on signup)
+- [ ] Authenticated user flow (sync, logout)
+- [ ] Multi-device sync
+- [ ] Edge cases (offline, token expiry, errors)
+
+**See:** `memory-bank/authentication-implementation-plan.md` for detailed plan
 
 ### Phase 2: Enhanced Features (Planned)
 
@@ -252,20 +295,28 @@
 ## Current Status
 
 ### Version
-**1.0.0** - Phase 1 Complete
-
-### Last Updated
-January 2025
+**1.0.0-alpha** - Phase 1 Incomplete
 
 ### Production Readiness
-✅ **Ready for Production**
-- All Phase 1 features implemented
-- Manual testing completed
+⚠️ **NOT Ready for Production**
+- Phase 1 features partially implemented
+- **Authentication UI missing** - users cannot log in or register
+- **Sync untested** - no way to test multi-device sync without auth UI
+- Backend complete, frontend incomplete
+- Manual testing incomplete (auth flows not testable)
 - Documentation comprehensive
-- Deployment guides provided
 
 ### Known Issues
-None critical. See Technical Debt section below.
+**Critical:**
+1. **No Authentication UI** - Cannot log in, register, or logout from the app
+   - Backend endpoints exist and work
+   - Sync functions exist in code
+   - But no UI to access these features
+   - Impact: App is local-only, no multi-device sync possible
+   - Solution: Implement Phase 1.5 (Authentication UI)
+
+**Non-Critical:**
+See Technical Debt section below.
 
 ## Technical Debt
 
