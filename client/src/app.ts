@@ -9,7 +9,10 @@ import {
   getTodayReviewCount,
   getCurrentStreak,
   parseTags,
-  formatTags
+  formatTags,
+  getTodayMidnight,
+  dateToMidnightEpoch,
+  epochToDateString
 } from "./actions";
 import { 
   syncNow, 
@@ -80,7 +83,8 @@ export function bibleMemoryApp() {
       refSort: '',
       content: '',
       translation: '',
-      tagsInput: ''
+      tagsInput: '',
+      startedAtInput: ''
     },
     showAddSuccess: false,
     
@@ -100,6 +104,9 @@ export function bibleMemoryApp() {
     // Initialization
     async init() {
       console.log("Initializing Bible Memory App...");
+      
+      // Set default startedAt to today
+      this.newVerse.startedAtInput = epochToDateString(getTodayMidnight());
       
       // Set up online/offline detection
       window.addEventListener('online', () => {
@@ -303,24 +310,31 @@ export function bibleMemoryApp() {
       try {
         const tags = parseTags(this.newVerse.tagsInput);
         
+        // Convert date string to epoch, fallback to createdAt if empty
+        const startedAt = this.newVerse.startedAtInput 
+          ? dateToMidnightEpoch(this.newVerse.startedAtInput)
+          : Date.now();
+        
         await addVerse({
           reference: this.newVerse.reference,
           refSort: this.newVerse.refSort,
           content: this.newVerse.content,
           translation: this.newVerse.translation,
-          tags
+          tags,
+          startedAt
         });
         
         // Reload verses
         await this.loadVerses();
         
-        // Reset form
+        // Reset form (including date back to today)
         this.newVerse = {
           reference: '',
           refSort: '',
           content: '',
           translation: '',
-          tagsInput: ''
+          tagsInput: '',
+          startedAtInput: epochToDateString(getTodayMidnight())
         };
         
         // Show success message
@@ -343,7 +357,10 @@ export function bibleMemoryApp() {
         refSort: verse.refSort,
         content: verse.content,
         translation: verse.translation,
-        tagsInput: formatTags(verse.tags)
+        tagsInput: formatTags(verse.tags),
+        startedAtInput: verse.startedAt ? epochToDateString(verse.startedAt) : epochToDateString(verse.createdAt),
+        reviewCat: verse.reviewCat,
+        favorite: verse.favorite
       };
       this.showEditModal = true;
     },
@@ -353,12 +370,24 @@ export function bibleMemoryApp() {
       try {
         const tags = parseTags(this.editingVerse.tagsInput);
         
+        // Get the verse to access createdAt for fallback
+        const verse = this.verses.find(v => v.id === this.editingVerse.id);
+        if (!verse) throw new Error('Verse not found');
+        
+        // Convert date string to epoch, fallback to createdAt if empty
+        const startedAt = this.editingVerse.startedAtInput 
+          ? dateToMidnightEpoch(this.editingVerse.startedAtInput)
+          : verse.createdAt;
+        
         await updateVerse(this.editingVerse.id, {
           reference: this.editingVerse.reference,
           refSort: this.editingVerse.refSort,
           content: this.editingVerse.content,
           translation: this.editingVerse.translation,
-          tags
+          tags,
+          startedAt,
+          reviewCat: this.editingVerse.reviewCat,
+          favorite: this.editingVerse.favorite
         });
         
         // Reload verses

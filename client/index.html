@@ -173,6 +173,15 @@
                             class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
                     </div>
                     <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Started Date</label>
+                        <input 
+                            type="date" 
+                            x-model="newVerse.startedAtInput"
+                            class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all"
+                            required>
+                        <p class="text-xs text-slate-500 mt-1">When you started memorizing this verse</p>
+                    </div>
+                    <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Tags (optional)</label>
                         <input 
                             type="text" 
@@ -521,6 +530,39 @@
                                         x-model="editingVerse.translation"
                                         placeholder="e.g., NIV, ESV, KJV"
                                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-2">Started Date</label>
+                                    <input 
+                                        type="date" 
+                                        x-model="editingVerse.startedAtInput"
+                                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all"
+                                        required>
+                                    <p class="text-xs text-slate-500 mt-1">When you started memorizing this verse</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-2">Review Category</label>
+                                    <select 
+                                        x-model="editingVerse.reviewCat"
+                                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
+                                        <option value="auto">Auto (calculated based on started date)</option>
+                                        <option value="future">Future (not started yet)</option>
+                                        <option value="learn">Learn (daily review)</option>
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                    <p class="text-xs text-slate-500 mt-1">How often to review this verse</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input 
+                                        type="checkbox" 
+                                        x-model="editingVerse.favorite"
+                                        id="edit-favorite"
+                                        class="w-5 h-5 border-2 border-slate-200 rounded transition-all">
+                                    <label for="edit-favorite" class="text-sm font-semibold text-slate-700">
+                                        ⭐ Mark as Favorite
+                                    </label>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-semibold text-slate-700 mb-2">Tags (optional)</label>

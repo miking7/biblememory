@@ -25,6 +25,25 @@ export function formatTags(tags: Array<{ key: string; value: string }>): string 
     .join(', ');
 }
 
+// Get midnight timestamp for today in local timezone
+export function getTodayMidnight(): number {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today.getTime();
+}
+
+// Convert date string (yyyy-mm-dd) to midnight epoch ms
+export function dateToMidnightEpoch(dateString: string): number {
+  const date = new Date(dateString + 'T00:00:00');
+  return date.getTime();
+}
+
+// Convert epoch ms to date string (yyyy-mm-dd)
+export function epochToDateString(epochMs: number): string {
+  const date = new Date(epochMs);
+  return date.toISOString().split('T')[0];
+}
+
 // Helper function to normalize content (strip trailing whitespace, normalize line breaks)
 export function normalizeContent(content: string): string {
   // Normalize all line breaks to \n
@@ -46,6 +65,7 @@ export async function addVerse(verse: {
   content: string;
   translation: string;
   tags: Array<{ key: string; value: string }>;
+  startedAt?: number;
 }) {
   const now = Date.now();
   const id = uuid();
@@ -57,7 +77,7 @@ export async function addVerse(verse: {
     content: normalizeContent(verse.content),
     translation: verse.translation.trim(),
     reviewCat: 'auto',
-    startedAt: null,
+    startedAt: verse.startedAt ?? getTodayMidnight(),
     tags: verse.tags,
     favorite: false,
     createdAt: now,
