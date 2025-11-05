@@ -20,6 +20,8 @@
 - Offline indicator
 - Loading states and feedback
 - Search and filter functionality
+- Unicode-insensitive search (handles accented characters)
+- Context-aware empty states (distinguishes no verses vs. no search results)
 
 #### Data Management
 - IndexedDB storage via Dexie.js (7 tables)

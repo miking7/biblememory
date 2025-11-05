@@ -228,9 +228,17 @@
                     placeholder="Search verses..."
                     class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl mb-6 transition-all">
 
-                <div x-show="filteredVerses.length === 0" class="text-center py-12 text-slate-500">
+                <!-- No verses at all -->
+                <div x-show="verses.length === 0" class="text-center py-12 text-slate-500">
                     <div class="text-5xl mb-4">📖</div>
                     <p class="text-lg">No verses yet. Add your first verse to get started!</p>
+                </div>
+
+                <!-- Has verses but search returned no results -->
+                <div x-show="hasVersesButNoSearchResults" class="text-center py-12 text-slate-500">
+                    <div class="text-5xl mb-4">🔍</div>
+                    <p class="text-lg font-semibold mb-2">No verses match your search</p>
+                    <p class="text-sm">Try a different search term or clear the search to see all verses.</p>
                 </div>
 
                 <div class="space-y-4">

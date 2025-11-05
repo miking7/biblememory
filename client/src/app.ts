@@ -461,17 +461,30 @@ export function bibleMemoryApp() {
       }
     },
     
+    // Normalize text for unicode-insensitive search
+    normalizeForSearch(text: string): string {
+      return text
+        .toLowerCase()
+        .normalize('NFD') // Decompose accented characters
+        .replace(/[\u0300-\u036f]/g, ''); // Remove diacritics
+    },
+    
     // Get filtered verses based on search
     get filteredVerses(): Verse[] {
       if (!this.searchQuery) {
         return this.verses;
       }
       
-      const query = this.searchQuery.toLowerCase();
+      const query = this.normalizeForSearch(this.searchQuery);
       return this.verses.filter(v =>
-        v.reference.toLowerCase().includes(query) ||
-        v.content.toLowerCase().includes(query)
+        this.normalizeForSearch(v.reference).includes(query) ||
+        this.normalizeForSearch(v.content).includes(query)
       );
+    },
+    
+    // Check if we have verses but search returned no results
+    get hasVersesButNoSearchResults(): boolean {
+      return this.verses.length > 0 && this.filteredVerses.length === 0 && this.searchQuery.length > 0;
     },
     
     // Get verses due for review

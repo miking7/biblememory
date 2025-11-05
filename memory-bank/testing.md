@@ -21,23 +21,25 @@
 ### Basic Functionality
 
 #### Verse CRUD Operations
-- [ ] Add a verse with all fields (reference, refSort, content, translation, tags)
-- [ ] Add a verse with multi-paragraph content (verify line breaks preserved)
-- [ ] Add a verse with special characters in content
-- [ ] Add a very long verse (>1000 characters)
-- [ ] Edit an existing verse
-- [ ] Delete a verse (verify confirmation dialog)
-- [ ] Verify verse appears in list after adding
-- [ ] Verify verse updates in list after editing
-- [ ] Verify verse removed from list after deleting
+- [X] Add a verse with all fields (reference, refSort, content, translation, tags)
+- [X] Add a verse with multi-paragraph content (verify line breaks preserved)
+- [X] Add a verse with special characters in content
+- [X] Add a very long verse (>1000 characters)
+- [X] Edit an existing verse
+- [X] Delete a verse (verify confirmation dialog)
+- [X] Verify verse appears in list after adding
+- [X] Verify verse updates in list after editing
+- [X] Verify verse removed from list after deleting
 
 #### Search and Filter
-- [ ] Search for verses by reference
-- [ ] Search for verses by content
-- [ ] Search with partial matches
-- [ ] Search with no results
-- [ ] Clear search and verify all verses return
-- [ ] Search is case-insensitive
+- [X] Search for verses by reference
+- [X] Search for verses by content
+- [X] Search with partial matches
+- [X] Search with no results (shows appropriate "no matches" message)
+- [X] Clear search and verify all verses return
+- [X] Search is case-insensitive
+- [X] Search handles accented characters (unicode normalization)
+- [X] Empty state distinguishes between no verses vs. no search results
 
 ### Tags System
 
