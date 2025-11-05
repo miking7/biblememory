@@ -21,6 +21,7 @@
 - Loading states and feedback
 - Search and filter functionality
 - Unicode-insensitive search (handles accented characters)
+- Search within tags (keys and values)
 - Context-aware empty states (distinguishes no verses vs. no search results)
 - Tag display in My Verses (footer with metadata) and Review (inline with translation)
 - Translation badge inline with verse title in My Verses

@@ -481,10 +481,13 @@ export function bibleMemoryApp() {
       }
       
       const query = this.normalizeForSearch(this.searchQuery);
-      return this.verses.filter(v =>
-        this.normalizeForSearch(v.reference).includes(query) ||
-        this.normalizeForSearch(v.content).includes(query)
-      );
+      return this.verses.filter(v => {
+        // Search in reference, content, and tags
+        const tagsString = formatTags(v.tags || []);
+        return this.normalizeForSearch(v.reference).includes(query) ||
+               this.normalizeForSearch(v.content).includes(query) ||
+               this.normalizeForSearch(tagsString).includes(query);
+      });
     },
     
     // Check if we have verses but search returned no results
