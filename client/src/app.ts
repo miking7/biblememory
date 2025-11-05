@@ -1,4 +1,4 @@
-import { Verse } from "./db";
+import { db, Verse } from "./db";
 import {
   addVerse,
   updateVerse,
@@ -23,8 +23,18 @@ import {
   getCurrentUserId 
 } from "./sync";
 
+// Track if sync has been scheduled to prevent duplicate listeners
+let syncScheduled = false;
+
 // Schedule automatic sync (only called when authenticated)
 function scheduleSync(app: any) {
+  // Prevent multiple sync schedules
+  if (syncScheduled) {
+    console.log("Sync already scheduled, skipping duplicate");
+    return;
+  }
+  
+  syncScheduled = true;
   console.log("Starting sync schedule...");
   
   // Helper to sync and reload UI
@@ -45,12 +55,32 @@ function scheduleSync(app: any) {
     syncAndReload();
   }
   
-  // Sync every 60 seconds if online
-  setInterval(() => {
-    if (navigator.onLine) {
-      syncAndReload();
+  // Adaptive sync with 1-second check interval
+  let syncCounter = 0;
+  
+  setInterval(async () => {
+    if (!navigator.onLine) return;
+    
+    // Check if there's pending data in outbox
+    const outboxCount = await db.outbox.count();
+    
+    if (outboxCount > 0) {
+      // Immediate sync when there's pending data
+      console.log(`Outbox has ${outboxCount} pending operations, syncing now...`);
+      await syncAndReload();
+      syncCounter = 0; // Reset counter after sync
+    } else {
+      // Increment counter for periodic sync
+      syncCounter++;
+      
+      // Periodic sync every 30 seconds when idle
+      if (syncCounter >= 30) {
+        console.log("Periodic sync (30 seconds elapsed)");
+        await syncAndReload();
+        syncCounter = 0;
+      }
     }
-  }, 60_000);
+  }, 1000); // Check every 1 second
   
   // Sync when coming back online
   window.addEventListener("online", () => {
