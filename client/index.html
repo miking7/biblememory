@@ -8,10 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body x-data="bibleMemoryApp()" x-init="init()">
+<body>
     <!-- Anonymous Auth Banner (Full Width) -->
-    <div x-show="!isAuthenticated" 
-         x-transition
+    <div v-show="!isAuthenticated" 
          class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200 shadow-sm">
         <div class="container mx-auto px-4 max-w-5xl">
             <div class="flex items-center justify-between py-3">
@@ -39,7 +38,7 @@
 
     <div id="app" class="container mx-auto px-4 py-8 max-w-5xl">
         <!-- Sync Issues Indicator -->
-        <div x-show="hasSyncIssues" class="offline-indicator">
+        <div v-show="hasSyncIssues" class="offline-indicator">
             ⚠️ Sync issues - currently offline. Changes saved locally.
         </div>
 
@@ -53,10 +52,10 @@
             </div>
             
             <!-- User Menu (Authenticated) -->
-            <div x-show="isAuthenticated" 
-                 x-transition
+            <div v-show="isAuthenticated" 
+                 
                  class="absolute top-0 right-0"
-                 @click.away="showUserMenu = false">
+                 v-click-outside="showUserMenu = false">
                 <button 
                     @click="showUserMenu = !showUserMenu"
                     class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white hover:shadow-lg transition-all text-xl">
@@ -64,18 +63,18 @@
                 </button>
                 
                 <!-- Dropdown Menu -->
-                <div x-show="showUserMenu"
-                     x-transition:enter="transition ease-out duration-200"
-                     x-transition:enter-start="opacity-0 scale-95"
-                     x-transition:enter-end="opacity-100 scale-100"
-                     x-transition:leave="transition ease-in duration-150"
-                     x-transition:leave-start="opacity-100 scale-100"
-                     x-transition:leave-end="opacity-0 scale-95"
+                <div v-show="showUserMenu"
+                     :enter="transition ease-out duration-200"
+                     :enter-start="opacity-0 scale-95"
+                     :enter-end="opacity-100 scale-100"
+                     :leave="transition ease-in duration-150"
+                     :leave-start="opacity-100 scale-100"
+                     :leave-end="opacity-0 scale-95"
                      class="absolute right-0 mt-2 w-64 glass-card rounded-xl shadow-2xl overflow-hidden z-50"
                      style="display: none;">
                     <div class="p-4 border-b border-slate-200">
                         <p class="text-xs text-slate-500 font-medium mb-1">Signed in as</p>
-                        <p class="text-sm font-semibold text-slate-800 truncate" x-text="userEmail"></p>
+                        <p class="text-sm font-semibold text-slate-800 truncate" v-text="userEmail"></p>
                     </div>
                     <button 
                         @click="handleLogout(); showUserMenu = false"
@@ -91,15 +90,15 @@
         <div class="glass-card rounded-2xl shadow-2xl p-6 mb-8 fade-in">
             <div class="grid grid-cols-3 gap-6">
                 <div class="stat-card rounded-xl p-5 text-center">
-                    <div class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-1" x-text="verses.length"></div>
+                    <div class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-1" v-text="verses.length"></div>
                     <div class="text-sm text-slate-600 font-medium">Total Verses</div>
                 </div>
                 <div class="stat-card rounded-xl p-5 text-center">
-                    <div class="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent mb-1" x-text="reviewedToday"></div>
+                    <div class="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent mb-1" v-text="reviewedToday"></div>
                     <div class="text-sm text-slate-600 font-medium">Reviewed Today</div>
                 </div>
                 <div class="stat-card rounded-xl p-5 text-center">
-                    <div class="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent mb-1" x-text="currentStreak"></div>
+                    <div class="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent mb-1" v-text="currentStreak"></div>
                     <div class="text-sm text-slate-600 font-medium">Day Streak</div>
                 </div>
             </div>
@@ -125,21 +124,21 @@
                     :class="currentTab === 'review' ? 'active text-blue-700 font-semibold' : 'text-slate-600'"
                     class="tab-button flex-1 py-5 px-6 font-medium hover:bg-white/50 transition-all relative">
                     <span class="text-xl mr-2">🎯</span> Review
-                    <span x-show="dueForReview.length > 0" 
+                    <span v-show="dueForReview.length > 0" 
                           class="badge-notification absolute top-3 right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-lg"
-                          x-text="dueForReview.length"></span>
+                          v-text="dueForReview.length"></span>
                 </button>
             </div>
 
             <!-- Add Verse Tab -->
-            <div x-show="currentTab === 'add'" class="p-8">
+            <div v-show="currentTab === 'add'" class="p-8">
                 <h2 class="text-3xl font-bold mb-6 text-slate-800">Add New Verse</h2>
                 <form @submit.prevent="addVerse()" class="space-y-5">
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Reference</label>
                         <input 
                             type="text" 
-                            x-model="newVerse.reference"
+                            v-model="newVerse.reference"
                             placeholder="e.g., John 3:16"
                             class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all"
                             required>
@@ -148,7 +147,7 @@
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Reference Sort (for ordering)</label>
                         <input 
                             type="text" 
-                            x-model="newVerse.refSort"
+                            v-model="newVerse.refSort"
                             placeholder="e.g., bible.43003016"
                             class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all"
                             required>
@@ -157,7 +156,7 @@
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Verse Text</label>
                         <textarea 
-                            x-model="newVerse.content"
+                            v-model="newVerse.content"
                             placeholder="Enter the verse text..."
                             rows="5"
                             class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all"
@@ -168,7 +167,7 @@
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Translation (optional)</label>
                         <input 
                             type="text" 
-                            x-model="newVerse.translation"
+                            v-model="newVerse.translation"
                             placeholder="e.g., NIV, ESV, KJV"
                             class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
                     </div>
@@ -176,7 +175,7 @@
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Started Date</label>
                         <input 
                             type="date" 
-                            x-model="newVerse.startedAtInput"
+                            v-model="newVerse.startedAtInput"
                             class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all"
                             required>
                         <p class="text-xs text-slate-500 mt-1">When you started memorizing this verse</p>
@@ -185,7 +184,7 @@
                         <label class="block text-sm font-semibold text-slate-700 mb-2">Tags (optional)</label>
                         <input 
                             type="text" 
-                            x-model="newVerse.tagsInput"
+                            v-model="newVerse.tagsInput"
                             placeholder="e.g., fast.sk=3, ss=2010.Q2.W01, personal"
                             class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
                         <p class="text-xs text-slate-500 mt-1">Comma-separated, use key=value for values</p>
@@ -196,15 +195,15 @@
                         Add Verse
                     </button>
                 </form>
-                <div x-show="showAddSuccess" 
-                     x-transition
+                <div v-show="showAddSuccess" 
+                     
                      class="mt-5 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 text-green-700 rounded-xl font-medium">
                     ✓ Verse added successfully!
                 </div>
             </div>
 
             <!-- My Verses Tab -->
-            <div x-show="currentTab === 'list'" class="p-8">
+            <div v-show="currentTab === 'list'" class="p-8">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-3xl font-bold text-slate-800">My Verses</h2>
                     <div class="space-x-3">
@@ -214,42 +213,42 @@
                             Export
                         </button>
                         <button 
-                            @click="$refs.importFile.click()"
+                            @click="importFileRef?.click()"
                             class="px-5 py-2.5 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg hover:shadow-lg transition-all font-medium text-sm">
                             Import
                         </button>
-                        <input type="file" x-ref="importFile" @change="importVerses($event)" accept=".json" class="hidden">
+                        <input type="file" ref="importFileRef" @change="importVerses($event)" accept=".json" class="hidden">
                     </div>
                 </div>
                 
                 <input 
                     type="text" 
-                    x-model="searchQuery"
+                    v-model="searchQuery"
                     placeholder="Search verses..."
                     class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl mb-6 transition-all">
 
                 <!-- No verses at all -->
-                <div x-show="verses.length === 0" class="text-center py-12 text-slate-500">
+                <div v-show="verses.length === 0" class="text-center py-12 text-slate-500">
                     <div class="text-5xl mb-4">📖</div>
                     <p class="text-lg">No verses yet. Add your first verse to get started!</p>
                 </div>
 
                 <!-- Has verses but search returned no results -->
-                <div x-show="hasVersesButNoSearchResults" class="text-center py-12 text-slate-500">
+                <div v-show="hasVersesButNoSearchResults" class="text-center py-12 text-slate-500">
                     <div class="text-5xl mb-4">🔍</div>
                     <p class="text-lg font-semibold mb-2">No verses match your search</p>
                     <p class="text-sm">Try a different search term or clear the search to see all verses.</p>
                 </div>
 
                 <div class="space-y-4">
-                    <template x-for="verse in filteredVerses" :key="verse.id">
+                    <template v-for="verse in filteredVerses" :key="verse.id">
                         <div class="verse-card bg-gradient-to-br from-white to-slate-50 rounded-xl p-6 shadow-md">
                             <div class="flex justify-between items-start mb-3">
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <h3 class="font-bold text-xl text-slate-800" x-text="verse.reference"></h3>
-                                    <span x-show="verse.translation" 
+                                    <h3 class="font-bold text-xl text-slate-800" v-text="verse.reference"></h3>
+                                    <span v-show="verse.translation" 
                                           class="text-xs text-slate-500 font-medium px-2 py-1 bg-slate-100 rounded"
-                                          x-text="verse.translation"></span>
+                                          v-text="verse.translation"></span>
                                 </div>
                                 <div class="flex gap-2">
                                     <button 
@@ -264,15 +263,15 @@
                                     </button>
                                 </div>
                             </div>
-                            <p class="verse-content text-slate-700 mb-3 leading-relaxed" x-text="verse.content"></p>
+                            <p class="verse-content text-slate-700 mb-3 leading-relaxed" v-text="verse.content"></p>
                             <div class="flex flex-wrap justify-between items-center gap-2 text-xs text-slate-500 font-medium">
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <span x-text="'Added: ' + new Date(verse.createdAt).toLocaleDateString()"></span>
-                                    <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded" x-text="verse.reviewCat"></span>
-                                    <template x-if="verse.tags && verse.tags.length > 0">
+                                    <span v-text="'Added: ' + new Date(verse.createdAt).toLocaleDateString()"></span>
+                                    <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded" v-text="verse.reviewCat"></span>
+                                    <template v-if="verse.tags && verse.tags.length > 0">
                                         <div class="flex flex-wrap items-center gap-1">
-                                            <template x-for="tag in verse.tags" :key="tag.key">
-                                                <span class="px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs font-medium" x-text="formatTagForDisplay(tag)"></span>
+                                            <template v-for="tag in verse.tags" :key="tag.key">
+                                                <span class="px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs font-medium" v-text="formatTagForDisplay(tag)"></span>
                                             </template>
                                         </div>
                                     </template>
@@ -284,40 +283,40 @@
             </div>
 
             <!-- Review Tab -->
-            <div x-show="currentTab === 'review'" class="p-8">
+            <div v-show="currentTab === 'review'" class="p-8">
                 <h2 class="text-3xl font-bold mb-6 text-slate-800">Daily Review</h2>
                 
-                <div x-show="dueForReview.length === 0" class="text-center py-16">
+                <div v-show="dueForReview.length === 0" class="text-center py-16">
                     <div class="text-7xl mb-4">🎉</div>
                     <p class="text-2xl text-slate-700 mb-2 font-semibold">All caught up!</p>
                     <p class="text-slate-500 text-lg">No verses due for review today.</p>
                 </div>
 
-                <div x-show="dueForReview.length > 0">
+                <div v-show="dueForReview.length > 0">
                     <div class="mb-6 text-center">
                         <span class="text-slate-600 font-medium">Progress: </span>
-                        <span class="font-bold text-blue-600 text-lg" x-text="currentReviewIndex + 1"></span>
+                        <span class="font-bold text-blue-600 text-lg" v-text="currentReviewIndex + 1"></span>
                         <span class="text-slate-600"> / </span>
-                        <span class="font-bold text-slate-700 text-lg" x-text="dueForReview.length"></span>
+                        <span class="font-bold text-slate-700 text-lg" v-text="dueForReview.length"></span>
                     </div>
 
-                    <template x-if="currentReviewVerse">
+                    <template v-if="currentReviewVerse">
                         <div class="review-card rounded-2xl p-10 min-h-[350px] flex flex-col justify-center items-center">
                             <div class="text-center mb-8">
-                                <h3 class="text-4xl font-bold text-slate-800 mb-2" x-text="currentReviewVerse.reference"></h3>
+                                <h3 class="text-4xl font-bold text-slate-800 mb-2" v-text="currentReviewVerse.reference"></h3>
                                 <div class="flex flex-wrap items-center justify-center gap-2 mt-3">
-                                    <span x-show="currentReviewVerse.translation" 
+                                    <span v-show="currentReviewVerse.translation" 
                                           class="text-sm text-slate-500 font-medium px-3 py-1 bg-slate-100 rounded-full"
-                                          x-text="currentReviewVerse.translation"></span>
-                                    <template x-if="currentReviewVerse.tags && currentReviewVerse.tags.length > 0">
-                                        <template x-for="tag in currentReviewVerse.tags" :key="tag.key">
-                                            <span class="text-sm text-purple-700 font-medium px-3 py-1 bg-purple-50 rounded-full" x-text="formatTagForDisplay(tag)"></span>
+                                          v-text="currentReviewVerse.translation"></span>
+                                    <template v-if="currentReviewVerse.tags && currentReviewVerse.tags.length > 0">
+                                        <template v-for="tag in currentReviewVerse.tags" :key="tag.key">
+                                            <span class="text-sm text-purple-700 font-medium px-3 py-1 bg-purple-50 rounded-full" v-text="formatTagForDisplay(tag)"></span>
                                         </template>
                                     </template>
                                 </div>
                             </div>
 
-                            <div x-show="!showVerseText" class="text-center">
+                            <div v-show="!showVerseText" class="text-center">
                                 <button 
                                     @click="showVerseText = true"
                                     class="btn-gold px-10 py-4 text-white rounded-xl font-semibold text-lg">
@@ -325,8 +324,8 @@
                                 </button>
                             </div>
 
-                            <div x-show="showVerseText" x-transition class="w-full">
-                                <p class="verse-content text-xl text-slate-700 text-center mb-8 leading-relaxed font-light" x-text="currentReviewVerse.content"></p>
+                            <div v-show="showVerseText"  class="w-full">
+                                <p class="verse-content text-xl text-slate-700 text-center mb-8 leading-relaxed font-light" v-text="currentReviewVerse.content"></p>
                                 
                                 <div class="flex gap-4 justify-center">
                                     <button 
@@ -344,7 +343,7 @@
                         </div>
                     </template>
 
-                    <div x-show="reviewComplete" x-transition class="text-center py-16">
+                    <div v-show="reviewComplete"  class="text-center py-16">
                         <div class="text-7xl mb-4">🎉</div>
                         <p class="text-3xl text-slate-700 mb-3 font-bold">Review Complete!</p>
                         <p class="text-slate-500 mb-6 text-lg">Great job reviewing today's verses.</p>
@@ -359,13 +358,13 @@
         </div>
 
         <!-- Auth Modal -->
-        <div x-show="showAuthModal" 
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
+        <div v-show="showAuthModal" 
+             :enter="transition ease-out duration-300"
+             :enter-start="opacity-0"
+             :enter-end="opacity-100"
+             :leave="transition ease-in duration-200"
+             :leave-start="opacity-100"
+             :leave-end="opacity-0"
              class="fixed inset-0 z-50 overflow-y-auto" 
              style="display: none;">
             <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -392,14 +391,14 @@
                         </div>
 
                         <!-- Login Form -->
-                        <form x-show="authMode === 'login'" @submit.prevent="handleLogin()" class="space-y-4">
+                        <form v-show="authMode === 'login'" @submit.prevent="handleLogin()" class="space-y-4">
                             <h3 class="text-2xl font-bold text-slate-800 mb-4">Welcome Back</h3>
                             
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">Email</label>
                                 <input 
                                     type="email" 
-                                    x-model="authForm.email"
+                                    v-model="authForm.email"
                                     placeholder="your@email.com"
                                     class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all focus:border-blue-500"
                                     required>
@@ -409,25 +408,25 @@
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">Password</label>
                                 <input 
                                     type="password" 
-                                    x-model="authForm.password"
+                                    v-model="authForm.password"
                                     placeholder="••••••••"
                                     class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all focus:border-blue-500"
                                     required>
                             </div>
 
                             <!-- Error message -->
-                            <div x-show="authForm.error" 
-                                 x-transition
+                            <div v-show="authForm.error" 
+                                 
                                  class="p-3 bg-red-50 border-2 border-red-200 text-red-700 rounded-lg text-sm font-medium"
-                                 x-text="authForm.error"></div>
+                                 v-text="authForm.error"></div>
 
                             <div class="flex gap-3 pt-2">
                                 <button 
                                     type="submit"
                                     :disabled="authLoading"
                                     class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50">
-                                    <span x-show="!authLoading">Login</span>
-                                    <span x-show="authLoading">Logging in...</span>
+                                    <span v-show="!authLoading">Login</span>
+                                    <span v-show="authLoading">Logging in...</span>
                                 </button>
                                 <button 
                                     type="button"
@@ -439,14 +438,14 @@
                         </form>
 
                         <!-- Register Form -->
-                        <form x-show="authMode === 'register'" @submit.prevent="handleRegister()" class="space-y-4">
+                        <form v-show="authMode === 'register'" @submit.prevent="handleRegister()" class="space-y-4">
                             <h3 class="text-2xl font-bold text-slate-800 mb-4">Create Account</h3>
                             
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">Email</label>
                                 <input 
                                     type="email" 
-                                    x-model="authForm.email"
+                                    v-model="authForm.email"
                                     placeholder="your@email.com"
                                     class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all focus:border-blue-500"
                                     required>
@@ -456,7 +455,7 @@
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">Password</label>
                                 <input 
                                     type="password" 
-                                    x-model="authForm.password"
+                                    v-model="authForm.password"
                                     placeholder="••••••••"
                                     class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all focus:border-blue-500"
                                     required>
@@ -467,25 +466,25 @@
                                 <label class="block text-sm font-semibold text-slate-700 mb-2">Confirm Password</label>
                                 <input 
                                     type="password" 
-                                    x-model="authForm.confirmPassword"
+                                    v-model="authForm.confirmPassword"
                                     placeholder="••••••••"
                                     class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all focus:border-blue-500"
                                     required>
                             </div>
 
                             <!-- Error message -->
-                            <div x-show="authForm.error" 
-                                 x-transition
+                            <div v-show="authForm.error" 
+                                 
                                  class="p-3 bg-red-50 border-2 border-red-200 text-red-700 rounded-lg text-sm font-medium"
-                                 x-text="authForm.error"></div>
+                                 v-text="authForm.error"></div>
 
                             <div class="flex gap-3 pt-2">
                                 <button 
                                     type="submit"
                                     :disabled="authLoading"
                                     class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50">
-                                    <span x-show="!authLoading">Sign Up</span>
-                                    <span x-show="authLoading">Creating account...</span>
+                                    <span v-show="!authLoading">Sign Up</span>
+                                    <span v-show="authLoading">Creating account...</span>
                                 </button>
                                 <button 
                                     type="button"
@@ -501,13 +500,13 @@
         </div>
 
         <!-- Edit Modal -->
-        <div x-show="showEditModal"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
+        <div v-show="showEditModal"
+             :enter="transition ease-out duration-300"
+             :enter-start="opacity-0"
+             :enter-end="opacity-100"
+             :leave="transition ease-in duration-200"
+             :leave-start="opacity-100"
+             :leave-end="opacity-0"
              class="fixed inset-0 z-50 overflow-y-auto" 
              style="display: none;">
             <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -518,13 +517,13 @@
                 <div class="inline-block align-bottom glass-card rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
                     <div class="p-8">
                         <h3 class="text-3xl font-bold mb-6 text-slate-800">Edit Verse</h3>
-                        <template x-if="editingVerse">
+                        <template v-if="editingVerse">
                             <form @submit.prevent="saveEditVerse()" class="space-y-5">
                                 <div>
                                     <label class="block text-sm font-semibold text-slate-700 mb-2">Reference</label>
                                     <input 
                                         type="text" 
-                                        x-model="editingVerse.reference"
+                                        v-model="editingVerse.reference"
                                         placeholder="e.g., John 3:16"
                                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all"
                                         required>
@@ -533,7 +532,7 @@
                                     <label class="block text-sm font-semibold text-slate-700 mb-2">Reference Sort</label>
                                     <input 
                                         type="text" 
-                                        x-model="editingVerse.refSort"
+                                        v-model="editingVerse.refSort"
                                         placeholder="e.g., bible.43003016"
                                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all"
                                         required>
@@ -541,7 +540,7 @@
                                 <div>
                                     <label class="block text-sm font-semibold text-slate-700 mb-2">Verse Text</label>
                                     <textarea 
-                                        x-model="editingVerse.content"
+                                        v-model="editingVerse.content"
                                         placeholder="Enter the verse text..."
                                         rows="5"
                                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all"
@@ -551,7 +550,7 @@
                                     <label class="block text-sm font-semibold text-slate-700 mb-2">Translation (optional)</label>
                                     <input 
                                         type="text" 
-                                        x-model="editingVerse.translation"
+                                        v-model="editingVerse.translation"
                                         placeholder="e.g., NIV, ESV, KJV"
                                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
                                 </div>
@@ -559,7 +558,7 @@
                                     <label class="block text-sm font-semibold text-slate-700 mb-2">Started Date</label>
                                     <input 
                                         type="date" 
-                                        x-model="editingVerse.startedAtInput"
+                                        v-model="editingVerse.startedAtInput"
                                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all"
                                         required>
                                     <p class="text-xs text-slate-500 mt-1">When you started memorizing this verse</p>
@@ -567,7 +566,7 @@
                                 <div>
                                     <label class="block text-sm font-semibold text-slate-700 mb-2">Review Category</label>
                                     <select 
-                                        x-model="editingVerse.reviewCat"
+                                        v-model="editingVerse.reviewCat"
                                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
                                         <option value="auto">Auto</option>
                                         <option value="future">Future (not started yet)</option>
@@ -581,7 +580,7 @@
                                 <div class="flex items-center gap-2">
                                     <input 
                                         type="checkbox" 
-                                        x-model="editingVerse.favorite"
+                                        v-model="editingVerse.favorite"
                                         id="edit-favorite"
                                         class="w-5 h-5 border-2 border-slate-200 rounded transition-all">
                                     <label for="edit-favorite" class="text-sm font-semibold text-slate-700">
@@ -592,7 +591,7 @@
                                     <label class="block text-sm font-semibold text-slate-700 mb-2">Tags (optional)</label>
                                     <input 
                                         type="text" 
-                                        x-model="editingVerse.tagsInput"
+                                        v-model="editingVerse.tagsInput"
                                         placeholder="e.g., fast.sk=3, ss=2010.Q2.W01, personal"
                                         class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
                                 </div>

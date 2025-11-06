@@ -1,25 +1,35 @@
 // Import styles (Tailwind + custom)
 import './styles.css';
 
-// Import Alpine.js
-import Alpine from 'alpinejs';
+// Import Vue
+import { createApp } from 'vue';
 
 // Import our app
 import { bibleMemoryApp } from './app';
 
-// Make bibleMemoryApp available globally for Alpine
-declare global {
-  interface Window {
-    Alpine: typeof Alpine;
-    bibleMemoryApp: typeof bibleMemoryApp;
+// Create Vue app with our component
+const app = createApp({
+  setup() {
+    return bibleMemoryApp();
   }
-}
+});
 
-// Expose Alpine and our app to window
-window.Alpine = Alpine;
-window.bibleMemoryApp = bibleMemoryApp;
+// Custom directive for click outside
+app.directive('click-outside', {
+  mounted(el: any, binding: any) {
+    el.clickOutsideEvent = (event: Event) => {
+      if (!(el === event.target || el.contains(event.target as Node))) {
+        binding.value(event);
+      }
+    };
+    document.addEventListener('click', el.clickOutsideEvent);
+  },
+  unmounted(el: any) {
+    document.removeEventListener('click', el.clickOutsideEvent);
+  }
+});
 
-// Start Alpine
-Alpine.start();
+// Mount to #app div
+app.mount('#app');
 
-console.log('Bible Memory App initialized with bundled Alpine.js');
+console.log('Bible Memory App initialized with Vue.js');
