@@ -9,8 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div id="app">
     <!-- Anonymous Auth Banner (Full Width) -->
-    <div v-show="!isAuthenticated" 
+    <div v-show="!isAuthenticated"
          class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200 shadow-sm">
         <div class="container mx-auto px-4 max-w-5xl">
             <div class="flex items-center justify-between py-3">
@@ -36,7 +37,7 @@
         </div>
     </div>
 
-    <div id="app" class="container mx-auto px-4 py-8 max-w-5xl">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
         <!-- Sync Issues Indicator -->
         <div v-show="hasSyncIssues" class="offline-indicator">
             ⚠️ Sync issues - currently offline. Changes saved locally.
@@ -614,6 +615,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
     
     <script type="module" src="/src/main.ts"></script>
