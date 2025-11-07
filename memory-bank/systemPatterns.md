@@ -224,35 +224,67 @@ setInterval(async () => {
 }, 60000);
 ```
 
-### 5. Reactive State Management (Alpine.js)
+### 5. Reactive State Management (Vue.js Composition API)
+
+**MIGRATION IN PROGRESS:** Transitioning from Alpine.js to Vue.js 3 (80% complete)
 
 **Purpose:** Keep UI in sync with data changes
 
-**How It Works:**
-- Alpine.js provides reactive data binding
-- State changes automatically update DOM
+**How It Works (Vue.js):**
+- Vue's Composition API provides reactive primitives (`ref()`, `reactive()`)
+- State changes automatically trigger DOM updates via Virtual DOM
 - Event handlers modify state
-- Computed properties derive from state
+- Computed properties derive from state using `computed()`
+- Single File Components (.vue) with `<template>`, `<script>`, `<style>` sections
 
 **Benefits:**
-- Simple mental model
-- No virtual DOM overhead
-- Minimal boilerplate
-- Easy to debug
+- Full TypeScript integration
+- Composition API for better code organization
+- Component-based architecture for scalability
+- Vue DevTools for debugging
+- Access to Vue ecosystem (Router, Pinia, etc.)
 
-**Implementation:**
+**Implementation (Vue.js Composition API):**
+```typescript
+// app.ts - Composition API function
+export function bibleMemoryApp() {
+  // Reactive state
+  const verses = ref<Verse[]>([]);
+  const currentTab = ref<'add' | 'list' | 'review'>('add');
+  
+  // Computed properties
+  const filteredVerses = computed(() => {
+    // filtering logic
+  });
+  
+  // Methods
+  const addVerse = async () => {
+    // logic
+  };
+  
+  // Lifecycle
+  onMounted(() => {
+    init();
+  });
+  
+  // Return for template binding
+  return { verses, currentTab, filteredVerses, addVerse };
+}
+```
+
+**Migration Status:**
+- ✅ All state converted to `ref()` and `reactive()`
+- ✅ All computed using `computed()`
+- ✅ All directives converted (x-* → v-*)
+- ❌ Needs conversion to .vue Single File Component
+- ❌ Template currently in HTML, needs to move to .vue
+
+**Old Alpine.js Implementation (For Reference):**
 ```html
 <div x-data="app()">
-  <!-- Reactive display -->
   <div x-text="verses.length"></div>
-  
-  <!-- Event binding -->
   <button @click="addVerse()">Add</button>
-  
-  <!-- Conditional rendering -->
   <div x-show="isOffline">Offline</div>
-  
-  <!-- List rendering -->
   <template x-for="verse in filteredVerses">
     <div x-text="verse.reference"></div>
   </template>

@@ -5,12 +5,16 @@
 ### Frontend Technologies
 
 #### Core Framework
-- **Alpine.js 3.14.1** - Lightweight reactive framework
-  - Loaded from CDN (npm package available)
-  - Provides reactive data binding
-  - Minimal overhead (~15KB gzipped)
-  - No build step required for basic usage
-  - Event handling and templating built-in
+- **Vue.js 3.4.0** - Progressive JavaScript framework
+  - **MIGRATION IN PROGRESS** (from Alpine.js 3.14.1)
+  - Composition API for reactive state management
+  - Single File Components (.vue files)
+  - Build-time template compilation
+  - Full TypeScript integration
+  - Vue DevTools support
+  - **Status:** 80% complete, needs SFC conversion to finish
+  
+**Note:** Migration from Alpine.js started January 7, 2025. Alpine.js was lightweight (~15KB) but Vue.js provides better scalability, TypeScript integration, and component architecture for future growth.
 
 #### Styling
 - **Tailwind CSS v4.1.16** - Utility-first CSS framework

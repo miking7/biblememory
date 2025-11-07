@@ -2,6 +2,86 @@
 
 ## Current Work Focus
 
+### DETOUR: Alpine.js to Vue.js Migration 🔄
+**Status:** In Progress (80% Complete)  
+**Started:** January 7, 2025  
+**Priority:** HIGH - Blocking all other work
+
+#### Why the Detour?
+During review of the codebase, we decided to migrate from Alpine.js to Vue.js 3 for better scalability, TypeScript integration, and component architecture. This is a significant architectural change but will provide a much better foundation for future development.
+
+#### Current Status: 80% Complete
+
+**✅ Completed:**
+1. **Package Configuration** - Vue 3 installed and Alpine.js removed
+2. **Build Configuration** - Vite configured with Vue plugin
+3. **TypeScript Configuration** - Vue JSX support added
+4. **Composition API Conversion** - Full conversion of app.ts (~700 lines)
+   - All state converted to `ref()` and `reactive()`
+   - All computed properties using `computed()`
+   - All lifecycle using `onMounted()`
+   - Properly exports everything for template binding
+5. **Directive Conversion** - All Alpine.js directives converted to Vue:
+   - `x-show` → `v-show`
+   - `x-if` → `v-if`
+   - `x-for` → `v-for`
+   - `x-model` → `v-model`
+   - `x-text` → `v-text`
+   - `@click.away` → `v-click-outside` (custom directive)
+6. **Main Entry Point** - Vue app initialization with custom directives
+
+**❌ Incomplete - Critical Issue:**
+**Problem:** The app shows only blue gradient background with NO content rendering.
+
+**Root Cause:** Vue's runtime-only build (default) cannot compile HTML templates with directives. Current setup has Vue directives directly in `client/index.html`, but Vue needs them in a `.vue` Single File Component to compile at build time.
+
+**Solution Required:** Convert to proper Vue.js SFC architecture:
+1. Create `client/src/App.vue` - Extract template from index.html
+2. Update `client/src/main.ts` - Import and mount App.vue
+3. Simplify `client/index.html` - Just `<div id="app"></div>`
+4. Rebuild and test
+
+#### Implementation Details
+
+**Files Modified:**
+- `client/package.json` - Vue 3 dependencies
+- `client/vite.config.ts` - Vue plugin configured
+- `client/tsconfig.json` - Vue JSX support
+- `client/src/app.ts` - Full Composition API (COMPLETE ✅)
+- `client/src/main.ts` - Vue app initialization
+- `client/index.html` - All directives converted (but needs to move to .vue)
+
+**Files to Create:**
+- `client/src/App.vue` - NEW FILE NEEDED
+
+**Technical Challenge:**
+Alpine.js processes HTML directives at runtime, but Vue compiles templates at build time. We tried to use Vue directives in HTML like Alpine.js, but Vue's architecture requires Single File Components for proper template compilation.
+
+#### Next Steps (User Approved)
+User said: "Yes please" to complete the migration with proper Vue SFC architecture.
+
+**Step 1:** Create App.vue with full template
+**Step 2:** Update main.ts to use App.vue  
+**Step 3:** Simplify index.html to just mount point
+**Step 4:** Build and test
+**Step 5:** Verify all features work
+
+#### Why This Matters
+- Vue.js provides better TypeScript integration
+- Better scalability for component-based architecture
+- Access to Vue ecosystem (Vue Router, Pinia, etc.)
+- Better performance with compiled templates
+- Improved developer experience with Vue DevTools
+
+#### Lessons Learned
+1. Can't use Vue like Alpine.js (directives in HTML)
+2. Vue requires build-time template compilation
+3. Single File Components are the standard Vue pattern
+4. Vue's runtime-only build is smaller but requires SFC
+5. Migration needs complete architectural shift, not just directive renaming
+
+---
+
 ### Recent Completion: Smart Import with Update/Add Logic ✅
 **Status:** Complete  
 **Completed:** January 6, 2025
