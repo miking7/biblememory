@@ -172,14 +172,18 @@ npm run build
 ```json
 {
   "dependencies": {
-    "alpinejs": "^3.14.1",
-    "dexie": "^4.0.10"
+    "vue": "^3.4.0",
+    "dexie": "^3.2.4",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.16",
-    "typescript": "^5.6.3",
-    "vite": "^5.4.11",
-    "postcss": "^8.4.49"
+    "@tailwindcss/postcss": "^4.1.16",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.16"
   }
 }
 ```
@@ -381,8 +385,8 @@ rm api/db.sqlite && php api/migrate.php  # Reset database
 ## Performance Considerations
 
 ### Frontend Optimization
-- **Phase 1** - CDN for Alpine.js and Tailwind (fast initial setup)
-- **Phase 2** - Bundle and tree-shake (smaller bundle size)
+- **Phase 1** - Vue.js 3 bundled and optimized (69KB gzipped total)
+- **Phase 2** - Bundle and purge Tailwind CSS (smaller bundle size)
 - **Lazy Loading** - Load components on demand (future)
 - **Code Splitting** - Separate vendor and app code (future)
 
@@ -416,7 +420,7 @@ rm api/db.sqlite && php api/migrate.php  # Reset database
 ## Known Technical Limitations
 
 ### Phase 1 Limitations
-1. **CDN Dependencies** - Alpine.js and Tailwind from CDN (~3.5MB Tailwind)
+1. **Tailwind CSS Size** - Currently using CDN (~3.5MB), needs bundling and purging
 2. **No Service Worker** - No background sync or offline caching
 3. **No PWA Manifest** - Can't be installed as app
 4. **SQLite Only** - No MySQL/PostgreSQL support

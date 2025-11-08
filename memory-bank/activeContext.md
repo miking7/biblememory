@@ -214,7 +214,7 @@ The application has **most features implemented** but is **NOT production ready*
 
 **Implemented Features:**
 - ✅ Modern build system (Vite + TypeScript)
-- ✅ Beautiful UI (Tailwind CSS v4 + Alpine.js)
+- ✅ Beautiful UI (Tailwind CSS v4 + Vue.js 3)
 - ✅ Offline-first architecture (IndexedDB + Dexie.js)
 - ✅ Verse CRUD (add, edit, delete, list)
 - ✅ Review mode (reference → reveal content)
@@ -453,7 +453,7 @@ Implemented **optional authentication with smart prompts** - a truly offline-fir
 ### What Works Well
 1. **OpLog Pattern**: Provides complete audit trail and reliable sync
 2. **IndexedDB**: Unlimited storage enables true offline-first
-3. **Alpine.js**: Lightweight reactivity without framework overhead
+3. **Vue.js 3**: Component-based architecture with excellent TypeScript integration
 4. **Tailwind CSS**: Rapid UI development with utility classes
 5. **TypeScript**: Catches bugs early, improves maintainability
 
@@ -524,7 +524,9 @@ rm server/api/db.sqlite && php api/migrate.php  # Reset
 - `client/src/db.ts` - Dexie schema (7 tables)
 - `client/src/actions.ts` - CRUD operations
 - `client/src/sync.ts` - Push/pull sync
-- `client/src/app.ts` - Alpine.js component
+- `client/src/App.vue` - Vue.js 3 Single File Component
+- `client/src/app.ts` - Composition API logic
+- `client/src/main.ts` - Vue app initialization
 - `server/api/lib.php` - Shared PHP functions
 - `server/schema.sql` - Database schema
 
@@ -541,7 +543,7 @@ rm server/api/db.sqlite && php api/migrate.php  # Reset
 1. Multiple review modes (hints, first letters, flashcards)
 2. Keyboard shortcuts for power users
 3. Statistics dashboard with charts
-4. Bundle optimization (purge Tailwind, bundle Alpine)
+4. Bundle optimization (purge Tailwind CSS)
 5. Sort options for verse list
 
 ### Phase 3 Ideas

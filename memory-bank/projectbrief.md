@@ -43,7 +43,7 @@ This project integrates the best features from three reference implementations:
 ## Current Status
 **Phase 1 Complete** ✅
 - Modern build system (Vite + TypeScript)
-- Beautiful UI (Tailwind CSS v4 + Alpine.js)
+- Beautiful UI (Tailwind CSS v4 + Vue.js 3)
 - Offline-first architecture (IndexedDB + Dexie.js)
 - Sync infrastructure (OpLog pattern)
 - Core features (CRUD, review, spaced repetition)
@@ -51,6 +51,6 @@ This project integrates the best features from three reference implementations:
 - Production ready
 
 ## Technology Foundation
-- **Frontend**: TypeScript, Alpine.js, Tailwind CSS v4, Dexie.js, Vite
+- **Frontend**: TypeScript, Vue.js 3, Tailwind CSS v4, Dexie.js, Vite
 - **Backend**: PHP 8.0+, SQLite, OpLog pattern
 - **Architecture**: Offline-first SPA with cursor-based sync

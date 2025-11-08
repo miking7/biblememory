@@ -239,7 +239,7 @@
 - [ ] Sort preference saved
 
 #### Bundle Optimization
-- [ ] Bundle Alpine.js (instead of CDN)
+- [x] Vue.js 3 bundled and optimized (69KB gzipped total)
 - [ ] Bundle and purge Tailwind CSS (~10-20KB vs 3.5MB)
 - [ ] Tree-shaking for unused code
 - [ ] Code splitting for lazy loading
@@ -423,7 +423,7 @@ See Technical Debt section below.
 
 ### Initial Decisions (Integration Specification)
 - Merge three reference implementations
-- Use Alpine.js for reactivity
+- Use Vue.js 3 for reactivity (migrated from Alpine.js January 2025)
 - Use Dexie.js for offline storage
 - Use OpLog pattern for sync
 - Use SQLite for simplicity
@@ -432,7 +432,7 @@ See Technical Debt section below.
 - Manual refSort entry (auto-parsing deferred)
 - Per-session probability (not per-day)
 - Token hashing in database
-- CDN dependencies for speed
+- Vue.js 3 for scalability and TypeScript integration
 - Manual testing only
 
 ### Implementation Adjustments
@@ -444,10 +444,11 @@ See Technical Debt section below.
 ### Lessons Learned
 - OpLog pattern works excellently for sync
 - IndexedDB provides reliable offline storage
-- Alpine.js is perfect for this use case
+- Vue.js 3 provides excellent scalability and TypeScript integration
 - Tailwind CSS speeds up development significantly
 - TypeScript catches many bugs early
 - Manual testing is time-consuming but thorough
+- Single File Components improve code organization significantly
 
 ## Metrics
 
