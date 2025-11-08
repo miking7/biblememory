@@ -485,7 +485,7 @@
 ❌ **Auth modal missing** - no login/register forms
 
 ### Technology Stack Compliance
-✅ Alpine.js 3.x  
+✅ Vue.js 3.4.0  
 ✅ Tailwind CSS v4  
 ✅ Vite 5.x  
 ✅ Dexie.js 4.x  

@@ -9,7 +9,7 @@ A modern, offline-first Bible memory application that helps users memorize scrip
 ## Project Origin
 This project integrates the best features from three reference implementations:
 1. **Legacy Laravel App** - Proven spaced repetition algorithm and review features
-2. **SPA Demo** - Clean, modern UI with Alpine.js and Tailwind CSS
+2. **SPA Demo** - Clean, modern UI with Vue.js and Tailwind CSS
 3. **OpLog Starter** - Robust sync architecture with IndexedDB
 
 ## Primary Goals
