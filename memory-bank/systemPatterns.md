@@ -293,6 +293,73 @@ export function bibleMemoryApp() {
 - ✅ Vue directives (v-show, v-if, v-for, v-model, etc.)
 - ✅ Single File Component architecture (App.vue)
 - ✅ Build-time template compilation
+- ✅ Composables for code organization
+
+### 6. Composables Pattern (Vue 3 Best Practice)
+
+**Purpose:** Organize related logic into reusable, testable functions
+
+**How It Works:**
+
+- Extract related functionality into focused composable functions
+- Each composable manages its own state and methods
+- Composables can be imported and used in components or other composables
+- Follow naming convention: `use{Feature}.ts`
+- Return reactive state and methods for template use
+
+**Benefits:**
+
+- Better code organization and separation of concerns
+- Improved testability (composables can be tested in isolation)
+- Easier to maintain (smaller, focused files)
+- Reusable across components
+- Clear dependencies between features
+
+**Implementation:**
+```typescript
+// composables/useAuth.ts
+export function useAuth() {
+  const isAuthenticated = ref(false);
+  const userEmail = ref('');
+
+  const login = async (email: string, password: string) => {
+    // login logic
+  };
+
+  return { isAuthenticated, userEmail, login };
+}
+
+// composables/useVerses.ts
+export function useVerses() {
+  const verses = ref<Verse[]>([]);
+  const searchQuery = ref('');
+
+  const filteredVerses = computed(() => {
+    // filtering logic
+  });
+
+  return { verses, searchQuery, filteredVerses };
+}
+
+// app.ts - Orchestration
+export function bibleMemoryApp() {
+  const auth = useAuth();
+  const versesLogic = useVerses();
+
+  return {
+    ...auth,
+    ...versesLogic
+  };
+}
+```
+
+**Current Composables:**
+
+- `useAuth.ts` - Authentication state and operations (177 lines)
+- `useVerses.ts` - Verse CRUD operations and filtering (322 lines)
+- `useReview.ts` - Review system logic and stats (84 lines)
+- `useSync.ts` - Sync scheduling and status tracking (104 lines)
+- Main `app.ts` orchestrates composables (141 lines, reduced from 694)
 
 ## Component Relationships
 
