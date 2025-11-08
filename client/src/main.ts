@@ -4,15 +4,11 @@ import './styles.css';
 // Import Vue
 import { createApp } from 'vue';
 
-// Import our app
-import { bibleMemoryApp } from './app';
+// Import our App component
+import App from './App.vue';
 
-// Create Vue app with our component
-const app = createApp({
-  setup() {
-    return bibleMemoryApp();
-  }
-});
+// Create Vue app with our App component
+const app = createApp(App);
 
 // Custom directive for click outside
 app.directive('click-outside', {
