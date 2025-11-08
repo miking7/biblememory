@@ -70,7 +70,7 @@ cd server/public && php -S localhost:8000 router.php
 
 ```
 biblememory/
-├── client/          # Frontend (TypeScript + Alpine.js + Tailwind)
+├── client/          # Frontend (TypeScript + Vue.js + Tailwind)
 │   ├── src/        # Source files
 │   └── index.html  # Main template
 └── server/          # Backend (PHP + SQLite)
@@ -80,7 +80,7 @@ biblememory/
 
 ## Tech Stack
 
-- **Frontend**: TypeScript, Alpine.js, Tailwind CSS v4, Vite
+- **Frontend**: TypeScript, Vue.js, Tailwind CSS v4, Vite
 - **Backend**: PHP 8+, SQLite
 - **Storage**: IndexedDB (Dexie.js)
 

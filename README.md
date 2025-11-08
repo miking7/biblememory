@@ -2,7 +2,7 @@
 
 A modern, offline-first Bible memory application with beautiful UI, combining the best features from three reference implementations:
 - **Legacy Laravel App**: Proven spaced repetition algorithm
-- **SPA Demo**: Clean, modern UI with Alpine.js and Tailwind CSS
+- **SPA Demo**: Clean, modern UI with Vue.js and Tailwind CSS
 - **OpLog Starter**: Robust sync architecture with IndexedDB
 
 ## 🎉 Phase 1 Complete!
@@ -13,7 +13,7 @@ The app is now fully functional with a modern build system, beautiful UI, and of
 
 ### Phase 1 (✅ Complete)
 - ✅ Modern build system (Vite + TypeScript)
-- ✅ Beautiful UI with Tailwind CSS v4 and Alpine.js
+- ✅ Beautiful UI with Tailwind CSS v4 and Vue.js
 - ✅ Verse CRUD (add, edit, delete, list)
 - ✅ Basic review mode (reference → content reveal)
 - ✅ Spaced repetition algorithm (learn/daily/weekly/monthly)
@@ -32,7 +32,7 @@ The app is now fully functional with a modern build system, beautiful UI, and of
 
 ### Frontend
 - **TypeScript** - Type-safe client code
-- **Alpine.js 3.x** - Lightweight reactive framework (bundled via npm)
+- **Vue.js 3.x** - Progressive JavaScript framework with Composition API
 - **Tailwind CSS v4.1.16** - Latest stable utility-first CSS framework
 - **Dexie.js** - IndexedDB wrapper for offline storage
 - **Vite 5.x** - Modern build tool with hot module replacement
@@ -49,8 +49,8 @@ The app is now fully functional with a modern build system, beautiful UI, and of
 biblememory/
 ├── client/                     # Frontend application
 │   ├── src/
-│   │   ├── main.ts            # Entry point, Alpine initialization
-│   │   ├── app.ts             # Alpine.js app component
+│   │   ├── main.ts            # Entry point, Vue app initialization
+│   │   ├── app.ts             # Vue app component logic
 │   │   ├── db.ts              # Dexie schema & IndexedDB
 │   │   ├── actions.ts         # Verse CRUD operations
 │   │   ├── sync.ts            # Push/pull sync logic
@@ -162,7 +162,7 @@ npm install
 ```
 
 This installs:
-- Alpine.js (reactive framework)
+- Vue.js (reactive framework)
 - Tailwind CSS v4 (styling)
 - Dexie.js (IndexedDB wrapper)
 - Vite (build tool)
