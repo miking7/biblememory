@@ -110,22 +110,51 @@ npm run dev    # Development with HMR
 cd ../server
 php api/migrate.php
 
-# 4. Start PHP server
-cd public
+# 4. Start backend (Laravel Herd or PHP server)
+# Option A: Laravel Herd (serves server/public at https://biblememory.test)
+# Already running - no action needed
+
+# Option B: PHP Built-in Server
+cd server/public
 php -S localhost:8000 router.php
 ```
 
-#### Development Mode
+#### Development Mode with Laravel Herd
 ```bash
 # Terminal 1: Frontend dev server (with HMR)
 cd client
 npm run dev
-# Runs at http://localhost:5173
+# Runs at http://localhost:3000
+
+# Access app at http://localhost:3000
+# API calls automatically proxy to https://biblememory.test/api/*
+# Vue DevTools shows development mode ✅
+```
+
+#### Development Mode with PHP Built-in Server
+```bash
+# Terminal 1: Frontend dev server (with HMR)
+cd client
+npm run dev
+# Runs at http://localhost:3000
 
 # Terminal 2: Backend server
 cd server/public
 php -S localhost:8000 router.php
 # API at http://localhost:8000/api/*
+
+# Note: If using PHP server, update vite.config.ts proxy target to http://localhost:8000
+```
+
+#### Production Testing
+```bash
+# Build frontend assets
+cd client
+npm run build
+
+# Access via Laravel Herd
+# Visit https://biblememory.test
+# Serves built assets from server/public/dist/
 ```
 
 #### Vite Dev Server Configuration

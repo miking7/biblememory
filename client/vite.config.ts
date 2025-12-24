@@ -11,8 +11,9 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true
+        target: 'https://biblememory.test',
+        changeOrigin: true,
+        secure: false  // Accept Herd's self-signed SSL certificate
       }
     }
   }
