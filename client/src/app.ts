@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useAuth } from './composables/useAuth';
 import { useVerses } from './composables/useVerses';
 import { useReview } from './composables/useReview';
@@ -16,9 +16,9 @@ export function bibleMemoryApp() {
   const sync = useSync();
 
   // Combined hasSyncIssues that checks authentication
-  const hasSyncIssuesWithAuth = () => {
+  const hasSyncIssuesWithAuth = computed(() => {
     return auth.isAuthenticated.value && sync.hasSyncIssues.value;
-  };
+  });
 
   // Initialization
   const init = async () => {
