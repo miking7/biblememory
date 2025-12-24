@@ -115,7 +115,7 @@
       </div>
 
       <!-- Add Verse Tab -->
-      <div v-show="currentTab === 'add'" class="p-8">
+      <div v-if="currentTab === 'add'" class="p-8">
         <h2 class="text-3xl font-bold mb-6 text-slate-800">Add New Verse</h2>
         <form @submit.prevent="addVerse()" class="space-y-5">
           <div>
@@ -187,7 +187,7 @@
       </div>
 
       <!-- My Verses Tab -->
-      <div v-show="currentTab === 'list'" class="p-8">
+      <div v-if="currentTab === 'list'" class="p-8">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-3xl font-bold text-slate-800">My Verses</h2>
           <div class="space-x-3">
@@ -236,7 +236,7 @@
       </div>
 
       <!-- Review Tab -->
-      <div v-show="currentTab === 'review'" class="p-8">
+      <div v-if="currentTab === 'review'" class="p-8">
         <h2 class="text-3xl font-bold mb-6 text-slate-800">Daily Review</h2>
 
         <div v-show="dueForReview.length === 0" class="text-center py-16">
