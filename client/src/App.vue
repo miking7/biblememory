@@ -1,7 +1,8 @@
 <template>
-  <!-- Anonymous Auth Banner (Full Width) -->
-  <div v-show="!isAuthenticated"
-       class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200 shadow-sm">
+  <div>
+    <!-- Anonymous Auth Banner (Full Width) -->
+    <div v-show="!isAuthenticated"
+         class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200 shadow-sm">
     <div class="container mx-auto px-4 max-w-5xl">
       <div class="flex items-center justify-between py-3">
         <div class="flex items-center gap-3">
@@ -552,6 +553,7 @@
         </div>
       </div>
     </div>
+  </div>
   </div>
 </template>
 
