@@ -25,6 +25,9 @@ yarn.lock
 /public/storage
 /public/mix-manifest.json
 
+# Vite build output (built from client/ to server/public/dist/)
+server/public/dist/
+
 # IDE & Editor Files
 .vscode/
 .idea/
