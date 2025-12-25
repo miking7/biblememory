@@ -381,7 +381,30 @@ require 'index.php';
 
 ## Tool Usage Patterns
 
-### NPM Scripts
+### Project Structure
+The project uses a **root-level package.json with wrapper scripts** for convenience:
+- Root `package.json` delegates to `client/package.json`
+- All commands can be run from project root
+- Subfolder commands still work for those who prefer them
+
+### NPM Scripts (Root Level)
+
+**Root package.json:**
+```json
+{
+  "scripts": {
+    "dev": "npm run dev --prefix client",
+    "build": "npm install --prefix client && npm run build --prefix client",
+    "preview": "npm run preview --prefix client",
+    "install:client": "npm install --prefix client",
+    "migrate": "cd server && php api/migrate.php",
+    "db:reset": "rm -f server/api/db.sqlite && npm run migrate",
+    "db:open": "sqlite3 server/api/db.sqlite"
+  }
+}
+```
+
+**Client package.json:**
 ```json
 {
   "scripts": {
@@ -392,20 +415,40 @@ require 'index.php';
 }
 ```
 
-### Common Commands
+### Common Commands (Recommended - Root Level)
 ```bash
 # Frontend development
+npm run dev              # Start Vite dev server (port 3000)
+npm run build            # Install deps + build for production
+npm run preview          # Preview production build
+npm run install:client   # Install client dependencies
+
+# Database management
+npm run migrate          # Setup database (creates tables)
+npm run db:reset         # Delete database and recreate
+npm run db:open          # Open SQLite CLI
+
+# Note: No server command needed if using Laravel Herd
+# Herd automatically serves server/public at https://biblememory.test
+```
+
+### Legacy Commands (Subfolder)
+```bash
+# Frontend (from client/ directory)
+cd client
 npm run dev          # Start dev server
 npm run build        # Build for production
 npm install          # Install dependencies
 
-# Backend development
+# Backend (from server/ directory)
+cd server
 php api/migrate.php  # Setup database
-php -S localhost:8000 router.php  # Start server
+cd public
+php -S localhost:8000 router.php  # Start server (if not using Herd)
 
 # Database management
-sqlite3 api/db.sqlite  # Open database CLI
-rm api/db.sqlite && php api/migrate.php  # Reset database
+sqlite3 server/api/db.sqlite  # Open database CLI
+rm server/api/db.sqlite && cd server && php api/migrate.php  # Reset
 ```
 
 ## Performance Considerations

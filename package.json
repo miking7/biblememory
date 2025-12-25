@@ -1,0 +1,30 @@
+{
+  "name": "biblememory",
+  "version": "1.0.0",
+  "description": "Modern Bible Memory App - Offline-first PWA with spaced repetition",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix client",
+    "build": "npm install --prefix client && npm run build --prefix client",
+    "preview": "npm run preview --prefix client",
+    "install:client": "npm install --prefix client",
+    "migrate": "cd server && php api/migrate.php",
+    "db:reset": "rm -f server/api/db.sqlite && npm run migrate",
+    "db:open": "sqlite3 server/api/db.sqlite"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/miking7/biblememory.git"
+  },
+  "keywords": [
+    "bible",
+    "memory",
+    "spaced-repetition",
+    "offline-first",
+    "pwa",
+    "vue",
+    "typescript"
+  ],
+  "author": "Michael",
+  "license": "UNLICENSED"
+}

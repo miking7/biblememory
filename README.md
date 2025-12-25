@@ -103,6 +103,7 @@ biblememory/
 - **Node.js 18+** (for client development)
 - **PHP 8.0+** (for server)
 - **SQLite3** extension enabled in PHP
+- **Laravel Herd** (recommended) or PHP built-in server
 
 ### Quick Start
 
@@ -112,40 +113,56 @@ git clone <repository-url>
 cd biblememory
 ```
 
-2. **Set up the client**
+2. **Install client dependencies**
 ```bash
-cd client
-npm install
+npm run install:client
+```
+
+3. **Set up the database**
+```bash
+npm run migrate
+```
+
+4. **Build the client** (for production)
+```bash
 npm run build
 ```
+Note: This automatically runs `npm install` before building to ensure dependencies are up-to-date.
 
-3. **Set up the server**
-```bash
-cd ../server
-php api/migrate.php
-```
+5. **Serve the app**
 
-4. **Start the server**
+**Option A: Laravel Herd (Recommended)**
+- Herd automatically serves `server/public` at `https://biblememory.test`
+- No additional setup needed!
+- Visit `https://biblememory.test`
+
+**Option B: PHP Built-in Server**
 ```bash
-cd public
+cd server/public
 php -S localhost:8000 router.php
 ```
-
-5. **Open the app**
-```
-http://localhost:8000
-```
+- Visit `http://localhost:8000`
 
 ### Development Mode
 
 For frontend development with hot reload:
 
 ```bash
-cd client
 npm run dev
 ```
 
-This starts Vite dev server at `http://localhost:5173` with hot module replacement.
+This starts Vite dev server at `http://localhost:3000` with hot module replacement.
+
+**With Laravel Herd:**
+- Vite proxies API calls to `https://biblememory.test/api/*`
+- Visit `http://localhost:3000` for development
+
+**With PHP Built-in Server:**
+- Update `client/vite.config.ts` proxy target to `http://localhost:8000`
+- Start PHP server: `cd server/public && php -S localhost:8000 router.php`
+- Visit `http://localhost:3000` for development
+
+**Note:** All npm commands can now be run from the project root!
 
 ## 📝 Detailed Setup
 
@@ -421,20 +438,42 @@ Response: {
 
 ## 🧪 Development
 
-### Available Commands
+### Available Commands (Root Level)
+
+All commands can now be run from the project root:
 
 ```bash
-# Client
+# Frontend Development
+npm run dev              # Start Vite dev server with HMR (port 3000)
+npm run build            # Install deps + build for production
+npm run preview          # Preview production build
+npm run install:client   # Install client dependencies only
+
+# Database Management
+npm run migrate          # Setup database (creates tables)
+npm run db:reset         # Delete database and recreate
+npm run db:open          # Open SQLite CLI
+
+# Note: No server command needed if using Laravel Herd
+# Herd automatically serves server/public at https://biblememory.test
+```
+
+### Legacy Commands (Subfolder)
+
+If you prefer to work directly in subfolders:
+
+```bash
+# Client (from client/ directory)
 cd client
 npm run dev          # Start dev server with HMR
 npm run build        # Build for production
 npm run preview      # Preview production build
 
-# Server
+# Server (from server/ directory)
 cd server
 php api/migrate.php  # Run database migrations
 cd public
-php -S localhost:8000 router.php  # Start dev server
+php -S localhost:8000 router.php  # Start PHP built-in server (if not using Herd)
 ```
 
 ### Database Sync (Development)
