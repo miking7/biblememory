@@ -1,0 +1,14 @@
+/* CSS Document */
+
+#master { width: 300px; margin:0px auto; text-align:left; }
+
+h1 { font-size: 22px; }
+#versebox { border:1px solid #999; background-color: #f7f7f7; padding: 10px; line-height: 120%; min-height: 180px; font-size: 110%; font-family: Calibri, Arial, Helvetica, sans-serif; position: relative; }
+#versebox_content { min-height: 250px; line-height: 120%; }
+#tMainMenu { font-size: 120%; line-height: 175%; }
+.alignleft { float: left; padding-top:2px; }
+.alignright { float: right; padding-top:2px; }
+.alignX { padding-top:2px; }
+#flashcard_options { font-size: 7.5pt; text-align: center; }
+
+

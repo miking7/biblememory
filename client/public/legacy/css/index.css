@@ -1,0 +1,33 @@
+/* CSS Document */
+
+table td.big { font-size: 150%; }
+
+a:hover { text-decoration:none; }
+a.tooltip span { display:none; padding:5px; margin-left:8px; width:300px; text-align: left; }
+a.tooltip:hover span { display:inline; position:absolute; background:#f7f7f7; border:1px solid #999; color:#000;  font-size: 80%; }
+
+body { text-align:center; }	/* text-align hack for IE - should work with margin: auto as below - ref: http://www.bluerobot.com/web/css/center1.html, comprehensive article: http://haslayout.net/css-tuts/Horizontal-Centering */
+#master { width: 513px; margin:0px auto; text-align:left; }
+#versebox { border:1px solid #999; background-color: #f7f7f7; padding: 10px; line-height: 120%; min-height: 190px; font-size: 120%; font-family: Calibri, Arial, Helvetica, sans-serif; position: relative; }
+#versebox p { margin-top: 0px; margin-bottom: 6px; }
+#versebox span { color:#f7f7f7; border-bottom: 1px solid black; padding-bottom: 0px;  }
+#verseboxbottomdiv { position:absolute; bottom:2; right:5; color:#888888; }
+#versebox_ref { font-weight: bold; margin-bottom: 5px; }
+#versebox_content { min-height: 350px; line-height: 120%; }
+#versebox_content p { margin-top: 0px; margin-bottom: 6px; }
+#versebox_progress { position:absolute; right:5; color:#888888; font-size: 66%; text-align: right; }
+#versebox_details { color:#888888; font-size: 66%; width: 100%;  }
+#versebox_review_cat { text-align: left; }
+#versebox_tags { text-align: center; }
+#versebox_starteddate { text-align: right; }
+p { margin-bottom: 0.2em; }
+ul, ol, blockquote { margin-top: 0.2em; margin-bottom: 0.2em; }
+li { margin-bottom: 0.2em; }
+#flashcard_options { padding-bottom: 5px; font-size: 50%; font-family: Calibri, Arial, Helvetica, sans-serif; }
+#tMainMenu { font-size: 150%; line-height: 175%; }
+.alignleft { float: left; padding-top:10px; }
+.alignright { float: right; padding-top:10px; }
+.alignX { padding-top:10px; }
+.contextMenu { display: none; }
+
+#verselist div { border-bottom:1px solid #999; background-color: #f7f7f7; height: 2.5em; overflow: hidden; }
