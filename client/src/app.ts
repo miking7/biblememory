@@ -78,6 +78,33 @@ export function bibleMemoryApp() {
     });
   };
 
+  // Export to legacy app
+  const exportToLegacyAndOpen = async () => {
+    const verses = versesLogic.verses.value;
+    
+    if (verses.length === 0) {
+      alert('No verses to export to legacy app!');
+      return;
+    }
+    
+    // Transform to legacy format
+    const legacyVerses = verses.map(v => ({
+      reference: v.reference,
+      content: v.content,
+      review_cat: v.reviewCat, // camelCase → snake_case
+      tags: v.tags.map(t => t.value ? `${t.key}=${t.value}` : t.key).join(', '),
+      started_at: v.startedAt 
+        ? new Date(v.startedAt).toISOString().split('T')[0] 
+        : null
+    }));
+    
+    // Save to localStorage
+    localStorage.setItem('allVerses', JSON.stringify(legacyVerses));
+    
+    // Open legacy app
+    window.location.href = '/legacy/index.html';
+  };
+
   // Lifecycle
   onMounted(() => {
     init();
@@ -136,6 +163,9 @@ export function bibleMemoryApp() {
     lastSyncSuccess: sync.lastSyncSuccess,
     lastSyncError: sync.lastSyncError,
     lastSyncAttempt: sync.lastSyncAttempt,
-    hasSyncIssues: hasSyncIssuesWithAuth
+    hasSyncIssues: hasSyncIssuesWithAuth,
+
+    // Legacy app export
+    exportToLegacyAndOpen
   };
 }

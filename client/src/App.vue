@@ -112,6 +112,11 @@
                 class="badge-notification absolute top-3 right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-lg"
                 v-text="dueForReview.length"></span>
         </button>
+        <button
+          @click="exportToLegacyAndOpen()"
+          class="tab-button flex-1 py-5 px-6 font-medium hover:bg-white/50 transition-all text-slate-600">
+          <span class="text-xl mr-2">⏪</span> Legacy...
+        </button>
       </div>
 
       <!-- Add Verse Tab -->
@@ -611,5 +616,6 @@ const {
   handleLogin,
   handleRegister,
   handleLogout,
+  exportToLegacyAndOpen,
 } = bibleMemoryApp();
 </script>

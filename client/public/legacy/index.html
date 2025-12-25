@@ -73,7 +73,8 @@
 // text/cache-manifest			manifest
 
 
-var allVerses = {!! json_encode($verses) !!};
+// Load verses from localStorage (populated by new app)
+var allVerses = JSON.parse(localStorage.getItem('allVerses') || '[]');
 var verses = [];
 
 //Define context classes
