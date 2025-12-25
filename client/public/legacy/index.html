@@ -17,13 +17,24 @@
 <script language="javascript" type="text/javascript" src="js/jquery.date.min.js"></script>
 <script language="javascript" type="text/javascript" src="js/jquery.json.min.js"></script>
 <script language="javascript" type="text/javascript" src="js/jstorage.min.js"></script>
-<script language="javascript" type="text/javascript" src="js/jquery.tablesorter.js"></script>
-<script language="javascript" type="text/javascript" src="js/jquery.quicksearch.js"></script>
 
 
 <script type="text/javascript">
 
-//TO DO:
+// ============================================================================
+// LEGACY BIBLE MEMORY APP (circa 2010-2020)
+// 
+// This is the original jQuery-based Bible Memory application, integrated into
+// the new Vue.js app via a localStorage bridge. Modified to load verse data
+// from localStorage.allVerses instead of Laravel backend.
+//
+// Key features: Spaced repetition, flashcards, hints, first letters, keyboard
+// shortcuts, meditation/application prompts.
+//
+// See client/public/legacy/README.md for architecture details.
+// ============================================================================
+
+//LEGACY TO DO LIST (circa 2010-2020) - MOST MAY NO LONGER BE RELEVANT:
 // - write API spec & write to Dan, Bible2Heart, SwordScript
 // - write up HMI spec & get verse lists working
 // - Think about allowing provision for pictures such as in FAST.BT  (inline?)
@@ -753,9 +764,8 @@ Loading - please wait...
 <a href="javascript:void()" name="link" onclick=" selectAllVerses(); 	startReview(); ">Start Review - All</a><br>
 <a href="javascript:void()" name="link" onclick=" selectRandomVerses(); showVerseList(); ">Show Verse List - Daily</a><br>
 <a href="javascript:void()" name="link" onclick=" selectAllVerses(); 	showVerseList(); ">Show Verse List - All</a><br>
-<a href="admin/verses">Verse Admin</a><br>
-<a href="logout" name = "link" onclick=" event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a>
-	<form id="logout-form" action="logout" method="POST" style="display: none;">@csrf</form>
+<br>
+<a href="/">← Back to New App</a>
 </div>
 
 <div id='tVerseList'>
