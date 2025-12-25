@@ -437,6 +437,24 @@ cd public
 php -S localhost:8000 router.php  # Start dev server
 ```
 
+### Database Sync (Development)
+
+To sync a copy of the production database to your local dev environment for testing:
+
+```bash
+# Replace with your actual production SSH details
+rsync -avz -e "ssh -p YOUR_SSH_PORT" \
+  YOUR_USER@YOUR_HOST:~/production_path/server/api/db.sqlite \
+  ./server/api/db-prod.sqlite
+```
+
+**Note:** The production database will be saved as `db-prod.sqlite` to avoid overwriting your local development database (`db.sqlite`).
+
+To verify the synced database:
+```bash
+sqlite3 server/api/db-prod.sqlite "SELECT COUNT(*) FROM users; SELECT COUNT(*) FROM ops;"
+```
+
 ### Code Style
 - **TypeScript**: Strict mode enabled
 - **PHP**: PSR-12 coding standard
