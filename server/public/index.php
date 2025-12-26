@@ -81,6 +81,45 @@ if (strpos($path, '/assets/') === 0 || $path === '/favicon.ico') {
     }
 }
 
+// TEMPORARY: Serve legacy app static files
+// TODO: Remove this block once legacy app is no longer needed (Phase 2+)
+// The legacy jQuery app is a transitional tool while building new Vue.js features
+if (strpos($path, '/legacy/') === 0 || $path === '/legacy') {
+    $legacyPath = __DIR__ . '/dist' . $path;
+    
+    // Default to index.html if requesting /legacy/ directory
+    if (is_dir($legacyPath)) {
+        $legacyPath .= '/index.html';
+    }
+    
+    if (file_exists($legacyPath) && is_file($legacyPath)) {
+        // Determine content type
+        $ext = pathinfo($legacyPath, PATHINFO_EXTENSION);
+        $contentTypes = [
+            'html' => 'text/html; charset=utf-8',
+            'js' => 'application/javascript',
+            'css' => 'text/css',
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'ico' => 'image/x-icon',
+        ];
+        
+        if (isset($contentTypes[$ext])) {
+            header('Content-Type: ' . $contentTypes[$ext]);
+        }
+        
+        readfile($legacyPath);
+        exit;
+    }
+    
+    // Legacy file not found
+    http_response_code(404);
+    echo '404 - Legacy file not found';
+    exit;
+}
+
 // Serve the SPA for all other requests
 $indexPath = __DIR__ . '/dist/index.html';
 
