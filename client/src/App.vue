@@ -27,16 +27,16 @@
     </div>
   </div>
 
-  <div class="container mx-auto px-4 py-8 max-w-5xl">
+  <div class="container mx-auto px-4 py-4 sm:py-8 max-w-5xl">
     <!-- Sync Issues Indicator -->
     <div v-show="hasSyncIssues" class="offline-indicator">
       ⚠️ Sync issues - currently offline. Changes saved locally.
     </div>
 
     <!-- Header -->
-    <header class="mb-10 fade-in relative">
+    <header class="mb-6 sm:mb-10 fade-in relative">
       <div class="text-center">
-        <h1 class="text-5xl font-bold text-white mb-3 tracking-tight">
+        <h1 class="text-3xl sm:text-5xl font-bold text-white mb-3 tracking-tight">
           📖 <span class="gradient-text">Bible Memory</span>
         </h1>
         <p class="text-blue-200 text-lg font-light">Memorize Scripture, one verse at a time</p>
@@ -71,57 +71,61 @@
     </header>
 
     <!-- Stats Bar -->
-    <div class="glass-card rounded-2xl shadow-2xl p-6 mb-8 fade-in">
-      <div class="grid grid-cols-3 gap-6">
-        <div class="stat-card rounded-xl p-5 text-center">
-          <div class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-1" v-text="verses.length"></div>
-          <div class="text-sm text-slate-600 font-medium">Total Verses</div>
+    <div class="glass-card rounded-2xl shadow-2xl p-3 sm:p-6 mb-4 sm:mb-8 fade-in">
+      <div class="grid grid-cols-3 gap-2 sm:gap-6">
+        <div class="stat-card rounded-xl p-3 sm:p-5 text-center">
+          <div class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-1" v-text="verses.length"></div>
+          <div class="text-xs sm:text-sm text-slate-600 font-medium">Total Verses</div>
         </div>
-        <div class="stat-card rounded-xl p-5 text-center">
-          <div class="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent mb-1" v-text="reviewedToday"></div>
-          <div class="text-sm text-slate-600 font-medium">Reviewed Today</div>
+        <div class="stat-card rounded-xl p-3 sm:p-5 text-center">
+          <div class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent mb-1" v-text="reviewedToday"></div>
+          <div class="text-xs sm:text-sm text-slate-600 font-medium">Reviewed Today</div>
         </div>
-        <div class="stat-card rounded-xl p-5 text-center">
-          <div class="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent mb-1" v-text="currentStreak"></div>
-          <div class="text-sm text-slate-600 font-medium">Day Streak</div>
+        <div class="stat-card rounded-xl p-3 sm:p-5 text-center">
+          <div class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent mb-1" v-text="currentStreak"></div>
+          <div class="text-xs sm:text-sm text-slate-600 font-medium">Day Streak</div>
         </div>
       </div>
     </div>
 
     <!-- Tab Navigation -->
-    <div class="glass-card rounded-2xl shadow-2xl overflow-hidden fade-in">
+    <div class="-mx-4 sm:mx-0 glass-card rounded-none sm:rounded-2xl shadow-2xl overflow-hidden fade-in">
       <div class="flex border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50">
         <button
           @click="currentTab = 'add'"
           :class="currentTab === 'add' ? 'active text-blue-700 font-semibold' : 'text-slate-600'"
-          class="tab-button flex-1 py-5 px-6 font-medium hover:bg-white/50 transition-all">
-          <span class="text-xl mr-2">📝</span> Add Verse
+          class="tab-button flex-1 py-3 px-2 sm:py-5 sm:px-6 font-medium hover:bg-white/50 transition-all flex flex-col sm:flex-row items-center justify-center">
+          <span class="text-3xl sm:text-xl sm:mr-2">📝</span>
+          <span class="text-xs sm:text-base mt-1 sm:mt-0">Add Verse</span>
         </button>
         <button
           @click="currentTab = 'list'"
           :class="currentTab === 'list' ? 'active text-blue-700 font-semibold' : 'text-slate-600'"
-          class="tab-button flex-1 py-5 px-6 font-medium hover:bg-white/50 transition-all">
-          <span class="text-xl mr-2">📚</span> My Verses
+          class="tab-button flex-1 py-3 px-2 sm:py-5 sm:px-6 font-medium hover:bg-white/50 transition-all flex flex-col sm:flex-row items-center justify-center">
+          <span class="text-3xl sm:text-xl sm:mr-2">📚</span>
+          <span class="text-xs sm:text-base mt-1 sm:mt-0">My Verses</span>
         </button>
         <button
           @click="currentTab = 'review'; loadReviewVerses()"
           :class="currentTab === 'review' ? 'active text-blue-700 font-semibold' : 'text-slate-600'"
-          class="tab-button flex-1 py-5 px-6 font-medium hover:bg-white/50 transition-all relative">
-          <span class="text-xl mr-2">🎯</span> Review
+          class="tab-button flex-1 py-3 px-2 sm:py-5 sm:px-6 font-medium hover:bg-white/50 transition-all relative flex flex-col sm:flex-row items-center justify-center">
+          <span class="text-3xl sm:text-xl sm:mr-2">🎯</span>
+          <span class="text-xs sm:text-base mt-1 sm:mt-0">Review</span>
           <span v-show="dueForReview.length > 0"
                 class="badge-notification absolute top-3 right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-lg"
                 v-text="dueForReview.length"></span>
         </button>
         <button
           @click="exportToLegacyAndOpen()"
-          class="tab-button flex-1 py-5 px-6 font-medium hover:bg-white/50 transition-all text-slate-600">
-          <span class="text-xl mr-2">⏪</span> Legacy...
+          class="tab-button flex-1 py-3 px-2 sm:py-5 sm:px-6 font-medium hover:bg-white/50 transition-all text-slate-600 flex flex-col sm:flex-row items-center justify-center">
+          <span class="text-3xl sm:text-xl sm:mr-2">⏪</span>
+          <span class="text-xs sm:text-base mt-1 sm:mt-0">Legacy...</span>
         </button>
       </div>
 
       <!-- Add Verse Tab -->
-      <div v-if="currentTab === 'add'" class="p-8">
-        <h2 class="text-3xl font-bold mb-6 text-slate-800">Add New Verse</h2>
+      <div v-if="currentTab === 'add'" class="p-3 sm:p-8">
+        <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-slate-800">Add New Verse</h2>
         <form @submit.prevent="addVerse()" class="space-y-5">
           <div>
             <label class="block text-sm font-semibold text-slate-700 mb-2">Reference</label>
@@ -192,9 +196,9 @@
       </div>
 
       <!-- My Verses Tab -->
-      <div v-if="currentTab === 'list'" class="p-8">
+      <div v-if="currentTab === 'list'" class="p-3 sm:p-8">
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-3xl font-bold text-slate-800">My Verses</h2>
+          <h2 class="text-2xl sm:text-3xl font-bold text-slate-800">My Verses</h2>
           <div class="space-x-3">
             <button
               @click="exportVerses()"
@@ -218,13 +222,13 @@
 
         <!-- No verses at all -->
         <div v-show="verses.length === 0" class="text-center py-12 text-slate-500">
-          <div class="text-5xl mb-4">📖</div>
+          <div class="text-4xl sm:text-5xl mb-4">📖</div>
           <p class="text-lg">No verses yet. Add your first verse to get started!</p>
         </div>
 
         <!-- Has verses but search returned no results -->
         <div v-show="hasVersesButNoSearchResults" class="text-center py-12 text-slate-500">
-          <div class="text-5xl mb-4">🔍</div>
+          <div class="text-4xl sm:text-5xl mb-4">🔍</div>
           <p class="text-lg font-semibold mb-2">No verses match your search</p>
           <p class="text-sm">Try a different search term or clear the search to see all verses.</p>
         </div>
@@ -241,12 +245,12 @@
       </div>
 
       <!-- Review Tab -->
-      <div v-if="currentTab === 'review'" class="p-8">
-        <h2 class="text-3xl font-bold mb-6 text-slate-800">Daily Review</h2>
+      <div v-if="currentTab === 'review'" class="p-3 sm:p-8">
+        <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-slate-800">Daily Review</h2>
 
         <div v-show="dueForReview.length === 0" class="text-center py-16">
-          <div class="text-7xl mb-4">🎉</div>
-          <p class="text-2xl text-slate-700 mb-2 font-semibold">All caught up!</p>
+          <div class="text-5xl sm:text-7xl mb-4">🎉</div>
+          <p class="text-xl sm:text-2xl text-slate-700 mb-2 font-semibold">All caught up!</p>
           <p class="text-slate-500 text-lg">No verses due for review today.</p>
         </div>
 
@@ -259,9 +263,9 @@
           </div>
 
           <template v-if="currentReviewVerse">
-            <div class="review-card rounded-2xl p-10 min-h-[350px] flex flex-col justify-center items-center">
+            <div class="review-card rounded-2xl p-4 sm:p-10 min-h-[350px] flex flex-col justify-center items-center">
               <div class="text-center mb-8">
-                <h3 class="text-4xl font-bold text-slate-800 mb-2" v-text="currentReviewVerse.reference"></h3>
+                <h3 class="text-2xl sm:text-4xl font-bold text-slate-800 mb-2" v-text="currentReviewVerse.reference"></h3>
                 <div class="flex flex-wrap items-center justify-center gap-2 mt-3">
                   <span v-show="currentReviewVerse.translation"
                         class="text-sm text-slate-500 font-medium px-3 py-1 bg-slate-100 rounded-full"
@@ -302,8 +306,8 @@
           </template>
 
           <div v-show="reviewComplete"  class="text-center py-16">
-            <div class="text-7xl mb-4">🎉</div>
-            <p class="text-3xl text-slate-700 mb-3 font-bold">Review Complete!</p>
+            <div class="text-5xl sm:text-7xl mb-4">🎉</div>
+            <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">Review Complete!</p>
             <p class="text-slate-500 mb-6 text-lg">Great job reviewing today's verses.</p>
             <button
               @click="resetReview()"
@@ -323,8 +327,8 @@
         <div class="fixed inset-0 transition-opacity bg-slate-900 bg-opacity-75" @click="closeAuthModal()"></div>
 
         <!-- Modal panel -->
-        <div class="inline-block align-bottom glass-card rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
-          <div class="p-8">
+        <div class="inline-block align-bottom glass-card rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full">
+          <div class="p-4 sm:p-8">
             <!-- Toggle between Login and Register -->
             <div class="flex gap-2 mb-6">
               <button
@@ -458,9 +462,9 @@
         <div class="fixed inset-0 transition-opacity bg-slate-900 bg-opacity-75" @click="showEditModal = false"></div>
 
         <!-- Modal panel -->
-        <div class="inline-block align-bottom glass-card rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-          <div class="p-8">
-            <h3 class="text-3xl font-bold mb-6 text-slate-800">Edit Verse</h3>
+        <div class="inline-block align-bottom glass-card rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full">
+          <div class="p-4 sm:p-8">
+            <h3 class="text-2xl sm:text-3xl font-bold mb-6 text-slate-800">Edit Verse</h3>
             <template v-if="editingVerse">
               <form @submit.prevent="saveEditVerse()" class="space-y-5">
                 <div>

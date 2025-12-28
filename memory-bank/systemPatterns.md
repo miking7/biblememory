@@ -514,7 +514,49 @@ Result: Device B's edit wins (LWW)
 - `ops(op_id)` - For deduplication
 - `tokens(user_id)` - For auth lookups
 
-### 6. Sync Status Tracking Pattern
+### 6. Mobile-First Responsive Design Pattern
+
+**Purpose:** Optimize user experience across all device sizes, prioritizing mobile
+
+**Philosophy:**
+- Design and build for mobile screens first
+- Progressively enhance for larger screens
+- Maximize screen real estate on mobile devices
+- Maintain premium aesthetics on desktop
+
+**Core Principles:**
+- Base styles target mobile (no breakpoint prefix)
+- Desktop styles added with `sm:` breakpoint prefix (640px+)
+- Mobile constraints force UI simplicity and focus
+- Desktop gets progressive enhancements
+
+**Key Design Conventions (Established December 29, 2024):**
+
+**Spacing Philosophy:**
+- Tighter padding/margins on mobile (maximize content area)
+- Generous spacing on desktop (comfortable reading)
+- Edge-to-edge containers on mobile where appropriate
+- Sharp corners on mobile, rounded on desktop
+
+**Typography Philosophy:**
+- Scale down headings and body text on mobile
+- Maintain readability at smaller sizes
+- Larger touch-friendly text for interactive elements
+- Desktop gets larger, more impactful typography
+
+**Content Optimization:**
+- Hide verbose labels on mobile to save space
+- Stack layouts vertically on mobile
+- Horizontal layouts on desktop
+- Full-width modals on mobile
+
+**Component Adaptation:**
+- Larger touch targets on mobile (44x44px minimum)
+- Compact form controls
+- Stacked navigation on mobile
+- Responsive card layouts
+
+### 7. Sync Status Tracking Pattern
 
 **Purpose:** Provide accurate connectivity feedback based on actual network operations
 
