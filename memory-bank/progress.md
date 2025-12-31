@@ -58,16 +58,53 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 ### ⏳ Planned - Phase 2: Enhanced Review (3-4 weeks)
 **Goal:** Match legacy review capabilities
 
+**Architecture Decision:** Modal Sub-Modes with Review State Machine
+- Single Review tab with state machine managing sub-modes
+- Clean composable pattern (all logic in `useReview.ts`)
+- Card-based UI that morphs based on current review mode
+- No navigation stack complexity - just reactive state transitions
+- Maintains glass-morphism aesthetic and card consistency
+
+**See:** `memory-bank/phase2-architecture.md` for detailed implementation specifications
+
 **Priority 1 - Review Modes:**
-- [ ] Flash Cards mode (5 difficulty levels: 0%, 10%, 25%, 45%, 100% hidden words)
-- [ ] First Letters mode (show first letter + punctuation)
-- [ ] Progressive Hints mode (start with 3 words, add 1 per hint)
+- [ ] Flash Cards mode
+  - [ ] Dropdown difficulty selector (5 levels: 0%, 10%, 25%, 45%, 100%)
+  - [ ] Random word hiding based on selected difficulty
+  - [ ] Click hidden word to reveal (visual feedback)
+  - [ ] Maintain verse position and card layout
+- [ ] First Letters mode
+  - [ ] Transform content to first letter + punctuation
+  - [ ] No space between letters (legacy pattern)
+  - [ ] Toggle back to full verse easily
+- [ ] Progressive Hints mode
+  - [ ] Start with 3 words visible
+  - [ ] Add 1 word per hint activation
+  - [ ] Show hint count ("Hint 4 of 23")
+  - [ ] Reset hints on next verse
 
 **Priority 2 - Navigation & UX:**
-- [ ] Keyboard shortcuts (n/p/h/f/Space for navigation and modes)
-- [ ] Verse List quick jump (click verse to start review from that point)
+- [ ] Keyboard shortcuts
+  - [ ] 'n' - Next verse
+  - [ ] 'p' - Previous verse  
+  - [ ] Space - Advance (reveal OR next verse if revealed)
+  - [ ] 'h' - Activate hints mode
+  - [ ] 'f' - Activate first letters mode
+  - [ ] Escape - Exit modal modes, return to reference
+- [ ] Mode switching UI
+  - [ ] Buttons always visible: [Hint] [Flash Cards ▼] [First Letters]
+  - [ ] Flash Cards opens dropdown for difficulty selection
+  - [ ] Visual active state for current mode
+- [ ] Verse List quick jump (click verse → start review from that verse)
 - [ ] Human-readable time display ("3 weeks" vs "21 days")
 - [ ] Tag value formatting in UI ("fast.sk (3)")
+
+**UI/UX Enhancements:**
+- [ ] Card layout preserves legacy information hierarchy
+- [ ] 3-column metadata footer (review category | tags | time)
+- [ ] Progress indicator maintains position (top-right: 1/9)
+- [ ] Smooth mode transitions (fade/morph effects)
+- [ ] Mobile-friendly button sizes and touch targets
 
 **Estimated Scope:** 3-4 weeks focused development
 

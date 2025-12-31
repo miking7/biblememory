@@ -15,21 +15,33 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Phase 1 Complete - Planning Phase 2 Implementation
+**Status:** Phase 2 Architecture Planning Complete ✅
 
-**Current State:**
-- Modern app provides basic memorization workflow (CRUD + simple review)
-- Legacy app provides advanced features (Flash Cards, Hints, Meditation prompts)
-- Users switch between apps via "Legacy..." button as needed
-- Memory bank aligned with actual project state
+**Completed This Session:**
+- Analyzed legacy app's stack-based navigation vs modern app's tab structure
+- Evaluated 3 architectural approaches for integrating review modes
+- Selected Modal Sub-Modes pattern (state machine within Review tab)
+- Documented detailed implementation specifications in phase2-architecture.md
+- Updated progress.md with Phase 2 feature breakdown and architecture decision
+- Clarified Flash Cards UI (dropdown selector for 5 difficulty levels)
 
-**Next Phase:** Enhanced Review Modes (Phase 2)
-- Flash Cards mode (5 difficulty levels)
-- First Letters mode
-- Progressive Hints mode
-- Keyboard shortcuts (n/p/h/f/Space)
+**Architecture Decision:** Modal Sub-Modes with Review State Machine
+- Single Review tab with reactive state transitions (not navigation stack)
+- State managed in `useReview.ts` composable
+- Card-based UI morphs between modes (reference/content/hints/firstletters/flashcards)
+- Keyboard shortcuts integrated (n/p/h/f/Space/Escape)
+- Maintains glass-morphism aesthetic and mobile-first design
 
-**See [progress.md](progress.md) for complete roadmap and feature parity status.**
+**Ready for Implementation:**
+- Detailed specs documented in `memory-bank/phase2-architecture.md`
+- Clear file modification list (useReview.ts, App.vue, app.ts, styles.css)
+- UI mockups and code patterns provided
+- Testing checklist prepared
+- Timeline: 3-4 weeks focused development
+
+**See:**
+- [phase2-architecture.md](phase2-architecture.md) for detailed implementation specifications
+- [progress.md](progress.md) for complete roadmap and feature parity status
 
 ## Active Decisions and Considerations
 
