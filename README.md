@@ -1,100 +1,52 @@
 # Bible Memory App - Modern PWA
 
-A modern, offline-first Bible memory application with beautiful UI, combining the best features from three reference implementations:
-- **Legacy Laravel App**: Proven spaced repetition algorithm
-- **SPA Demo**: Clean, modern UI with Vue.js and Tailwind CSS
-- **OpLog Starter**: Robust sync architecture with IndexedDB
-
-## 🎉 Phase 1 Complete!
-
-The app is now fully functional with a modern build system, beautiful UI, and offline-first architecture.
+A modern, offline-first Bible memory application built with Vue 3 and TypeScript. Features spaced repetition for effective scripture memorization, beautiful UI with glass-morphism design, and robust multi-device sync.
 
 ## ✨ Features
 
-### Phase 1 (✅ Complete)
-- ✅ Modern build system (Vite + TypeScript)
-- ✅ Beautiful UI with Tailwind CSS v4 and Vue.js
-- ✅ Verse CRUD (add, edit, delete, list)
-- ✅ Basic review mode (reference → content reveal)
-- ✅ Spaced repetition algorithm (learn/daily/weekly/monthly)
-- ✅ Offline-first with IndexedDB (Dexie.js)
-- ✅ Sync with server (push/pull with cursor-based pagination)
-- ✅ Search/filter verses
-- ✅ Import/export JSON
-- ✅ Tags system with comma-separated input
-- ✅ Multi-paragraph verse support
-- ✅ Authentication (token-based)
-- ✅ Glass-morphism design with gradient backgrounds
-- ✅ Responsive layout
-- ✅ Smooth animations and transitions
+- **Verse Management**: Add, edit, delete, search, and organize scripture verses
+- **Spaced Repetition**: Proven algorithm with auto-categorization (learn/daily/weekly/monthly)
+- **Review System**: Basic mode (reference → content reveal) with progress tracking
+- **Offline-First**: Full functionality without internet via IndexedDB
+- **Multi-Device Sync**: OpLog pattern with cursor-based pagination and conflict resolution
+- **Authentication**: Secure token-based auth with data migration on signup
+- **Import/Export**: JSON format with smart ID handling
+- **Tags System**: Structured key-value organization
+- **Modern UI**: Glass-morphism design, responsive layout, smooth animations
+- **Advanced Features**: Flash Cards, Hints, and more via integrated legacy app
 
 ## 🚀 Technology Stack
 
-### Frontend
-- **TypeScript** - Type-safe client code
-- **Vue.js 3.x** - Progressive JavaScript framework with Composition API
-- **Tailwind CSS v4.1.16** - Latest stable utility-first CSS framework
-- **Dexie.js** - IndexedDB wrapper for offline storage
-- **Vite 5.x** - Modern build tool with hot module replacement
+**Frontend:** Vue.js 3, TypeScript, Tailwind CSS v4, Dexie.js, Vite 5
+**Backend:** PHP 8.0+, SQLite, OpLog sync pattern
+**Architecture:** Offline-first SPA with token-based authentication
 
-### Backend
-- **PHP 8.0+** - Server-side language
-- **SQLite** - Database (development and production)
-- **OpLog Pattern** - Operation log for sync
-- **Token-based Auth** - Simple authentication
+See [techContext.md](memory-bank/techContext.md) for detailed stack information.
 
 ## 📁 Project Structure
 
 ```
 biblememory/
-├── client/                     # Frontend application
-│   ├── src/
-│   │   ├── main.ts            # Entry point, Vue app initialization
-│   │   ├── app.ts             # Vue app component logic
-│   │   ├── db.ts              # Dexie schema & IndexedDB
-│   │   ├── actions.ts         # Verse CRUD operations
-│   │   ├── sync.ts            # Push/pull sync logic
-│   │   └── styles.css         # Tailwind imports & custom styles
-│   ├── index.html             # Main HTML template
-│   ├── package.json           # Dependencies
-│   ├── tsconfig.json          # TypeScript config
-│   ├── vite.config.ts         # Vite build config
-│   └── postcss.config.js      # PostCSS config
+├── client/                     # Vue 3 frontend (TypeScript + Vite)
+│   ├── src/                   # Source code (main.ts, app.ts, db.ts, actions.ts, sync.ts)
+│   └── ...                    # Config files (vite.config.ts, tsconfig.json)
 │
-├── server/                     # Backend application
+├── server/                     # PHP backend
 │   ├── public/
-│   │   ├── dist/              # Built frontend assets (generated)
-│   │   ├── index.php          # Main router
-│   │   ├── router.php         # PHP built-in server router
-│   │   └── .htaccess          # Apache configuration
-│   ├── api/
-│   │   ├── lib.php            # Shared functions
-│   │   ├── register.php       # User registration
-│   │   ├── login.php          # User login
-│   │   ├── logout.php         # User logout
-│   │   ├── push.php           # Push operations
-│   │   ├── pull.php           # Pull operations
-│   │   └── migrate.php        # Database setup
-│   ├── schema.sql             # Database schema
-│   └── nginx.conf.example     # Nginx configuration example
+│   │   ├── dist/              # Built assets (generated by Vite)
+│   │   │   └── legacy/        # Legacy app with advanced features
+│   │   └── ...                # Router files (index.php, router.php)
+│   ├── api/                   # API endpoints (register, login, push, pull, migrate)
+│   └── schema.sql             # Database schema
 │
-├── examples/                   # Reference implementations
-│   ├── legacy-laravel-app/    # Original Laravel implementation
-│   ├── spa-demo/              # UI reference implementation
-│   ├── bible-memory-oplog-starter/  # Sync pattern reference
-│   └── legacy-data/           # Sample data for testing
-│
-├── memory-bank/               # 📚 Project documentation
-│   ├── projectbrief.md        # Project foundation and goals
-│   ├── productContext.md      # User experience and features
-│   ├── systemPatterns.md      # Architecture and design patterns
-│   ├── techContext.md         # Technology stack and setup
-│   ├── activeContext.md       # Current work and decisions
-│   ├── progress.md            # What works and what's next
-│   ├── testing.md             # Testing strategy and checklist
-│   └── dataSpecifications.md  # Data model details
-│
-└── README.md                   # This file
+└── memory-bank/               # 📚 Complete project documentation
+    ├── projectbrief.md        # Project foundation and goals
+    ├── productContext.md      # User experience and features
+    ├── systemPatterns.md      # Architecture and design patterns
+    ├── techContext.md         # Technology stack and setup
+    ├── activeContext.md       # Current work and decisions
+    ├── progress.md            # Roadmap and feature status
+    └── previous-work/         # Archived work sessions
 ```
 
 ## 🛠️ Setup Instructions
@@ -164,108 +116,7 @@ This starts Vite dev server at `http://localhost:3000` with hot module replaceme
 
 **Note:** All npm commands can now be run from the project root!
 
-## 📝 Detailed Setup
-
-### Client Setup
-
-1. Navigate to client directory:
-```bash
-cd client
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-This installs:
-- Vue.js (reactive framework)
-- Tailwind CSS v4 (styling)
-- Dexie.js (IndexedDB wrapper)
-- Vite (build tool)
-- TypeScript (type safety)
-
-3. **Development mode** (with hot reload):
-```bash
-npm run dev
-```
-App available at `http://localhost:5173`
-
-4. **Production build**:
-```bash
-npm run build
-```
-Builds to `../server/public/dist/`
-
-### Server Setup
-
-1. Navigate to server directory:
-```bash
-cd server
-```
-
-2. Run database migration:
-```bash
-php api/migrate.php
-```
-
-This will:
-- Create `api/db.sqlite` database
-- Create all required tables (users, verses, reviews, oplog)
-- Create a test user:
-  - Email: `test@example.com`
-  - Password: `password123`
-- Display the test user's token
-
-3. Start PHP built-in server:
-```bash
-cd public
-php -S localhost:8000 router.php
-```
-
-The app will be available at `http://localhost:8000`
-
-### Production Deployment
-
-#### Option 1: Apache
-
-1. Build the client:
-```bash
-cd client
-npm run build
-```
-
-2. Copy files to web server:
-```bash
-# Copy server directory
-cp -r server/ /var/www/biblememory/
-
-# Ensure proper permissions
-chmod 755 /var/www/biblememory/api
-chmod 666 /var/www/biblememory/api/db.sqlite
-```
-
-3. The `.htaccess` file in `server/public/` handles routing
-
-#### Option 2: Nginx
-
-1. Build the client:
-```bash
-cd client
-npm run build
-```
-
-2. Copy files to web server:
-```bash
-cp -r server/ /var/www/biblememory/
-```
-
-3. Use the provided `server/nginx.conf.example` as a template
-
-4. Configure Nginx to:
-   - Serve static files from `server/public/dist/`
-   - Proxy `/api/*` requests to PHP-FPM
-   - Fallback to `index.php` for SPA routing
+See [techContext.md](memory-bank/techContext.md) for detailed setup instructions, deployment configurations, and development workflows.
 
 ## 💡 Usage
 
@@ -458,61 +309,7 @@ npm run db:open          # Open SQLite CLI
 # Herd automatically serves server/public at https://biblememory.test
 ```
 
-### Legacy Commands (Subfolder)
-
-If you prefer to work directly in subfolders:
-
-```bash
-# Client (from client/ directory)
-cd client
-npm run dev          # Start dev server with HMR
-npm run build        # Build for production
-npm run preview      # Preview production build
-
-# Server (from server/ directory)
-cd server
-php api/migrate.php  # Run database migrations
-cd public
-php -S localhost:8000 router.php  # Start PHP built-in server (if not using Herd)
-```
-
-### Database Sync (Development)
-
-To sync a copy of the production database to your local dev environment for testing:
-
-```bash
-# Replace with your actual production SSH details
-rsync -avz -e "ssh -p YOUR_SSH_PORT" \
-  YOUR_USER@YOUR_HOST:~/production_path/server/api/db.sqlite \
-  ./server/api/db-prod.sqlite
-```
-
-**Note:** The production database will be saved as `db-prod.sqlite` to avoid overwriting your local development database (`db.sqlite`).
-
-To verify the synced database:
-```bash
-sqlite3 server/api/db-prod.sqlite "SELECT COUNT(*) FROM users; SELECT COUNT(*) FROM ops;"
-```
-
-### Code Style
-- **TypeScript**: Strict mode enabled
-- **PHP**: PSR-12 coding standard
-- **CSS**: Tailwind utility classes + custom CSS for complex styles
-- Use meaningful variable names
-- Add comments for complex logic
-
-### Testing Checklist
-- [ ] Add a verse
-- [ ] Edit the verse
-- [ ] Delete the verse
-- [ ] Search for verses
-- [ ] Review verses (mark as "Got it" and "Need Practice")
-- [ ] Export verses to JSON
-- [ ] Import verses from JSON
-- [ ] Test offline mode (disconnect network, add verse)
-- [ ] Test sync (reconnect network, verify sync)
-- [ ] Test on mobile device
-- [ ] Test in different browsers
+See [techContext.md](memory-bank/techContext.md) for additional development workflows, code style guidelines, and testing procedures.
 
 ## 🐛 Troubleshooting
 
@@ -553,53 +350,47 @@ sqlite3 server/api/db-prod.sqlite "SELECT COUNT(*) FROM users; SELECT COUNT(*) F
 **Problem**: PHP errors about SQLite
 **Solution**: Ensure SQLite3 extension is enabled in `php.ini`
 
-## 🚀 Future Phases
+## 🚀 Roadmap
 
-### Phase 2 (Planned)
-- Multiple review modes (hints, first letters, flashcards)
-- Keyboard shortcuts for power users
+### Phase 2: Enhanced Review Modes
+
+- Flash Cards mode (5 difficulty levels: 0%, 10%, 25%, 45%, 100%)
+- First Letters mode (first letter + punctuation)
+- Progressive Hints mode (incremental word reveal)
+- Keyboard shortcuts (n/p/h/f/Space)
+- Quick jump from verse list to review
+
+### Phase 3: Deep Engagement
+
+- Meditation questions (structured reflection prompts)
+- Application questions (4 life areas: Goals, Decisions, Lifestyle, Problems)
+- BibleGateway chapter lookup integration
+- Human-readable time display
+
+### Phase 4: Modern Enhancements
+
 - Statistics dashboard with charts
-- Streak tracking and achievements
-- PWA manifest for installability
-- Dark mode toggle
-- Verse categories/collections
+- Dark mode, PWA installation
+- Streak tracking with achievements
+- Background sync and notifications
 
-### Phase 3 (Planned)
-- Meditation/application prompts
-- Push notifications for review reminders
-- Service worker for background sync
-- Progress charts and analytics
-- Social features (share verses)
-- Audio playback for verses
+See [progress.md](memory-bank/progress.md) for complete roadmap and feature parity status.
 
 ## 📄 License
 
 Private project - All rights reserved
 
-## 🙏 Credits
+## 📚 Documentation
 
-Built by integrating patterns from:
-- Legacy Laravel Bible Memory App (spaced repetition algorithm)
-- Modern SPA Demo (UI/UX patterns)
-- OpLog Sync Starter (offline-first architecture)
+For detailed project documentation, see the [memory-bank/](memory-bank/) directory:
+
+- [projectbrief.md](memory-bank/projectbrief.md) - Project foundation and goals
+- [productContext.md](memory-bank/productContext.md) - User experience and features
+- [systemPatterns.md](memory-bank/systemPatterns.md) - Architecture and design patterns
+- [techContext.md](memory-bank/techContext.md) - Technology stack and setup
+- [progress.md](memory-bank/progress.md) - Roadmap and feature status
+- [activeContext.md](memory-bank/activeContext.md) - Current work focus
 
 ---
 
-**Current Status**: Phase 1 Complete ✅  
-**Version**: 1.0.0  
 **Last Updated**: January 2025
-
-## 📚 Documentation
-
-For detailed project documentation, see the **memory-bank/** directory:
-
-- **[projectbrief.md](memory-bank/projectbrief.md)** - Project foundation, goals, and success criteria
-- **[productContext.md](memory-bank/productContext.md)** - User experience, features, and priorities
-- **[systemPatterns.md](memory-bank/systemPatterns.md)** - Architecture, design patterns, and data flow
-- **[techContext.md](memory-bank/techContext.md)** - Technology stack, setup, and development workflow
-- **[activeContext.md](memory-bank/activeContext.md)** - Current work focus and recent decisions
-- **[progress.md](memory-bank/progress.md)** - What works, what's next, and technical debt
-- **[testing.md](memory-bank/testing.md)** - Testing strategy, checklist, and compliance
-- **[dataSpecifications.md](memory-bank/dataSpecifications.md)** - Data model, formats, and validation
-
-The memory-bank serves as the single source of truth for understanding the project's architecture, decisions, and current state.
