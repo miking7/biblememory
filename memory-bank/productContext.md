@@ -1,5 +1,15 @@
 # Product Context
 
+<!-- 
+MAINTENANCE PRINCIPLES (from .clinerules):
+- Document WHY the project exists and WHAT problems it solves
+- Focus on user experience goals and product vision
+- Business logic and user workflows belong here
+- High-level feature priorities and roadmap
+- Update when product direction or UX goals change
+- This file guides WHAT we build, systemPatterns guides HOW
+-->
+
 ## Why This Project Exists
 
 ### The Problem

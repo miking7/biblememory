@@ -1,243 +1,144 @@
 # Data Specifications
 
-## Data Model Details
+<!-- 
+MAINTENANCE PRINCIPLES (from .clinerules):
+- Document data model concepts, field purposes, and validation rules - NOT complete code definitions
+- Focus on WHY fields exist and WHAT they represent
+- NO code duplication - reference actual schema files instead of recreating interfaces/SQL
+- Exception: Small examples OK to illustrate concepts
+- Keep business logic, format specifications, and validation rules - they're stable
+- This file should help understand the data model without duplicating the codebase
+-->
+
+## Data Model Overview
 
 ### Client Schema (IndexedDB via Dexie)
 
-#### Verse Table
-```typescript
-interface Verse {
-  // Identity
-  id: string;              // UUID v4 - unique across all users
-  
-  // Reference fields
-  reference: string;       // Human-readable: "John 3:16" or "Hebrews 10:24-25"
-  refSort: string;         // Sortable format: "bible.BBCCCVVV"
-  
-  // Content
-  content: string;         // Verse text with \n for line breaks
-  translation: string;     // "KJV", "NIV", "ESV", etc.
-  
-  // Memorization tracking
-  reviewCat: string;       // "auto", "future", "learn", "daily", "weekly", "monthly"
-  startedAt: number | null; // Epoch ms - when memorization began (null = not started)
-  
-  // Organization
-  tags: Array<{            // Structured tags
-    key: string;           // e.g., "fast.sk", "ss", "personal"
-    value: string;         // e.g., "3", "2010.Q2.W01", "01"
-  }>;
-  favorite: boolean;       // Quick access flag
-  
-  // Metadata
-  createdAt: number;       // Epoch ms - when verse was added
-  updatedAt: number;       // Epoch ms - for LWW conflict resolution
-}
-```
+**Complete schema:** See `client/src/db.ts`
 
-**Indexes:**
-- Primary key: `id`
-- `refSort` - For biblical ordering
-- `createdAt` - For chronological queries
-- `updatedAt` - For sync operations
+**Primary Tables:**
+- `verses` - User's verse library with memorization tracking
+- `reviews` - Review history (append-only)
+- `settings` - User preferences
 
-#### Review Table
-```typescript
-interface Review {
-  // Identity
-  id: string;              // UUID v4
-  
-  // Relationship
-  verseId: string;         // Foreign key to verses.id
-  
-  // Review details
-  reviewType: string;      // "recall", "hint", "firstletters", "flashcard"
-  
-  // Timing
-  createdAt: number;       // Epoch ms - when review occurred
-}
-```
+**Sync Infrastructure:**
+- `auth` - Authentication token storage (single record)
+- `outbox` - Pending operations awaiting sync
+- `appliedOps` - Deduplication tracking (prevents reapplying operations)
+- `sync` - Cursor state for pull operations
 
-**Indexes:**
-- Primary key: `id`
-- `verseId` - For verse history lookups
-- `createdAt` - For recent reviews
-
-#### Settings Table
-```typescript
-interface Setting {
-  key: string;             // Setting identifier
-  value: any;              // Setting value (JSON-serializable)
-  updatedAt: number;       // Epoch ms - for LWW conflict resolution
-}
-```
-
-**Indexes:**
-- Primary key: `key`
-
-#### Auth Table
-```typescript
-interface Auth {
-  id: string;              // "current" - single record
-  token: string;           // 64-char hex string from server
-  userId: string;          // UUID v4
-  createdAt: number;       // Epoch ms - when token was issued
-}
-```
-
-**Indexes:**
-- Primary key: `id`
-
-#### Outbox Table (Sync Infrastructure)
-```typescript
-interface OutboxOp {
-  op_id: string;           // UUID v4
-  ts_client: number;       // Epoch ms - client timestamp
-  entity: string;          // "verse", "review", "setting"
-  action: string;          // "add", "set", "patch", "delete"
-  data: any;               // Operation payload
-}
-```
-
-**Indexes:**
-- Primary key: `op_id`
-- `ts_client` - For chronological processing
-
-#### AppliedOps Table (Sync Infrastructure)
-```typescript
-interface AppliedOp {
-  op_id: string;           // UUID v4 - for deduplication
-}
-```
-
-**Indexes:**
-- Primary key: `op_id`
-
-#### Sync Table (Sync Infrastructure)
-```typescript
-interface SyncState {
-  id: string;              // "default"
-  cursor: number;          // Last synced sequence number
-  lastPushAt: number;      // Epoch ms - last successful push
-  lastPullAt: number;      // Epoch ms - last successful pull
-}
-```
-
-**Indexes:**
-- Primary key: `id`
+**Key Design Decisions:**
+- UUIDs for all primary keys (enables offline creation without collisions)
+- Epoch milliseconds for all timestamps (no timezone issues)
+- Structured tags array (not comma-separated string)
+- Multi-paragraph support with `\n` line breaks
 
 ### Server Schema (SQLite)
 
-#### Users Table
-```sql
-CREATE TABLE users (
-  user_id TEXT PRIMARY KEY,           -- UUID v4
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,        -- bcrypt/argon2
-  created_at INTEGER NOT NULL,        -- Epoch ms
-  last_login_at INTEGER,              -- Epoch ms
-  is_active INTEGER DEFAULT 1         -- Boolean flag
-);
+**Complete schema:** See `server/schema.sql`
 
-CREATE INDEX idx_users_email ON users(email);
+**Core Tables:**
+- `users` - User accounts (id, email, password_hash, created_at)
+- `tokens` - Authentication tokens hashed (token_hash, user_id, created_at)
+- `ops` - Operation log (source of truth, append-only)
+
+**Derived Views:**
+- `verses_view` - Current verse state (latest op per verse_id)
+- `reviews_view` - Review history (all review ops)
+- `user_stats` - Aggregate statistics
+
+**Why Views:**
+- Simplify queries (don't need to derive state from ops manually)
+- Read-optimized (pre-computed joins)
+- Ops table remains append-only (fast writes, simple to reason about)
+
+## Key Fields Explained
+
+### Verse Identity
+- `id` (UUID v4) - Globally unique, safe for offline creation
+- `reference` (string) - Human-readable: "John 3:16", "Hebrews 10:24-25"
+- `refSort` (string) - Machine-sortable: "bible.BBCCCVVV" for biblical ordering
+
+**Why both reference fields:**
+- Users want readable references ("John 3:16")
+- App needs sortable format for biblical order (Genesis → Revelation)
+- Manual entry for both (Phase 1), auto-parsing deferred to Phase 2
+
+### Memorization Tracking
+- `reviewCat` (string) - Current category: "auto", "future", "learn", "daily", "weekly", "monthly"
+- `startedAt` (number | null) - When memorization began (null = not started)
+
+**Why startedAt:**
+- Spaced repetition algorithm needs days since start
+- Null allows verses to be added before memorization begins
+- Local midnight timestamp (not UTC) to match user's day boundaries
+
+### Content Storage
+- `content` (string) - Verse text with `\n` for line breaks
+- `translation` (string) - Version identifier: "KJV", "NIV", "ESV", etc.
+
+**Multi-paragraph format:**
+- Use `\n` for line breaks (not `<br>` or `\r\n`)
+- Display with CSS `white-space: pre-wrap` (see `client/src/App.vue`)
+- Preserve leading spaces for indentation
+- Strip trailing whitespace
+
+**Example:**
+```
+"5 Trust in the LORD with all thine heart; and lean not unto thine own understanding.\n6 In all thy ways acknowledge him, and he shall direct thy paths."
 ```
 
-#### Tokens Table
-```sql
-CREATE TABLE tokens (
-  token TEXT PRIMARY KEY,             -- SHA-256 hash of 64-char hex
-  user_id TEXT NOT NULL,
-  created_at INTEGER NOT NULL,        -- Epoch ms
-  last_used_at INTEGER,               -- Epoch ms - for tracking activity
-  revoked_at INTEGER,                 -- Epoch ms - NULL if active
-  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
+### Tags Structure
+- `tags` (Array<{key, value}>) - Structured array, not comma-separated string
 
-CREATE INDEX idx_tokens_user ON tokens(user_id);
-CREATE INDEX idx_tokens_revoked ON tokens(revoked_at);
+**Why structured:**
+- Enables efficient filtering by key or value
+- Preserves empty values (key without value)
+- Supports complex queries (e.g., all "fast.sk" regardless of value)
+
+**Input format (backward compatible):**
+```
+"fast.sk=3, ss=2010.Q2.W01, personal"
 ```
 
-#### Ops Table (Operation Log - Source of Truth)
-```sql
-CREATE TABLE ops (
-  seq INTEGER PRIMARY KEY AUTOINCREMENT,  -- Monotonic sequence
-  user_id TEXT NOT NULL,
-  op_id TEXT UNIQUE NOT NULL,             -- UUID v4 from client
-  ts_client INTEGER NOT NULL,             -- Epoch ms - client timestamp
-  ts_server INTEGER NOT NULL,             -- Epoch ms - server timestamp
-  entity TEXT NOT NULL,                   -- "verse", "review", "setting"
-  action TEXT NOT NULL,                   -- "add", "set", "patch", "delete"
-  data_json TEXT NOT NULL,                -- JSON payload
-  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
-CREATE INDEX idx_ops_user_seq ON ops(user_id, seq);
-CREATE INDEX idx_ops_op_id ON ops(op_id);
-CREATE INDEX idx_ops_entity ON ops(entity);
+**Storage format:**
+```typescript
+[
+  { key: "fast.sk", value: "3" },
+  { key: "ss", value: "2010.Q2.W01" },
+  { key: "personal", value: "" }
+]
 ```
 
-#### Verses View (Derived State)
-```sql
-CREATE VIEW verses_view AS
-  SELECT 
-    user_id,
-    JSON_EXTRACT(data_json, '$.id') as verse_id,
-    JSON_EXTRACT(data_json, '$.reference') as reference,
-    JSON_EXTRACT(data_json, '$.refSort') as ref_sort,
-    JSON_EXTRACT(data_json, '$.content') as content,
-    JSON_EXTRACT(data_json, '$.translation') as translation,
-    JSON_EXTRACT(data_json, '$.reviewCat') as review_cat,
-    JSON_EXTRACT(data_json, '$.startedAt') as started_at,
-    JSON_EXTRACT(data_json, '$.tags') as tags,
-    JSON_EXTRACT(data_json, '$.favorite') as favorite,
-    ts_server as updated_at
-  FROM ops
-  WHERE entity = 'verse'
-    AND action != 'delete'
-    AND seq = (
-      SELECT MAX(seq)
-      FROM ops o2
-      WHERE o2.user_id = ops.user_id
-        AND o2.entity = 'verse'
-        AND JSON_EXTRACT(o2.data_json, '$.id') = JSON_EXTRACT(ops.data_json, '$.id')
-    );
-```
+**Common tag patterns:**
+- `fast.sk` = FAST Survival Kit reference (1-5)
+- `ss` = Sabbath School quarter/week (e.g., "2010.Q2.W01")
+- `personal` = Personal marker
+- `theme` = Thematic grouping ("faith", "love", "hope")
 
-#### Reviews View (Derived State)
-```sql
-CREATE VIEW reviews_view AS
-  SELECT 
-    user_id,
-    JSON_EXTRACT(data_json, '$.id') as review_id,
-    JSON_EXTRACT(data_json, '$.verseId') as verse_id,
-    JSON_EXTRACT(data_json, '$.reviewType') as review_type,
-    JSON_EXTRACT(data_json, '$.createdAt') as created_at,
-    ts_server
-  FROM ops
-  WHERE entity = 'review'
-    AND action = 'add';
-```
+**See:** `client/src/app.ts` for parsing logic
 
-#### User Stats View (Derived State)
-```sql
-CREATE VIEW user_stats AS
-  SELECT 
-    user_id,
-    COUNT(DISTINCT CASE 
-      WHEN entity='verse' AND action != 'delete' 
-      THEN JSON_EXTRACT(data_json, '$.id') 
-    END) as verse_count,
-    COUNT(CASE 
-      WHEN entity='review' 
-      THEN 1 
-    END) as review_count,
-    MAX(CASE 
-      WHEN entity='review' 
-      THEN ts_server 
-    END) as last_review_at
-  FROM ops
-  GROUP BY user_id;
-```
+### Timestamps
+- `createdAt` (number) - When record was created (epoch ms)
+- `updatedAt` (number) - When record was last modified (epoch ms)
+
+**Why epoch milliseconds:**
+- Standard JavaScript format (`Date.now()`)
+- No timezone issues (always UTC internally)
+- Easy to compare and sort
+- Simple math for date calculations
+
+**Format:** `1704326400000` (epoch milliseconds since 1970-01-01)
+
+### Review Records
+- `verseId` (UUID) - Links to verses table
+- `reviewType` (string) - Type of review: "recall", "hint", "firstletters", "flashcard"
+- `createdAt` (number) - When review occurred
+
+**Why append-only:**
+- Complete history preserved (no deletes)
+- Enables analytics and statistics
+- Simpler sync (no update conflicts)
 
 ## Reference Format Specification
 
@@ -247,7 +148,8 @@ CREATE VIEW user_stats AS
 - **Chapter**: `"Psalm 23"` (entire chapter)
 
 ### Machine Format (refSort for Sorting)
-- **Format**: `bible.BBCCCVVV`
+
+**Format:** `bible.BBCCCVVV`
 - **BB**: Book number (01-66, zero-padded)
 - **CCC**: Chapter number (001-150, zero-padded)
 - **VVV**: Verse number (001-176, zero-padded)
@@ -257,9 +159,16 @@ CREATE VIEW user_stats AS
 - `"bible.58010024"` = Hebrews 10:24 (book 58, chapter 10, verse 24)
 - `"bible.19023001"` = Psalm 23:1 (book 19, chapter 23, verse 1)
 
+**Why this format:**
+- Lexicographic sorting = biblical ordering
+- Fixed width enables string comparison
+- Consistent across all verses
+- Simple to generate and parse
+
 ### Book Number Mapping (66 Books)
+
+**Old Testament (01-39):**
 ```
-Old Testament (01-39):
 01=Genesis, 02=Exodus, 03=Leviticus, 04=Numbers, 05=Deuteronomy,
 06=Joshua, 07=Judges, 08=Ruth, 09=1 Samuel, 10=2 Samuel,
 11=1 Kings, 12=2 Kings, 13=1 Chronicles, 14=2 Chronicles, 15=Ezra,
@@ -268,8 +177,10 @@ Old Testament (01-39):
 26=Ezekiel, 27=Daniel, 28=Hosea, 29=Joel, 30=Amos,
 31=Obadiah, 32=Jonah, 33=Micah, 34=Nahum, 35=Habakkuk,
 36=Zephaniah, 37=Haggai, 38=Zechariah, 39=Malachi
+```
 
-New Testament (40-66):
+**New Testament (40-66):**
+```
 40=Matthew, 41=Mark, 42=Luke, 43=John, 44=Acts,
 45=Romans, 46=1 Corinthians, 47=2 Corinthians, 48=Galatians, 49=Ephesians,
 50=Philippians, 51=Colossians, 52=1 Thessalonians, 53=2 Thessalonians, 54=1 Timothy,
@@ -281,236 +192,79 @@ New Testament (40-66):
 ### Handling Edge Cases
 - **Verse ranges**: Store first verse only (e.g., "Hebrews 10:24-25" → `bible.58010024`)
 - **Chapters**: Use verse 001 (e.g., "Psalm 23" → `bible.19023001`)
-- **Future**: Auto-parsing deferred to Phase 2
-
-## Multi-Paragraph Content Format
-
-### Storage Format
-- Use standard `\n` (newline) character for line breaks
-- Preserve leading spaces for indentation
-- Strip trailing whitespace from each line
-- Allow multiple consecutive `\n` for paragraph breaks
-
-**Example:**
-```typescript
-content: "5 Trust in the LORD with all thine heart; and lean not unto thine own understanding.\n6 In all thy ways acknowledge him, and he shall direct thy paths."
-```
-
-### Normalization Rules
-1. Convert all line break types to `\n`:
-   - Windows `\r\n` → `\n`
-   - Mac `\r` → `\n`
-   - Unix `\n` → `\n` (no change)
-2. Strip trailing whitespace from each line
-3. Preserve leading spaces for indentation
-4. Collapse excessive line breaks (max 2 consecutive)
-
-### Display Format
-- Use CSS `white-space: pre-wrap` for proper rendering
-- Converts `\n` to line breaks automatically
-- Preserves indentation
-- Wraps long lines
-
-**CSS:**
-```css
-.verse-content {
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-```
-
-## Tags Structure
-
-### Legacy Format (Input)
-Comma-separated string with optional `=` for values:
-```
-"fast.sk=3, ss=2010.Q2.W01, personal=01"
-```
-
-### Modern Format (Storage)
-Structured array of objects:
-```typescript
-tags: [
-  { key: "fast.sk", value: "3" },
-  { key: "ss", value: "2010.Q2.W01" },
-  { key: "personal", value: "01" }
-]
-```
-
-### Parsing Logic
-```typescript
-function parseTags(input: string): Array<{key: string, value: string}> {
-  return input
-    .split(',')
-    .map(tag => tag.trim())
-    .filter(tag => tag.length > 0)
-    .map(tag => {
-      const parts = tag.split('=');
-      return {
-        key: parts[0].trim(),
-        value: parts[1]?.trim() || ''
-      };
-    });
-}
-```
-
-### Validation Rules
-- **Tag keys**: Alphanumeric + dots/hyphens, max 50 chars, case-insensitive
-- **Tag values**: Any string, max 100 chars
-- **Empty values**: Allowed (key without `=` or key with empty value)
-
-### Common Tag Patterns
-From legacy data analysis:
-- `fast.sk` = FAST Survival Kit book/topic (1-5)
-- `fast.bt` = FAST Basic Training book/topic reference
-- `ss` = Sabbath School quarter/week reference (e.g., "2010.Q2.W01")
-- `personal` = Personal marker vs training material
-- `theme` = Thematic grouping (e.g., "faith", "love", "hope")
-- `topic` = Topic-based organization
-- `difficulty` = Difficulty level (e.g., "easy", "medium", "hard")
-
-### Display Format
-**Compact badges:**
-```html
-<span class="tag-badge">
-  <span class="tag-key">fast.sk</span>
-  <span class="tag-value">=3</span>
-</span>
-```
-
-**Filtering:**
-```typescript
-// Filter by key only
-verses.filter(v => v.tags.some(t => t.key === "fast.sk"))
-
-// Filter by key and value
-verses.filter(v => v.tags.some(t => t.key === "fast.sk" && t.value === "3"))
-```
-
-## Timestamp Format
-
-### Standard: Epoch Milliseconds
-All timestamps stored as **epoch milliseconds** (number):
-```typescript
-const now = Date.now(); // e.g., 1704326400000
-```
-
-### Rationale
-- Consistent across client and server
-- Easy to compare and sort
-- No timezone issues
-- Simple math for date calculations
-- Standard JavaScript format
-
-### Usage Examples
-```typescript
-// Current time
-const createdAt = Date.now();
-
-// Days between dates
-const daysBetween = (ts1: number, ts2: number) => {
-  return Math.floor((ts2 - ts1) / (1000 * 60 * 60 * 24));
-};
-
-// Format for display
-const formatDate = (ts: number) => {
-  return new Date(ts).toLocaleDateString();
-};
-```
+- **Future**: Auto-parsing of human format deferred to Phase 2
 
 ## Operation Types
 
-### Verse Operations
+All mutations create operations for sync. Operations are immutable and append-only.
+
+**Common structure:**
 ```typescript
-type VerseOp = {
-  entity: 'verse',
-  action: 'add' | 'set' | 'delete',
-  data: {
-    id: string,
-    reference: string,
-    refSort: string,
-    content: string,
-    translation: string,
-    reviewCat: string,
-    startedAt: number | null,
-    tags: Array<{key: string, value: string}>,
-    favorite: boolean,
-    createdAt: number,
-    updatedAt: number
-  }
+{
+  op_id: string,        // UUID v4 (client-generated)
+  ts_client: number,    // Epoch ms (client timestamp)
+  entity: string,       // "verse", "review", "setting"
+  action: string,       // "add", "set", "delete"
+  data: object          // Entity-specific payload
 }
 ```
 
-### Review Operations (Append-Only)
-```typescript
-type ReviewOp = {
-  entity: 'review',
-  action: 'add',
-  data: {
-    id: string,
-    verseId: string,
-    reviewType: string,
-    createdAt: number
-  }
-}
-```
+**Verse operations:**
+- `action: "add"` - Create new verse
+- `action: "set"` - Update existing verse (full replacement)
+- `action: "delete"` - Delete verse
 
-### Setting Operations
-```typescript
-type SettingOp = {
-  entity: 'setting',
-  action: 'set',
-  data: {
-    key: string,
-    value: any
-  }
-}
-```
+**Review operations:**
+- `action: "add"` only (append-only, no updates or deletes)
+
+**Setting operations:**
+- `action: "set"` - Create or update setting
+
+**See:** `client/src/actions.ts` for operation creation, `server/api/push.php` for server handling
 
 ## Data Validation Rules
 
 ### Verse Validation
 - `id`: Required, UUID v4 format
-- `reference`: Required, non-empty string, max 200 chars
+- `reference`: Required, non-empty, max 200 chars
 - `refSort`: Required, format `bible.BBCCCVVV`, max 50 chars
-- `content`: Required, non-empty string, max 10,000 chars
+- `content`: Required, non-empty, max 10,000 chars
 - `translation`: Optional, max 50 chars
-- `reviewCat`: Required, one of: "auto", "future", "learn", "daily", "weekly", "monthly"
-- `startedAt`: Optional, null or positive number
-- `tags`: Optional, array of objects with key/value strings
+- `reviewCat`: Required, enum: "auto" | "future" | "learn" | "daily" | "weekly" | "monthly"
+- `startedAt`: Optional, null or positive epoch ms
+- `tags`: Optional, array of {key, value} objects
 - `favorite`: Required, boolean
-- `createdAt`: Required, positive number
-- `updatedAt`: Required, positive number
+- `createdAt`: Required, positive epoch ms
+- `updatedAt`: Required, positive epoch ms
+
+**Why these limits:**
+- 200 chars for reference = longest biblical reference fits comfortably
+- 10,000 chars for content = entire chapters fit (e.g., Psalm 119 ~5000 chars)
+- 50 chars for translation = "New International Version (2011)" fits
 
 ### Review Validation
 - `id`: Required, UUID v4 format
-- `verseId`: Required, UUID v4 format
-- `reviewType`: Required, one of: "recall", "hint", "firstletters", "flashcard"
-- `createdAt`: Required, positive number
+- `verseId`: Required, UUID v4 format (must exist in verses table)
+- `reviewType`: Required, enum: "recall" | "hint" | "firstletters" | "flashcard"
+- `createdAt`: Required, positive epoch ms
 
 ### Authentication Validation
 - `email`: Required, valid email format, max 255 chars
 - `password`: Required, min 8 chars, max 255 chars
-- `token`: Required, 64-char hex string
+- `token`: Required, 64-char hex string (client-side), bcrypt hash (server-side)
 
-## Data Migration Considerations
+**Why bcrypt:**
+- Industry standard for password hashing
+- Adaptive cost factor (currently 10)
+- Resistant to brute force attacks
+- Built into PHP (password_hash, password_verify)
 
-### From Legacy Laravel App
-- Export verses with all fields
-- Transform comma-separated tags to structured array
-- Convert dates to epoch milliseconds
-- Map old review categories to new format
-- Include review history (last 90 days recommended)
-
-### CSV Import Format
-For bulk import from CSV:
-```csv
-reference,refSort,content,translation,tags,startedAt
-"John 3:16","bible.43003016","For God so loved...","NIV","theme=love,personal","2024-01-01"
-```
+## Data Import/Export Formats
 
 ### JSON Export Format
-Standard export format:
+
+Standard export format for data portability:
+
 ```json
 {
   "version": "1.0.0",
@@ -525,8 +279,7 @@ Standard export format:
       "reviewCat": "daily",
       "startedAt": 1704326400000,
       "tags": [
-        {"key": "theme", "value": "love"},
-        {"key": "personal", "value": ""}
+        {"key": "theme", "value": "love"}
       ],
       "favorite": false,
       "createdAt": 1704326400000,
@@ -542,3 +295,88 @@ Standard export format:
     }
   ]
 }
+```
+
+**Why this format:**
+- Complete data portability (user owns their data)
+- Version field for future migration
+- Human-readable JSON
+- Can be imported to new account or different device
+
+**See:** `client/src/app.ts` for export/import implementation
+
+### CSV Import Format
+
+For bulk import from spreadsheets:
+
+```csv
+reference,refSort,content,translation,tags,startedAt
+"John 3:16","bible.43003016","For God so loved...","NIV","theme=love,personal","2024-01-01"
+```
+
+**CSV considerations:**
+- Quote fields containing commas
+- Date formats converted to epoch ms on import
+- Tags parsed from comma-separated string
+- UUIDs generated on import (not preserved)
+
+### Migration from Legacy App
+
+**Considerations:**
+- Legacy uses snake_case, new app uses camelCase
+- Transform comma-separated tags to structured array
+- Convert date strings to epoch milliseconds
+- Map old review categories to new format
+- Include review history (last 90 days recommended, full history optional)
+
+**See:** Previous work file 008 (Smart Import Feature) for implementation details
+
+## Database Indexes
+
+### Why These Indexes
+
+**Client (IndexedDB):**
+- `verses.id` - Primary key (automatic)
+- `verses.refSort` - Biblical ordering for verse list
+- `verses.createdAt` - Chronological ordering ("Recently added")
+- `reviews.verseId` - Lookup all reviews for a verse
+- `reviews.createdAt` - Recent reviews, statistics
+
+**Server (SQLite):**
+- `ops(user_id, seq)` - Efficient pull queries with cursor (critical for sync performance)
+- `ops(op_id)` - Deduplication (prevent duplicate operations)
+- `tokens(user_id)` - Auth lookups (fast token validation)
+
+**Performance impact:**
+- Indexes speed up reads but slow down writes slightly
+- For this app, reads >> writes (good trade-off)
+- Cursor-based pull query with index is O(1) instead of O(n)
+
+**See:** `client/src/db.ts` and `server/schema.sql` for complete index definitions
+
+## Data Integrity Patterns
+
+### Client-Side
+- Transactions for atomicity (verse + operation created together)
+- Foreign key relationships enforced by application logic
+- Validation before persistence
+- UUIDs prevent ID collisions across devices
+
+### Server-Side
+- Foreign key constraints enforced by SQLite
+- Unique constraint on op_id (prevents duplicates)
+- Prepared statements prevent SQL injection
+- Views ensure read consistency
+
+### Sync Integrity
+- Operations are idempotent (safe to replay)
+- Deduplication via appliedOps table
+- LWW resolution uses server timestamp (authoritative)
+- Cursor-based pull prevents missed operations
+
+**Trade-offs:**
+- No strong consistency (eventual consistency model)
+- Possible data loss if same verse edited simultaneously on multiple devices
+- Acceptable for personal use case (single user rarely does this)
+
+**See:** systemPatterns.md for conflict resolution details

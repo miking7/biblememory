@@ -112,4 +112,22 @@ flowchart TD
 
 Note: When triggered by **update memory bank**, I MUST review every memory bank file, even if some don't require updates. Focus particularly on activeContext.md and progress.md as they track current state.
 
+## Memory Bank Maintenance Principles
+
+These principles MUST be followed when updating any memory bank file:
+
+1. **🎯 No Code Duplication** - Never recreate code from the codebase in memory bank. Code changes, documentation doesn't. Reference actual files and describe patterns/decisions instead.
+
+2. **🎯 High-Level Only** - Document decisions, patterns, and "why", not implementation details. Implementation details change frequently and clutter context. Exception: Tiny code snippets OK for demonstrating critical patterns.
+
+3. **🎯 Single Source of Truth** - Each concept documented in ONE place only, others reference it. This prevents inconsistency and reduces maintenance burden.
+
+4. **🎯 Minimal Active Context** - activeContext.md contains ONLY current work (what we're working on right now). ALL completed work moved to previous-work/ folder with numeric filenames (001-999). Maintain COMPLETE chronological index in activeContext with links. Previous work files are NOT auto-loaded - only read when specifically relevant to current task.
+
+5. **🎯 Architecture Over Implementation** - Focus on flowcharts, diagrams, and architectural patterns. Architecture is stable, implementation details change. Keep WHY decisions were made, WHAT patterns are used.
+
+6. **🎯 Archive Completed Work** - Once work is completed, archive it to previous-work/ with numeric filename (001-999). Use sequential numbers with descriptive names. Maintain COMPLETE chronological index in activeContext.
+
+7. **🎯 Read Selectively** - Don't read previous work files on every task. This wastes context window on irrelevant information. Read only files relevant to current task.
+
 REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is my only link to previous work. It must be maintained with precision and clarity, as my effectiveness depends entirely on its accuracy.

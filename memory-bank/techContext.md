@@ -1,5 +1,15 @@
 # Technical Context
 
+<!-- 
+MAINTENANCE PRINCIPLES (from .clinerules):
+- Document technologies used, development setup, and tool usage
+- Focus on current tech stack and setup - NOT extensive future plans
+- Configuration examples and common commands belong here
+- Update when adding/changing technologies or tooling
+- Reference this file for "how to run the project"
+- Keep practical and actionable
+-->
+
 ## Technology Stack
 
 ### Frontend Technologies

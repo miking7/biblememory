@@ -1,5 +1,15 @@
 # System Patterns
 
+<!-- 
+MAINTENANCE PRINCIPLES (from .clinerules):
+- Document architectural decisions, patterns, and "why" - NOT implementation details
+- Focus on high-level architecture, flowcharts, and design patterns
+- NO code duplication - reference actual code files instead of recreating code
+- Exception: Tiny code snippets OK to demonstrate critical patterns
+- Keep diagrams and visual representations - they're stable and valuable
+- This file should help understand WHAT patterns are used and WHY, not HOW they're implemented
+-->
+
 ## Architecture Overview
 
 ### High-Level Architecture
@@ -7,56 +17,56 @@
 ```
 ┌─────────────────────────────────────────┐
 │         Client (Browser)                │
-│  ┌─────────────────────────────────┐   │
-│  │   Vue.js 3 SPA (App.vue)        │   │
-│  │   - Tab navigation               │   │
-│  │   - Reactive state management    │   │
-│  │   - User interactions            │   │
-│  └──────────┬──────────────────────┘   │
-│             │                            │
+│  ┌─────────────────────────────────┐    │
+│  │   Vue.js 3 SPA (App.vue)        │    │
+│  │   - Tab navigation              │    │
+│  │   - Reactive state management   │    │
+│  │   - User interactions           │    │
+│  └──────────┬──────────────────────┘    │
+│             │                           │
 │  ┌──────────▼──────────┐                │
 │  │   main.ts/app.ts    │                │
 │  │   - App logic       │                │
 │  │   - Event handlers  │                │
 │  └──────────┬──────────┘                │
-│             │                            │
+│             │                           │
 │  ┌──────────▼──────────┐                │
 │  │   actions.ts        │                │
 │  │   - CRUD operations │                │
 │  │   - Business logic  │                │
 │  │   - Queries         │                │
 │  └──────────┬──────────┘                │
-│             │                            │
+│             │                           │
 │  ┌──────────▼──────────┐                │
 │  │      db.ts          │                │
 │  │   - Dexie schema    │                │
 │  │   - IndexedDB       │                │
 │  └──────────┬──────────┘                │
-│             │                            │
+│             │                           │
 │  ┌──────────▼──────────┐                │
 │  │    sync.ts          │                │
 │  │   - Push/pull       │                │
 │  │   - Authentication  │                │
 │  └──────────┬──────────┘                │
-└─────────────┼────────────────────────────┘
+└─────────────┼───────────────────────────┘
               │ HTTP/JSON
               ▼
 ┌─────────────────────────────────────────┐
 │         Server (PHP)                    │
-│  ┌─────────────────────────────────┐   │
+│  ┌──────────────────────────────────┐   │
 │  │   API Endpoints                  │   │
 │  │   - register.php                 │   │
 │  │   - login.php / logout.php       │   │
 │  │   - push.php / pull.php          │   │
-│  └──────────┬──────────────────────┘   │
-│             │                            │
+│  └──────────┬───────────────────────┘   │
+│             │                           │
 │  ┌──────────▼──────────┐                │
 │  │      lib.php        │                │
 │  │   - Shared functions│                │
 │  │   - Auth helpers    │                │
 │  │   - DB connection   │                │
 │  └──────────┬──────────┘                │
-│             │                            │
+│             │                           │
 │  ┌──────────▼──────────┐                │
 │  │   SQLite Database   │                │
 │  │   - users           │                │
@@ -74,463 +84,165 @@
 **Purpose:** Enable offline-first architecture with reliable sync
 
 **How It Works:**
-- All mutations create operation entries
-- Operations stored locally in `outbox` table
-- Operations pushed to server in batches
-- Server stores operations in `ops` table with sequence numbers
+- All mutations create operation entries with unique IDs
+- Operations stored locally in `outbox` table awaiting sync
+- Operations pushed to server in batches (see `client/src/sync.ts`)
+- Server stores operations in `ops` table with monotonic sequence numbers
 - Clients pull operations using cursor-based pagination
-- Current state derived from operation log
+- Current state derived from applying operation log
 
-**Benefits:**
-- Complete audit trail
-- Conflict resolution via timestamps
-- Idempotent operations
+**Why This Pattern:**
+- Complete audit trail of all changes
+- Idempotent operations (safe to replay)
 - Easy to debug sync issues
-- Can reconstruct state at any point
+- Can reconstruct state at any point in time
+- Handles offline scenarios gracefully
 
-**Implementation:**
-```typescript
-// Client creates operation
-const op = {
-  id: generateUUID(),
-  ts: Date.now(),
-  entity: 'verse',
-  action: 'add',
-  data: { ...verseData }
-};
-
-// Store in outbox
-await db.outbox.add(op);
-
-// Periodically push to server
-await pushOps();
-
-// Server stores with sequence
-INSERT INTO ops (seq, user_id, op_id, ts_client, ts_server, entity, action, data_json)
-VALUES (NULL, ?, ?, ?, ?, ?, ?, ?);
-
-// Clients pull using cursor
-SELECT * FROM ops WHERE user_id = ? AND seq > ? ORDER BY seq LIMIT 500;
-```
+**Key Files:**
+- `client/src/actions.ts` - Creates operations for mutations
+- `client/src/sync.ts` - Push/pull logic
+- `server/api/push.php` - Receives and stores operations
+- `server/api/pull.php` - Returns operations with cursor
 
 ### 2. Last-Write-Wins (LWW) Conflict Resolution
 
 **Purpose:** Resolve conflicts when same entity edited on multiple devices
 
 **How It Works:**
-- Server assigns `ts_server` timestamp to all operations
+- Server assigns `ts_server` timestamp to all operations (authoritative time)
 - When applying operations, compare timestamps
 - Operation with latest `ts_server` wins
 - If timestamps identical, use `op_id` lexicographic comparison
 
-**Benefits:**
-- Simple and predictable
-- No user intervention needed
-- Works well for personal apps
-- Server is source of truth (avoids clock skew)
+**Why This Pattern:**
+- Simple and predictable behavior
+- No user intervention needed (seamless UX)
+- Works well for personal apps (single user unlikely to edit same verse simultaneously)
+- Server timestamp avoids client clock skew issues
+- Server is source of truth for ordering
 
-**Implementation:**
-```typescript
-// When applying pulled operations
-for (const op of pulledOps) {
-  // Check if already applied
-  const existing = await db.appliedOps.get(op.id);
-  if (existing) continue;
-  
-  // Apply operation
-  if (op.action === 'add' || op.action === 'set') {
-    await db.verses.put(op.data);
-  } else if (op.action === 'delete') {
-    await db.verses.delete(op.data.id);
-  }
-  
-  // Mark as applied
-  await db.appliedOps.add({ op_id: op.id });
-}
-```
+**Trade-offs Accepted:**
+- Can lose edits if same verse edited on multiple devices (acceptable for personal use)
+- Alternative patterns (CRDT, OT) add significant complexity for minimal benefit in this use case
+
+**Implementation:** See `client/src/sync.ts` pull logic and `server/api/push.php` timestamp handling
 
 ### 3. Cursor-Based Pagination
 
 **Purpose:** Efficiently sync large operation logs
 
 **How It Works:**
-- Server assigns monotonic sequence numbers to operations
+- Server assigns monotonic sequence numbers to operations (`seq` in `ops` table)
 - Client tracks last synced sequence in `sync` table
 - Pull requests include `since` parameter with cursor
 - Server returns operations after cursor + new cursor value
 - Client updates cursor after successful application
 
-**Benefits:**
-- Efficient for large datasets
+**Why This Pattern:**
+- Efficient for large datasets (only send new operations)
 - Resumable sync after interruption
 - No duplicate operations
-- Scales well
+- Scales well (constant query time regardless of history size)
+- Simpler than time-based windowing (no timezone issues)
 
-**Implementation:**
-```typescript
-// Client pull
-const { cursor } = await db.sync.get('default');
-const response = await fetch(`/api/pull.php?since=${cursor}&limit=500`);
-const { ops, cursor: newCursor } = await response.json();
-
-// Apply operations...
-
-// Update cursor
-await db.sync.put({ id: 'default', cursor: newCursor, lastPullAt: Date.now() });
-```
+**Key Files:**
+- `client/src/sync.ts` - Cursor storage and pull logic
+- `server/api/pull.php` - Cursor-based query with LIMIT
 
 ### 4. Offline-First with Outbox Pattern
 
 **Purpose:** Queue operations when offline, sync when online
 
 **How It Works:**
-- All mutations immediately write to local database
+- All mutations immediately write to local IndexedDB
 - Operations also written to `outbox` table
 - Periodic sync attempts to push outbox to server
 - Successful operations removed from outbox
-- Failed operations remain for retry
+- Failed operations remain for retry with smart backoff
 
-**Benefits:**
-- App fully functional offline
-- No data loss
-- Automatic sync when online
+**Why This Pattern:**
+- App fully functional offline (no degraded mode)
+- No data loss (operations queued locally)
+- Automatic sync when online (no user intervention)
 - User doesn't need to think about connectivity
+- Works with unreliable networks (mobile, airplane mode, etc.)
 
-**Implementation:**
-```typescript
-// Add verse (works offline)
-async function addVerse(verse: Verse) {
-  // Write to local database
-  await db.verses.add(verse);
-  
-  // Queue operation for sync
-  const op = {
-    id: generateUUID(),
-    ts: Date.now(),
-    entity: 'verse',
-    action: 'add',
-    data: verse
-  };
-  await db.outbox.add(op);
-  
-  // Sync will happen automatically
-}
-
-// Periodic sync
-setInterval(async () => {
-  if (navigator.onLine) {
-    await syncNow();
-  }
-}, 60000);
-```
-
-## Component Architecture
-
-### Vue.js Single File Components
-The application uses Vue.js 3 Single File Component (SFC) architecture:
-
-**Main Component (App.vue):**
-- Template section with full UI markup
-- Script section with Composition API setup
-- Scoped styles when needed
-- Build-time template compilation for performance
-
-**Benefits:**
-- Clean separation of concerns
-- Full TypeScript integration
-- Optimized runtime bundle (no template compiler)
-- Better developer experience with Vue DevTools
+**Implementation:** See `client/src/actions.ts` (creates operations), `client/src/sync.ts` (syncs outbox)
 
 ### 5. Reactive State Management (Vue.js Composition API)
 
 **Purpose:** Keep UI in sync with data changes
 
-**How It Works (Vue.js):**
-- Vue's Composition API provides reactive primitives (`ref()`, `reactive()`)
-- State changes automatically trigger DOM updates via Virtual DOM
+**How It Works:**
+- Vue's Composition API provides reactive primitives (`ref()`, `reactive()`, `computed()`)
+- State changes automatically trigger DOM updates via Virtual DOM diffing
 - Event handlers modify state
-- Computed properties derive from state using `computed()`
+- Computed properties derive from state
 - Single File Components (.vue) with `<template>`, `<script>`, `<style>` sections
 
-**Benefits:**
-- Full TypeScript integration
-- Composition API for better code organization
+**Why Vue.js:**
+- Full TypeScript integration (type-safe templates and logic)
+- Composition API for better code organization than Options API
 - Component-based architecture for scalability
-- Vue DevTools for debugging
-- Access to Vue ecosystem (Router, Pinia, etc.)
+- Excellent developer experience with Vue DevTools
+- Access to Vue ecosystem (Router, Pinia, etc. for future)
+- Smaller bundle size than React for similar functionality
 
-**Implementation (Vue.js Composition API):**
-```typescript
-// app.ts - Composition API function
-export function bibleMemoryApp() {
-  // Reactive state
-  const verses = ref<Verse[]>([]);
-  const currentTab = ref<'add' | 'list' | 'review'>('add');
-  
-  // Computed properties
-  const filteredVerses = computed(() => {
-    // filtering logic
-  });
-  
-  // Methods
-  const addVerse = async () => {
-    // logic
-  };
-  
-  // Lifecycle
-  onMounted(() => {
-    init();
-  });
-  
-  // Return for template binding
-  return { verses, currentTab, filteredVerses, addVerse };
-}
-```
-
-**Current Implementation:**
-- ✅ All state using `ref()` and `reactive()`
-- ✅ All computed using `computed()`
-- ✅ Vue directives (v-show, v-if, v-for, v-model, etc.)
-- ✅ Single File Component architecture (App.vue)
-- ✅ Build-time template compilation
-- ✅ Composables for code organization
+**Key Files:**
+- `client/src/app.ts` - Composition API setup function
+- `client/src/App.vue` - Main Single File Component
+- `client/src/main.ts` - Vue app initialization
 
 ### 6. Composables Pattern (Vue 3 Best Practice)
 
 **Purpose:** Organize related logic into reusable, testable functions
 
 **How It Works:**
-
 - Extract related functionality into focused composable functions
 - Each composable manages its own state and methods
-- Composables can be imported and used in components or other composables
+- Composables imported and used in components or other composables
 - Follow naming convention: `use{Feature}.ts`
-- Return reactive state and methods for template use
+- Return reactive state and methods for template binding
 
-**Benefits:**
-
-- Better code organization and separation of concerns
+**Why This Pattern:**
+- Better separation of concerns than monolithic setup
 - Improved testability (composables can be tested in isolation)
 - Easier to maintain (smaller, focused files)
 - Reusable across components
 - Clear dependencies between features
-
-**Implementation:**
-```typescript
-// composables/useAuth.ts
-export function useAuth() {
-  const isAuthenticated = ref(false);
-  const userEmail = ref('');
-
-  const login = async (email: string, password: string) => {
-    // login logic
-  };
-
-  return { isAuthenticated, userEmail, login };
-}
-
-// composables/useVerses.ts
-export function useVerses() {
-  const verses = ref<Verse[]>([]);
-  const searchQuery = ref('');
-
-  const filteredVerses = computed(() => {
-    // filtering logic
-  });
-
-  return { verses, searchQuery, filteredVerses };
-}
-
-// app.ts - Orchestration
-export function bibleMemoryApp() {
-  const auth = useAuth();
-  const versesLogic = useVerses();
-
-  return {
-    ...auth,
-    ...versesLogic
-  };
-}
-```
+- Follows Vue 3 official best practices
 
 **Current Composables:**
+- `client/src/composables/useAuth.ts` - Authentication state and operations
+- `client/src/composables/useVerses.ts` - Verse CRUD and filtering
+- `client/src/composables/useReview.ts` - Review system logic and stats
+- `client/src/composables/useSync.ts` - Sync scheduling and status tracking
+- `client/src/app.ts` - Orchestrates composables (reduced from 694 to 141 lines)
 
-- `useAuth.ts` - Authentication state and operations (177 lines)
-- `useVerses.ts` - Verse CRUD operations and filtering (322 lines)
-- `useReview.ts` - Review system logic and stats (84 lines)
-- `useSync.ts` - Sync scheduling and status tracking (104 lines)
-- Main `app.ts` orchestrates composables (141 lines, reduced from 694)
-
-## Component Relationships
-
-### Data Flow for Adding a Verse
-
-```
-1. User fills form in UI (Vue.js)
-   ↓
-2. Form submit calls app.addVerse()
-   ↓
-3. app.addVerse() calls actions.addVerse()
-   ↓
-4. actions.addVerse() creates verse + operation
-   ↓
-5. Both written to IndexedDB in transaction
-   ↓
-6. UI updates reactively (Vue.js)
-   ↓
-7. sync.ts periodically calls pushOps()
-   ↓
-8. Operations sent to server/api/push.php
-   ↓
-9. Server validates and stores in ops table
-   ↓
-10. Server returns acknowledgment + cursor
-    ↓
-11. Client removes acked ops from outbox
-```
-
-### Data Flow for Syncing Between Devices
-
-```
-Device A (offline):
-1. User adds verse
-2. Stored locally + queued in outbox
-
-Device A (online):
-3. pushOps() sends to server
-4. Server stores with ts_server=1000, seq=100
-
-Device B:
-5. pullOps() requests since cursor=99
-6. Server returns op with seq=100
-7. Device B applies operation
-8. Verse appears in Device B's UI
-9. Device B updates cursor to 100
-```
-
-## Critical Implementation Paths
-
-### Authentication Flow
-
-```
-1. User enters email/password
-   ↓
-2. POST to /api/login.php
-   ↓
-3. Server verifies credentials
-   ↓
-4. Server generates token (64-char hex)
-   ↓
-5. Server hashes token and stores in tokens table
-   ↓
-6. Server returns plain token + user_id
-   ↓
-7. Client stores in IndexedDB auth table
-   ↓
-8. Client includes token in all API requests
-   ↓
-9. Server validates token on each request
-```
-
-### Spaced Repetition Algorithm
-
-```
-1. User opens Review tab
-   ↓
-2. getVersesForReview() called
-   ↓
-3. For each verse:
-   - Calculate days since startedAt
-   - Determine category (learn/daily/weekly/monthly)
-   - For weekly/monthly, apply probability
-   - Check if due based on last review
-   ↓
-4. Return verses due for review
-   ↓
-5. User reviews and marks "Got it" or "Need Practice"
-   ↓
-6. recordReview() creates review entry
-   ↓
-7. Review stored locally + queued for sync
-```
-
-### Conflict Resolution Example
-
-```
-Scenario: Same verse edited on two devices offline
-
-Device A:
-- Edits verse at ts_client=1000
-- Syncs: server assigns ts_server=2000
-
-Device B:
-- Edits same verse at ts_client=1001
-- Syncs: server assigns ts_server=2001
-
-Both devices pull:
-- Device A receives op with ts_server=2001
-- Device A applies (2001 > 2000, B wins)
-- Device B receives op with ts_server=2000
-- Device B ignores (2000 < 2001, already has newer)
-
-Result: Device B's edit wins (LWW)
-```
-
-## Database Schema Patterns
-
-### Client Schema (IndexedDB)
-
-**Primary Tables:**
-- `verses` - User's verse library
-- `reviews` - Review history
-- `settings` - User preferences
-
-**Sync Infrastructure:**
-- `auth` - Authentication token
-- `outbox` - Pending operations
-- `appliedOps` - Deduplication tracking
-- `sync` - Cursor state
-
-**Key Indexes:**
-- `verses.refSort` - For biblical ordering
-- `verses.createdAt` - For chronological queries
-- `reviews.verseId` - For verse history
-- `reviews.createdAt` - For recent reviews
-
-### Server Schema (SQLite)
-
-**Core Tables:**
-- `users` - User accounts
-- `tokens` - Authentication tokens (hashed)
-- `ops` - Operation log (source of truth)
-
-**Derived Views:**
-- `verses_view` - Current verse state
-- `reviews_view` - Review history
-- `user_stats` - Aggregate statistics
-
-**Key Indexes:**
-- `ops(user_id, seq)` - For efficient pull queries
-- `ops(op_id)` - For deduplication
-- `tokens(user_id)` - For auth lookups
-
-### 6. Mobile-First Responsive Design Pattern
+### 7. Mobile-First Responsive Design Pattern
 
 **Purpose:** Optimize user experience across all device sizes, prioritizing mobile
 
 **Philosophy:**
-- Design and build for mobile screens first
+- Design and build for mobile screens first (most constrained)
 - Progressively enhance for larger screens
 - Maximize screen real estate on mobile devices
 - Maintain premium aesthetics on desktop
 
 **Core Principles:**
-- Base styles target mobile (no breakpoint prefix)
+- Base styles target mobile (no breakpoint prefix in Tailwind)
 - Desktop styles added with `sm:` breakpoint prefix (640px+)
-- Mobile constraints force UI simplicity and focus
+- Mobile constraints force UI simplicity and focus (good constraint)
 - Desktop gets progressive enhancements
 
-**Key Design Conventions (Established December 29, 2024):**
+**Why This Approach:**
+- Majority of users on mobile devices
+- Easier to enhance simple design than simplify complex one
+- Forces prioritization of essential features
+- Responsive by default (no "mobile retrofitting")
+- Better performance on mobile (no unused desktop styles)
+
+**Key Design Conventions:**
 
 **Spacing Philosophy:**
 - Tighter padding/margins on mobile (maximize content area)
@@ -551,12 +263,16 @@ Result: Device B's edit wins (LWW)
 - Full-width modals on mobile
 
 **Component Adaptation:**
-- Larger touch targets on mobile (44x44px minimum)
+- Larger touch targets on mobile (44x44px minimum - Apple guideline)
 - Compact form controls
 - Stacked navigation on mobile
 - Responsive card layouts
 
-### 7. Sync Status Tracking Pattern
+**Example Pattern:** `text-2xl sm:text-3xl` - 2xl on mobile, 3xl on desktop (640px+)
+
+**Implementation:** See `client/src/App.vue` and `client/src/components/VerseCard.vue`
+
+### 8. Sync Status Tracking Pattern
 
 **Purpose:** Provide accurate connectivity feedback based on actual network operations
 
@@ -564,12 +280,20 @@ Result: Device B's edit wins (LWW)
 - `navigator.onLine` unreliable across browsers (especially Safari)
 - Doesn't detect server issues, DNS problems, or firewall issues
 - False positives (shows "online" but can't reach server)
+- Required browser-specific workarounds
 
 **How It Works:**
 - Track actual sync operation results in app state
 - Properties: `lastSyncSuccess`, `lastSyncError`, `lastSyncAttempt`
 - Computed property `hasSyncIssues` determines UI indicator visibility
-- Only shows issues for authenticated users (not applicable for local-only mode)
+- Only shows issues for authenticated users (local-only mode doesn't need sync)
+
+**Why This Pattern:**
+- Works uniformly across all browsers (no special cases)
+- Detects both network AND server connectivity issues
+- More accurate user feedback (based on reality not browser API)
+- Prevents unnecessary server load during outages
+- Simpler code (no browser-specific workarounds)
 
 **Smart Retry Logic:**
 - Immediate sync (1 second) when last sync succeeded and outbox has data
@@ -577,90 +301,242 @@ Result: Device B's edit wins (LWW)
 - Automatic retry every 30 seconds during issues
 - Immediate sync when connectivity restored
 
-**Benefits:**
-- Works uniformly across all browsers
-- Detects both network AND server connectivity issues
-- More accurate user feedback
-- Prevents unnecessary server load during outages
-- Simpler code (no browser-specific workarounds)
+**Implementation:** See `client/src/composables/useSync.ts` and sync status tracking in `client/src/app.ts`
 
-**Implementation:**
-```typescript
-// Track sync status in app state
-lastSyncSuccess: true,
-lastSyncError: null as string | null,
-lastSyncAttempt: 0,
+## Component Relationships
 
-// Update after each sync attempt
-const syncAndReload = async () => {
-  app.lastSyncAttempt = Date.now();
-  try {
-    await syncNow();
-    app.lastSyncSuccess = true;
-    app.lastSyncError = null;
-  } catch (err: any) {
-    app.lastSyncSuccess = false;
-    app.lastSyncError = err.message || 'Sync failed';
-  }
-};
+### Data Flow for Adding a Verse
 
-// Smart retry logic
-if (outboxCount > 0 && app.lastSyncSuccess) {
-  // Immediate sync only if last sync succeeded
-  await syncAndReload();
-} else {
-  // Wait 30 seconds if connectivity is failing
-  syncCounter++;
-  if (syncCounter >= 30) {
-    await syncAndReload();
-    syncCounter = 0;
-  }
-}
-
-// Computed property for UI
-get hasSyncIssues(): boolean {
-  return this.isAuthenticated && !this.lastSyncSuccess;
-}
 ```
+1. User fills form in UI (Vue.js template)
+   ↓
+2. Form submit calls addVerse() from useVerses composable
+   ↓
+3. addVerse() calls actions.addVerse()
+   ↓
+4. actions.addVerse() creates verse record + operation record
+   ↓
+5. Both written to IndexedDB in single transaction (atomic)
+   ↓
+6. UI updates reactively via Vue's reactivity system
+   ↓
+7. useSync composable periodically calls pushOps()
+   ↓
+8. Operations sent to server/api/push.php via HTTP POST
+   ↓
+9. Server validates token, stores in ops table with ts_server
+   ↓
+10. Server returns acknowledgment + new cursor
+    ↓
+11. Client removes acknowledged ops from outbox
+```
+
+### Data Flow for Syncing Between Devices
+
+```
+Device A (offline):
+1. User adds verse
+2. Stored locally + queued in outbox
+
+Device A (online):
+3. pushOps() sends to server
+4. Server stores with ts_server=1000, seq=100
+
+Device B (online):
+5. pullOps() requests since cursor=99
+6. Server returns op with seq=100, ts_server=1000
+7. Device B applies operation to local database
+8. Verse appears in Device B's UI
+9. Device B updates cursor to 100
+```
+
+### Conflict Resolution Example
+
+```
+Scenario: Same verse edited on two devices offline
+
+Device A (offline):
+- Edits verse content at local time
+- Creates operation with ts_client=1000
+- Queued in outbox
+
+Device B (offline):
+- Edits same verse (different content)
+- Creates operation with ts_client=1001
+- Queued in outbox
+
+Device A comes online first:
+- Syncs: server assigns ts_server=2000, seq=100
+
+Device B comes online:
+- Syncs: server assigns ts_server=2001, seq=101
+
+Both devices pull:
+- Device A receives op seq=101 (ts_server=2001)
+- Device A applies (2001 > 2000, Device B's edit wins)
+- Device B receives op seq=100 (ts_server=2000)
+- Device B ignores (2000 < 2001, already has newer)
+
+Result: Device B's edit wins (Last-Write-Wins based on ts_server)
+```
+
+## Critical Implementation Paths
+
+### Authentication Flow
+
+```
+1. User enters email/password in auth modal
+   ↓
+2. POST to /api/login.php with credentials
+   ↓
+3. Server verifies credentials (bcrypt password check)
+   ↓
+4. Server generates token: random_bytes(32) → hex (64 chars)
+   ↓
+5. Server hashes token (bcrypt) and stores in tokens table
+   ↓
+6. Server returns plain token + user_id to client
+   ↓
+7. Client stores in IndexedDB auth table
+   ↓
+8. Client includes token in X-Auth-Token header on all API requests
+   ↓
+9. Server validates token on each request (compare hash)
+```
+
+**Why This Approach:**
+- Token sent to client only once (on login)
+- Stored hashed in database (secure if DB compromised)
+- Simple to implement (no JWT complexity for this use case)
+- Easy to revoke (delete from tokens table)
+
+**See:** `server/api/login.php`, `server/api/lib.php` (auth functions), `client/src/composables/useAuth.ts`
+
+### Spaced Repetition Algorithm
+
+```
+1. User opens Review tab
+   ↓
+2. getVersesForReview() called from useReview composable
+   ↓
+3. For each verse:
+   a. Calculate days since startedAt
+   b. Determine category (learn/daily/weekly/monthly based on thresholds)
+   c. For weekly/monthly, apply probability (1-in-7, 1-in-30)
+   d. Check if due based on last review time
+   ↓
+4. Return verses due for review (sorted by priority)
+   ↓
+5. User reviews and marks "Got it" or "Need Practice"
+   ↓
+6. recordReview() creates review entry with timestamp
+   ↓
+7. Review stored locally + operation queued for sync
+```
+
+**Algorithm Thresholds:**
+- Learn: 0-7 days (review daily)
+- Daily: 7-56 days (review daily)
+- Weekly: 56-112 days (1-in-7 probability per session)
+- Monthly: 112+ days (1-in-30 probability per session)
+
+**Why These Thresholds:**
+- Based on spaced repetition research
+- Clean multiples of 7 (weekly rhythm)
+- Probability approach for older verses (manageable review load)
+- Per-session probability (not per-day) allows multiple reviews per day
+
+**See:** `client/src/composables/useReview.ts`, productContext.md for business logic details
+
+## Database Schema Patterns
+
+### Client Schema (IndexedDB - Dexie.js)
+
+**Primary Tables:**
+- `verses` - User's verse library (id, reference, refSort, content, translation, tags, etc.)
+- `reviews` - Review history (id, verseId, createdAt)
+- `settings` - User preferences (id, key, value)
+
+**Sync Infrastructure:**
+- `auth` - Authentication token storage (id, token, userId, email)
+- `outbox` - Pending operations awaiting sync (id, ts, entity, action, data)
+- `appliedOps` - Deduplication tracking (op_id) - prevents reapplying ops
+- `sync` - Cursor state (id, cursor, lastPullAt, lastPushAt)
+
+**Key Indexes:**
+- `verses.refSort` - For biblical ordering (e.g., "bible.01001001")
+- `verses.createdAt` - For chronological queries
+- `reviews.verseId` - For verse history lookup
+- `reviews.createdAt` - For recent reviews
+
+**See:** `client/src/db.ts` for complete Dexie schema
+
+### Server Schema (SQLite)
+
+**Core Tables:**
+- `users` - User accounts (id, email, password_hash, created_at)
+- `tokens` - Authentication tokens hashed (token_hash, user_id, created_at)
+- `ops` - Operation log - source of truth (seq, user_id, op_id, ts_client, ts_server, entity, action, data_json)
+
+**Derived Views (for convenience queries):**
+- `verses_view` - Current verse state (latest op per verse_id)
+- `reviews_view` - Review history (all review ops)
+- `user_stats` - Aggregate statistics (verse counts, review counts)
+
+**Key Indexes:**
+- `ops(user_id, seq)` - For efficient pull queries with cursor
+- `ops(op_id)` - For deduplication (prevent duplicate op storage)
+- `tokens(user_id)` - For auth lookups
+
+**Why Views:**
+- Simplify queries (don't need to derive state from ops)
+- Read-optimized (pre-computed joins)
+- Ops table remains append-only (fast writes)
+
+**See:** `server/schema.sql` for complete SQL schema
 
 ## Performance Optimizations
 
 ### Client-Side
-- IndexedDB for unlimited storage
-- Compound indexes for efficient queries
-- Batch operations in transactions
-- Lazy loading of large lists (future)
+- IndexedDB for unlimited storage (no localStorage 5MB limit)
+- Compound indexes for efficient queries (`verses.by('refSort')`)
+- Batch operations in transactions (atomic, faster)
+- Lazy loading of large lists planned for future (virtual scrolling)
+- v-if instead of v-show for large lists (better memory efficiency)
 
 ### Server-Side
-- SQLite WAL mode for concurrency
-- Prepared statements for security + performance
-- Cursor-based pagination (500 ops/batch)
-- JSON extraction in views for derived data
+- SQLite WAL mode for better concurrency (readers don't block writers)
+- Prepared statements for security + performance (query plan caching)
+- Cursor-based pagination (500 ops/batch - constant time queries)
+- Views for read optimization (pre-computed joins)
+- JSON extraction in views for derived data (no client-side parsing)
 
 ### Network
-- Batch push operations (up to 500)
-- Cursor-based pull (no duplicate data)
-- Automatic retry with exponential backoff
-- Sync only when online
+- Batch push operations (up to 500 per request - reduce round trips)
+- Cursor-based pull (no duplicate data transferred)
+- Smart retry with adaptive backoff (1s → 30s when failing)
+- Sync only when authenticated and online
 
 ## Security Patterns
 
 ### Authentication
-- Tokens generated with `random_bytes(32)`
-- Tokens hashed before database storage
-- Plain token sent to client only once
-- Token included in `X-Auth-Token` header
-- Server validates on every request
+- Tokens generated with `random_bytes(32)` (cryptographically secure)
+- Tokens hashed with bcrypt before database storage
+- Plain token sent to client only once (on login)
+- Token included in `X-Auth-Token` header (not in URL)
+- Server validates on every request (stateless auth)
+- Tokens revocable via logout (delete from tokens table)
 
 ### Data Protection
-- SQL injection prevented via prepared statements
-- XSS prevented via Vue.js template escaping
-- CORS headers properly configured
-- HTTPS required in production
-- Password hashing with bcrypt
+- SQL injection prevented via prepared statements (PDO)
+- XSS prevented via Vue.js template escaping (automatic)
+- CORS headers properly configured (restrict origins)
+- HTTPS required in production (no plaintext tokens over wire)
+- Password hashing with bcrypt (cost factor 10)
 
 ### Privacy
-- User data isolated by user_id
-- No cross-user data access
+- User data isolated by user_id (enforced at query level)
+- No cross-user data access (queries always filter by user_id)
 - Tokens revocable via logout
-- Export capability for data portability
+- Export capability for data portability (user owns their data)
+- No analytics or tracking (privacy-first)

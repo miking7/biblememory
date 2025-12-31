@@ -1,5 +1,15 @@
 # Progress
 
+<!-- 
+MAINTENANCE PRINCIPLES (from .clinerules):
+- Document what works, what's left to build, and current status
+- Focus on feature status (complete/incomplete/planned) - NOT implementation details
+- High-level progress tracking only
+- Update when major features are completed or project phase changes
+- Remove implementation details (those go in activeContext or previous-work)
+- This file should answer "where are we in the project?"
+-->
+
 ## Current Status: Phase 1 Complete ✅
 
 ## What Works (When Migration Complete)

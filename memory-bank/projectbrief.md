@@ -1,5 +1,15 @@
 # Project Brief
 
+<!-- 
+MAINTENANCE PRINCIPLES (from .clinerules):
+- Foundation document that shapes all other memory bank files
+- Defines core requirements, goals, and project scope
+- High-level only - details go in other files
+- Update when project scope or goals fundamentally change
+- Keep stable - this shouldn't change often once established
+- Source of truth for "what we're building and why"
+-->
+
 ## Project Name
 Bible Memory App - Modern PWA
 
