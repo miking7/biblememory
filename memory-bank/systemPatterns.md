@@ -1,6 +1,6 @@
 # System Patterns
 
-<!-- 
+<!--
 MAINTENANCE PRINCIPLES (from .clinerules):
 - Document architectural decisions, patterns, and "why" - NOT implementation details
 - Focus on high-level architecture, flowcharts, and design patterns
@@ -8,6 +8,8 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - Exception: Tiny code snippets OK to demonstrate critical patterns
 - Keep diagrams and visual representations - they're stable and valuable
 - This file should help understand WHAT patterns are used and WHY, not HOW they're implemented
+
+KEY QUESTION THIS FILE ANSWERS: "How is the system architectured and why?"
 -->
 
 ## Architecture Overview

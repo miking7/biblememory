@@ -1,13 +1,15 @@
 # Product Context
 
-<!-- 
+<!--
 MAINTENANCE PRINCIPLES (from .clinerules):
 - Document WHY the project exists and WHAT problems it solves
 - Focus on user experience goals and product vision
 - Business logic and user workflows belong here
-- High-level feature priorities and roadmap
+- NO phase lists or completion status (those belong in progress.md)
 - Update when product direction or UX goals change
 - This file guides WHAT we build, systemPatterns guides HOW
+
+KEY QUESTION THIS FILE ANSWERS: "What is this product supposed to be?"
 -->
 
 ## Why This Project Exists
@@ -147,38 +149,6 @@ This ensures:
 - Readable text sizes
 - Touch-friendly targets on mobile
 - Semantic HTML structure
-
-## Key Features by Priority
-
-### Phase 1 (Complete) ✅
-- Verse CRUD operations
-- Basic review mode (reference → reveal)
-- Spaced repetition algorithm
-- Offline-first with IndexedDB
-- Multi-device sync
-- Search and filter
-- Import/export JSON
-- Tags system
-- Multi-paragraph support
-- Authentication
-
-### Phase 2 (Planned)
-- Multiple review modes (hints, first letters, flashcards)
-- Keyboard shortcuts for power users
-- Statistics dashboard with charts
-- Streak tracking and achievements
-- Sort options for verse list
-- PWA manifest for installability
-- Dark mode toggle
-
-### Phase 3 (Future)
-- Meditation/application prompts
-- Push notifications for review reminders
-- Service worker for background sync
-- Progress analytics
-- Social features (share verses)
-- Audio playback for verses
-- Group study features
 
 ## Success Metrics
 

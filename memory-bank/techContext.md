@@ -1,6 +1,6 @@
 # Technical Context
 
-<!-- 
+<!--
 MAINTENANCE PRINCIPLES (from .clinerules):
 - Document technologies used, development setup, and tool usage
 - Focus on current tech stack and setup - NOT extensive future plans
@@ -8,6 +8,8 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - Update when adding/changing technologies or tooling
 - Reference this file for "how to run the project"
 - Keep practical and actionable
+
+KEY QUESTION THIS FILE ANSWERS: "What technologies do we use and how?"
 -->
 
 ## Technology Stack

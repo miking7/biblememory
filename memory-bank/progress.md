@@ -12,109 +12,23 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 
 ## Current Status: Phase 1 Complete ✅
 
-## What Works (When Migration Complete)
+## What Works
 
-### ✅ Core Application (Phase 1 Mostly Complete)
+### ✅ Phase 1 Complete
 
-#### Build System & Development
-- Modern build pipeline with Vite 5.x
-- TypeScript compilation with strict mode
-- Hot Module Replacement (HMR) for fast development
-- Production builds optimized and ready for deployment
-- PostCSS processing for Tailwind CSS
-- **NEW:** Vue 3 with Single File Components
+#### Core Features
+- **Build System**: Vite 5.x + TypeScript + HMR + Vue 3 SFC
+- **User Interface**: Glass-morphism design, responsive layout, tab navigation, modals
+- **Data Management**: Verse CRUD, multi-paragraph support, structured tags, IndexedDB storage
+- **Review System**: Spaced repetition algorithm (learn/daily/weekly/monthly phases)
+- **Offline-First**: Full offline functionality, automatic sync when online
+- **Sync**: OpLog pattern, cursor-based pagination, LWW conflict resolution
+- **Authentication**: Registration, login, token-based auth, secure storage
+- **Import/Export**: JSON export/import with smart ID handling
+- **Backend**: PHP 8.0+ REST API, SQLite with WAL mode, 5 endpoints
+- **Search**: Unicode-insensitive, tags search, context-aware empty states
 
-#### User Interface (Pre-Migration - To be restored)
-- Beautiful glass-morphism design
-- Responsive layout (mobile, tablet, desktop)
-- Smooth animations and transitions
-- Tab navigation (Add Verse, My Verses, Review)
-- Modal dialogs for editing
-- Offline indicator
-- Loading states and feedback
-- Search and filter functionality
-- Unicode-insensitive search (handles accented characters)
-- Search within tags (keys and values)
-- Context-aware empty states (distinguishes no verses vs. no search results)
-- Tag display in My Verses (footer with metadata) and Review (inline with translation)
-- Translation badge inline with verse title in My Verses
-
-#### Data Management
-- IndexedDB storage via Dexie.js (7 tables)
-- Verse CRUD operations (create, read, update, delete)
-- Multi-paragraph verse support
-- Structured tags system
-- Translation field
-- Favorite flag
-- Reference sorting (refSort field)
-
-#### Review System
-- Spaced repetition algorithm
-  - Learn phase (< 7 days): Daily review
-  - Daily phase (7-56 days): Daily review
-  - Weekly phase (56-112 days): 1-in-7 probability
-  - Monthly phase (112+ days): 1-in-30 probability
-- Review mode (reference → reveal content)
-- "Got it!" vs "Need Practice" feedback
-- Review history tracking
-- Due count badge on Review tab
-
-#### Offline-First Architecture
-- Full functionality without internet
-- Operations queued in outbox when offline
-- Automatic sync when connection restored
-- IndexedDB provides unlimited storage
-- No data loss during offline periods
-
-#### Sync Infrastructure
-- OpLog (Operation Log) pattern
-- Push sync (client → server)
-- Pull sync (server → client)
-- Cursor-based pagination (500 ops/batch)
-- Last-Write-Wins conflict resolution
-- Idempotent operations
-- Automatic sync every 60 seconds
-- Sync on network reconnection
-- Sync on tab visibility change
-
-#### Authentication
-- User registration with email/password
-- Login with credential verification
-- Token-based authentication (64-char hex)
-- Secure token storage (hashed in database)
-- Logout with token revocation
-- Auto-login after registration
-
-#### Import/Export
-- Export all verses to JSON
-- Import verses from JSON with smart ID handling
-- Updates existing verses (matching IDs)
-- Adds new verses with collision-safe UUIDs (non-matching IDs)
-- Preserves all metadata (tags, dates, timestamps)
-- Merges imported data with existing data for missing fields
-- Clear pre/post-import feedback with counts
-- Review history preserved during updates
-
-#### Backend API
-- PHP 8.0+ with strict types
-- SQLite database with WAL mode
-- RESTful API endpoints:
-  - POST /api/register
-  - POST /api/login
-  - POST /api/logout
-  - POST /api/push
-  - GET /api/pull
-- CORS support for development
-- Prepared statements for security
-- Password hashing with bcrypt
-- Token hashing with SHA-256
-
-#### Database Schema
-- Client: 7 IndexedDB tables (verses, reviews, settings, auth, outbox, appliedOps, sync)
-- Server: 3 SQLite tables (users, tokens, ops)
-- Derived views for current state (verses_view, reviews_view, user_stats)
-- Proper indexes for performance
-- Foreign key constraints
+**Details:** See productContext.md for feature descriptions and techContext.md for technical implementation
 
 ## What's Left to Build
 
@@ -306,6 +220,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - [ ] Contributing guide
 - [ ] Architecture decision records
 - [ ] Automated code formatting
+- [ ] Error boundary components
 
 #### Data Migration
 - [ ] Legacy Laravel app export script
@@ -350,44 +265,7 @@ See Technical Debt section below.
 
 ## Technical Debt
 
-### High Priority
-1. **Bundle Size** - Tailwind CSS from CDN is 3.5MB (not purged)
-   - Impact: Slower initial load on slow connections
-   - Solution: Bundle and purge in Phase 2
-   
-2. **No Automated Tests** - Manual testing only
-   - Impact: Risk of regressions, time-consuming testing
-   - Solution: Add Vitest + Playwright in Phase 2
-
-3. **No Pagination** - Verse list loads all verses
-   - Impact: Could be slow with 1000+ verses
-   - Solution: Add virtual scrolling or pagination
-
-### Medium Priority
-4. **TypeScript Any Types** - Some implicit any types remain
-   - Impact: Reduced type safety in some areas
-   - Solution: Gradually add explicit types
-
-5. **Error Messages** - Could be more user-friendly
-   - Impact: Users may not understand errors
-   - Solution: Improve error handling and messages
-
-6. **No Rate Limiting** - API endpoints unprotected
-   - Impact: Potential abuse in production
-   - Solution: Add rate limiting middleware
-
-### Low Priority
-7. **No CSRF Protection** - Token-based API only
-   - Impact: Minimal for personal app
-   - Solution: Add CSRF tokens if needed
-
-8. **No Logging** - No server-side logging
-   - Impact: Harder to debug production issues
-   - Solution: Add structured logging
-
-9. **No Monitoring** - No performance monitoring
-   - Impact: Can't track production issues
-   - Solution: Add monitoring service
+**Current technical debt tracked in:** activeContext.md (see "Current Challenges" section)
 
 ## Evolution of Project Decisions
 

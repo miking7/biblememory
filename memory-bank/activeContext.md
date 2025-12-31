@@ -1,6 +1,6 @@
 # Active Context
 
-<!-- 
+<!--
 MAINTENANCE PRINCIPLES (from .clinerules):
 - This file tracks ONLY current work - what we're working on RIGHT NOW
 - Keep this file under 200 lines
@@ -9,44 +9,20 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - Previous work files are NOT auto-loaded - only read when specifically relevant to current task
 - No code duplication - reference actual code files instead
 - High-level only - document decisions and "why", not implementation details
+
+KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 -->
 
 ## Current Work Focus
 
-## Project Status
+**Status:** Paused for memory bank cleanup and reorganization
 
-### Phase 1: Incomplete ⚠️
-The application has **most features implemented** but is **NOT production ready**:
+**Goal:** Ensure memory bank files align with .clinerules intent:
+- progress.md = central hub for all progress tracking
+- productContext.md = timeless product vision (no progress/phase status)
+- activeContext.md = ephemeral current work only (no future plans or duplicate status)
 
-**Implemented Features:**
-- ✅ Modern build system (Vite + TypeScript)
-- ✅ Beautiful UI (Tailwind CSS v4 + Vue.js 3)
-- ✅ Offline-first architecture (IndexedDB + Dexie.js)
-- ✅ Verse CRUD (add, edit, delete, list)
-- ✅ Review mode (reference → reveal content)
-- ✅ Spaced repetition algorithm (learn/daily/weekly/monthly)
-- ✅ Search and filter
-- ✅ Import/export JSON
-- ✅ Tags system (comma-separated input, structured storage)
-- ✅ Multi-paragraph verse support
-
-**Backend Complete (Untested):**
-- ✅ Authentication endpoints (register, login, logout)
-- ✅ Sync endpoints (push, pull)
-- ✅ OpLog pattern implementation
-- ✅ Token-based authentication
-- ✅ Database schema
-
-**Frontend Incomplete:**
-- ❌ **No authentication UI** - cannot log in or register
-- ❌ **No auth state management** in UI
-- ❌ **Sync untested** - no way to test without auth UI
-- ❌ **Multi-device sync untested**
-
-**Current Version:** 1.0.0-alpha  
-**Status:** Phase 1.5 (Authentication UI) required before production
-
-## Current Work Focus
+**See [progress.md](progress.md) for current project status, version, and roadmap.**
 
 ## Active Decisions and Considerations
 
@@ -124,20 +100,6 @@ The application has **most features implemented** but is **NOT production ready*
 3. **LWW is Simple**: Works well for personal apps, no user confusion
 4. **Cursor Pagination**: Essential for scaling to large datasets
 
-## Current Challenges
-
-### Technical Debt
-- No automated tests (manual testing only)
-- Large bundle size (Tailwind CSS not purged)
-- No pagination on verse list
-- Some TypeScript `any` types remain
-
-### Future Considerations
-- **Phase 2 Features**: Multiple review modes, keyboard shortcuts, statistics
-- **Performance**: Bundle optimization, lazy loading, virtual scrolling
-- **Testing**: Add unit tests, integration tests, E2E tests
-- **Accessibility**: ARIA labels, keyboard navigation improvements
-
 ## Development Environment
 
 ### Current Setup
@@ -185,29 +147,6 @@ rm server/api/db.sqlite && php api/migrate.php  # Reset
 - `POST /api/logout` - Token revocation
 - `POST /api/push` - Push operations
 - `GET /api/pull?since={cursor}` - Pull operations
-
-## Notes for Future Work
-
-### Phase 2 Priorities
-1. Multiple review modes (hints, first letters, flashcards)
-2. Keyboard shortcuts for power users
-3. Statistics dashboard with charts
-4. Bundle optimization (purge Tailwind CSS)
-5. Sort options for verse list
-
-### Phase 3 Ideas
-1. PWA manifest and service worker
-2. Push notifications for review reminders
-3. Meditation/application prompts
-4. Social features (share verses)
-5. Audio playback for verses
-
-### Technical Improvements
-1. Add automated testing (Vitest + Playwright)
-2. Implement virtual scrolling for large lists
-3. Add error boundary components
-4. Improve accessibility (ARIA, keyboard nav)
-5. Add internationalization (i18n)
 
 ## Previous Work Index (Complete Archive)
 
