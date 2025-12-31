@@ -10,7 +10,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - This file should answer "where are we in the project?"
 -->
 
-## Current Status: Phase 1 Complete ✅ (Basic Features)
+## Current Status: Phase 2 MVP Complete ✅ (Enhanced Review - Basic Implementation)
 
 ## What Works
 
@@ -21,6 +21,16 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - Basic review functionality implemented (reference → content reveal)
 - CRUD operations for verses working
 - Ready for daily use with basic memorization workflow
+
+### ✅ Phase 2 MVP Complete (Enhanced Review - Basic Implementation)
+
+**What This Means:**
+- All 5 review modes functional (reference, content, hints, firstletters, flashcards)
+- Mode switching UI with buttons and navigation controls
+- Content transformation logic (hints, first letters, flash cards)
+- 3-column metadata footer with human-readable time
+- Basic styling in place, but significant refinement needed to match legacy UX
+- Ready for daily use with multiple review strategies, pending styling polish
 
 #### Implemented Features
 - **Build System**: Vite 5.x + TypeScript + HMR + Vue 3 SFC
@@ -55,58 +65,70 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - Mobile-first responsive design
 - Tag support (structured key-value pairs)
 
-### ⏳ Planned - Phase 2: Enhanced Review (3-4 weeks)
-**Goal:** Match legacy review capabilities
+### ✅ Phase 2 MVP Complete (Enhanced Review - Basic Implementation)
+**Goal:** Match legacy review capabilities  
+**Status:** MVP Complete - Basic functionality working, styling refinements needed  
 
-**Architecture Decision:** Modal Sub-Modes with Review State Machine
+**Architecture Decision:** Modal Sub-Modes with Review State Machine ✅
 - Single Review tab with state machine managing sub-modes
 - Clean composable pattern (all logic in `useReview.ts`)
 - Card-based UI that morphs based on current review mode
 - No navigation stack complexity - just reactive state transitions
 - Maintains glass-morphism aesthetic and card consistency
 
-**See:** `memory-bank/phase2-architecture.md` for detailed implementation specifications
+**See:** `memory-bank/phase2-architecture.md` and `memory-bank/previous-work/020_phase2_review_modes_initial.md`
 
-**Priority 1 - Review Modes:**
-- [ ] Flash Cards mode
-  - [ ] Dropdown difficulty selector (5 levels: 0%, 10%, 25%, 45%, 100%)
-  - [ ] Random word hiding based on selected difficulty
-  - [ ] Click hidden word to reveal (visual feedback)
-  - [ ] Maintain verse position and card layout
-- [ ] First Letters mode
-  - [ ] Transform content to first letter + punctuation
-  - [ ] No space between letters (legacy pattern)
-  - [ ] Toggle back to full verse easily
-- [ ] Progressive Hints mode
-  - [ ] Start with 3 words visible
-  - [ ] Add 1 word per hint activation
-  - [ ] Show hint count ("Hint 4 of 23")
-  - [ ] Reset hints on next verse
+**Priority 1 - Review Modes (MVP COMPLETE):**
+- [x] Flash Cards mode (MVP)
+  - [x] Dropdown difficulty selector (5 levels: 0%, 10%, 25%, 45%, 100%)
+  - [x] Random word hiding based on selected difficulty
+  - [x] Click hidden word to reveal
+  - [ ] Visual feedback improvements needed (styling refinement)
+  - [ ] Word hiding with punctuation needs fix
+- [x] First Letters mode (MVP)
+  - [x] Transform content to first letter + punctuation
+  - [x] Toggle back to full verse easily
+  - [ ] Font and spacing refinement needed
+- [x] Progressive Hints mode (MVP)
+  - [x] Start with 3 words visible
+  - [x] Add 1 word per hint activation
+  - [x] Show hint count ("Showing 4 of 23 words")
+  - [x] Reset hints on next verse
+  - [ ] Underscore styling needs improvement
 
-**Priority 2 - Navigation & UX:**
-- [ ] Keyboard shortcuts
+**Priority 2 - Navigation & UX (MVP COMPLETE):**
+- [ ] Keyboard shortcuts (implemented but not integrated)
+  - [x] Handler function exists in useReview.ts
+  - [ ] Not yet wired to UI event listeners
   - [ ] 'n' - Next verse
   - [ ] 'p' - Previous verse  
   - [ ] Space - Advance (reveal OR next verse if revealed)
   - [ ] 'h' - Activate hints mode
   - [ ] 'f' - Activate first letters mode
   - [ ] Escape - Exit modal modes, return to reference
-- [ ] Mode switching UI
-  - [ ] Buttons always visible: [Hint] [Flash Cards ▼] [First Letters]
-  - [ ] Flash Cards opens dropdown for difficulty selection
-  - [ ] Visual active state for current mode
-- [ ] Verse List quick jump (click verse → start review from that verse)
-- [ ] Human-readable time display ("3 weeks" vs "21 days")
-- [ ] Tag value formatting in UI ("fast.sk (3)")
+- [x] Mode switching UI (MVP)
+  - [x] Buttons always visible: [💡 Hints] [🎴 Flash Cards] [🔤 First Letters]
+  - [x] Flash Cards includes dropdown for difficulty selection
+  - [x] Basic active state styling
+  - [ ] Active state needs to be more obvious
+- [ ] Verse List quick jump (deferred)
+- [x] Human-readable time display ("3 weeks" vs "21 days")
+- [x] Tag value formatting in UI ("fast.sk (3)")
 
-**UI/UX Enhancements:**
-- [ ] Card layout preserves legacy information hierarchy
-- [ ] 3-column metadata footer (review category | tags | time)
-- [ ] Progress indicator maintains position (top-right: 1/9)
-- [ ] Smooth mode transitions (fade/morph effects)
-- [ ] Mobile-friendly button sizes and touch targets
+**UI/UX Enhancements (MVP COMPLETE):**
+- [x] 3-column metadata footer (review category | tags | time)
+- [x] Progress indicator (1/9 format)
+- [x] Navigation buttons (Previous, Reset View, Next)
+- [ ] Card layout needs significant styling refinement (critical)
+- [ ] Smooth mode transitions (deferred)
+- [ ] Mobile-friendly touch targets (needs testing)
 
-**Estimated Scope:** 3-4 weeks focused development
+**⚠️ IMPORTANT - Phase 2 Refinement Needed:**
+Before continuing, must review legacy screenshots for styling/layout reference:
+- Screenshot 1-3: Legacy app review modes
+- Screenshot 4: Modern app's clean card layout
+- Significant styling/layout issues need addressing to match legacy UX
+- See `previous-work/020_phase2_review_modes_initial.md` for complete issues list
 
 ### ⏳ Planned - Phase 3: Deep Engagement (2-3 weeks)
 **Goal:** Integrate reflection and application tools
@@ -341,28 +363,38 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 ## Current Status
 
 ### Version
-**1.0.0-alpha** - Phase 1 Incomplete
+**1.1.0-alpha** - Phase 2 MVP Complete
 
 ### Production Readiness
 ⚠️ **NOT Ready for Production**
-- Phase 1 features partially implemented
-- **Authentication UI missing** - users cannot log in or register
-- **Sync untested** - no way to test multi-device sync without auth UI
-- Backend complete, frontend incomplete
-- Manual testing incomplete (auth flows not testable)
+- Phase 1 & Phase 2 MVP complete (functional)
+- Phase 2 styling/layout needs significant refinement
+- Keyboard shortcuts implemented but not integrated
+- Manual testing incomplete (Phase 2 modes need thorough testing)
+- Mobile optimization needs attention
 - Documentation comprehensive
 
 ### Known Issues
 **Critical:**
-1. **No Authentication UI** - Cannot log in, register, or logout from the app
-   - Backend endpoints exist and work
-   - Sync functions exist in code
-   - But no UI to access these features
-   - Impact: App is local-only, no multi-device sync possible
-   - Solution: Implement Phase 1.5 (Authentication UI)
+1. **Styling/Layout Mismatch** - Review modes don't match legacy app's proven UX
+   - Significant styling issues reported
+   - Must review legacy screenshots before continuing
+   - Impact: Functional but not polished, difficult to use efficiently
+   - Solution: Refine styling to match legacy patterns (see previous-work/020)
+
+2. **"Got it!" / "Need Practice" Don't Reset Mode** - Buttons should return to reference mode
+   - Currently stays in content mode after marking review
+   - Impact: User must manually click "Reset View"
+   - Solution: Add switchToReference() call in markReview()
+
+**Important:**
+- Keyboard shortcuts not integrated (handler exists but not wired up)
+- Flash Cards word hiding may not handle punctuation correctly
+- Mode buttons need better active state indication
+- Mobile touch targets need testing
 
 **Non-Critical:**
-See Technical Debt section below.
+See Technical Debt section and previous-work/020 for complete issues list.
 
 ## Technical Debt
 
@@ -420,21 +452,22 @@ See Technical Debt section below.
 
 ## Next Milestone
 
-### Phase 2 Goals
-1. Implement multiple review modes
-2. Add keyboard shortcuts
-3. Create statistics dashboard
-4. Optimize bundle size
-5. Add sort options
+### Phase 2 Refinement Goals
+1. **Fix styling/layout to match legacy UX** (critical priority)
+   - Review legacy screenshots (1-3) for reference
+   - Use modern app card layout (screenshot 4) as template
+   - Match spacing, sizing, visual hierarchy
+2. Fix "Got it!" / "Need Practice" to reset mode
+3. Integrate keyboard shortcuts (handler exists, needs wiring)
+4. Fix Flash Cards punctuation handling
+5. Improve active mode indication
+6. Test and polish mobile experience
 
 ### Success Criteria
-- All review modes working smoothly
-- Keyboard shortcuts documented and functional
-- Statistics provide meaningful insights
-- Bundle size reduced by 90%+
-- Users can sort verses multiple ways
+- Review modes match legacy app's proven UX patterns
+- Styling is clean, consistent, and polished
+- Keyboard shortcuts work smoothly
+- All critical bugs fixed
+- Mobile experience tested and optimized
+- Ready for daily use without friction
 
-### Timeline
-- Estimated: 2-3 weeks
-- Depends on: User feedback from Phase 1
-- Blockers: None identified

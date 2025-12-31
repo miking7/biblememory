@@ -15,40 +15,64 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Phase 2 Architecture Planning Complete ✅
+**Status:** Phase 2 MVP Complete - Basic functionality working, styling refinements needed
 
 **Completed This Session:**
-- Analyzed legacy app's stack-based navigation vs modern app's tab structure
-- Evaluated 3 architectural approaches for integrating review modes
-- Selected Modal Sub-Modes pattern (state machine within Review tab)
-- Documented detailed implementation specifications in phase2-architecture.md
-- Updated progress.md with Phase 2 feature breakdown and architecture decision
-- Clarified Flash Cards UI (dropdown selector for 5 difficulty levels)
+- ✅ Implemented review mode state management in `useReview.ts`
+- ✅ Added 5 review modes (reference, content, hints, firstletters, flashcards)
+- ✅ Built mode-specific UI rendering in App.vue
+- ✅ Added mode buttons and navigation controls
+- ✅ Implemented content transformation functions
+- ✅ Fixed critical bug: App.vue wasn't destructuring Phase 2 properties
+- ✅ Basic testing confirms MVP functionality
 
-**Architecture Decision:** Modal Sub-Modes with Review State Machine
-- Single Review tab with reactive state transitions (not navigation stack)
-- State managed in `useReview.ts` composable
-- Card-based UI morphs between modes (reference/content/hints/firstletters/flashcards)
-- Keyboard shortcuts integrated (n/p/h/f/Space/Escape)
-- Maintains glass-morphism aesthetic and mobile-first design
+**Current State:**
+- MVP is functional - users can switch between all 5 review modes
+- Significant styling and layout issues identified (deferred)
+- Keyboard shortcuts implemented but not yet integrated
+- Ready for refinement phase
 
-**Ready for Implementation:**
-- Detailed specs documented in `memory-bank/phase2-architecture.md`
-- Clear file modification list (useReview.ts, App.vue, app.ts, styles.css)
-- UI mockups and code patterns provided
-- Testing checklist prepared
-- Timeline: 3-4 weeks focused development
+**Next Steps:**
+1. **Review legacy screenshots** before continuing (critical for styling)
+   - Screenshot 1-3: Legacy app review modes
+   - Screenshot 4: Modern app's clean card layout (use as template)
+2. Fix styling/layout issues to match legacy UX (with clean card layout styling from new)
+3. Integrate keyboard shortcuts
+4. Polish and test thoroughly
 
 **See:**
-- [phase2-architecture.md](phase2-architecture.md) for detailed implementation specifications
-- [progress.md](progress.md) for complete roadmap and feature parity status
+- [previous-work/020_phase2_review_modes_initial.md](previous-work/020_phase2_review_modes_initial.md) - Complete implementation details and issues list
 
 ## Active Decisions and Considerations
+
+### Review Mode Architecture
+- **Pattern**: Modal Sub-Modes with State Machine (not stack navigation)
+- **State Location**: All logic in `useReview.ts` composable
+- **UI Pattern**: Single card that morphs based on `reviewMode` state
+- **Navigation**: Always resets to reference mode on verse change
+
+### Known Issues Requiring Attention
+**Critical:**
+- Styling/layout needs to come a lot closer to that of the legacy app (significant issues reported)
+- "Got it!" / "Need Practice" buttons don't reset mode properly
+- Flash Cards word hiding may not handle punctuation correctly
+
+**Important:**
+- Keyboard shortcuts not integrated
+- Mode buttons need better active state indication
+- Mobile touch targets need testing
+- Metadata footer layout needs refinement
+
+**Nice-to-have:**
+- Smooth transitions between modes
+- Hints remaining counter
+- Flash Cards reveal feedback
+- Mode persistence across verses
 
 ### Data Model Patterns
 - **Reference Format**: Users manually enter both `reference` (human-readable) and `refSort` (machine-sortable)
   - Format: `bible.BBCCCVVV` where BB=book, CCC=chapter, VVV=verse
-  - Auto-parsing deferred to Phase 2
+  - Auto-parsing deferred to future
   
 - **Multi-Paragraph Content**: Normalized to `\n` for line breaks
   - CSS uses `white-space: pre-wrap` for display
@@ -75,6 +99,7 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ### Code Organization
 - **Separation of Concerns**: db.ts → actions.ts → sync.ts → app.ts
+- **Composables Pattern**: Focused, reusable logic modules
 - **TypeScript Strict Mode**: All code type-safe
 - **Functional Style**: Pure functions where possible
 - **Error Handling**: Try-catch with user-friendly messages
@@ -85,6 +110,7 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 - **Tab Navigation**: Clear active state indicators
 - **Offline Indicator**: Subtle banner when disconnected
 - **Loading States**: Minimal spinners, instant feedback
+- **Mobile-First**: Design for mobile, enhance for desktop
 
 ### Development Workflow
 - **Vite Dev Server**: HMR for fast development
@@ -98,14 +124,15 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 1. **OpLog Pattern**: Provides complete audit trail and reliable sync
 2. **IndexedDB**: Unlimited storage enables true offline-first
 3. **Vue.js 3**: Component-based architecture with excellent TypeScript integration
-4. **Tailwind CSS**: Rapid UI development with utility classes
-5. **TypeScript**: Catches bugs early, improves maintainability
+4. **Composables**: Clean separation of concerns, easy to test
+5. **Tailwind CSS**: Rapid UI development with utility classes
+6. **TypeScript**: Catches bugs early, improves maintainability
 
 ### What Needs Improvement
-1. **Review Modes**: Only basic reveal mode (need Flash Cards, Hints, First Letters)
-2. **Keyboard Shortcuts**: No keyboard navigation yet (planned Phase 2)
-3. **Testing**: No automated tests yet (manual testing only)
-4. **Error Messages**: Could be more user-friendly
+1. **Styling Consistency**: Need to match legacy app's proven UX patterns
+2. **Layout Details**: Spacing, sizing, visual hierarchy needs attention
+3. **Mobile Optimization**: Touch targets and responsive design
+4. **Testing Coverage**: No automated tests yet (manual testing only)
 5. **Performance**: No pagination on verse list (could be slow with 1000+ verses)
 
 ### Key Technical Decisions
@@ -113,6 +140,7 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 2. **Token-Based Auth**: Simpler than JWT for personal app
 3. **CDN Dependencies**: Faster initial setup, will bundle later
 4. **Manual Testing**: Faster to MVP, will add automated tests later
+5. **Modal Sub-Modes**: Simpler than stack navigation for review modes
 
 ### Architecture Insights
 1. **Offline-First is Critical**: Users expect app to work anywhere
@@ -136,19 +164,21 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 **Implementation:** `client/src/app.ts` `exportToLegacyAndOpen()` function
 
 ### Legacy App Capabilities
-**Features Modern App Lacks:**
-- 5 review modes (vs modern's 1): Reference, Content, Hints, First Letters, Flash Cards
+**Features Modern App Now Has (Phase 2 MVP):**
+- ✅ 5 review modes (reference, content, hints, firstletters, flashcards)
+- ⚠️ But styling/layout needs to match legacy (in progress)
+
+**Features Still Only in Legacy:**
 - Meditation questions (structured reflection prompts)
 - Application questions (4 life areas for practical integration)
-- Keyboard shortcuts (n/p/h/f/Space)
 - BibleGateway chapter lookup
-- Human-readable time display
+- Polished keyboard shortcuts (partially implemented but not integrated)
 
 **Core Algorithm:** ✅ Same spaced repetition (8→56→112 days, probabilistic weekly/monthly)
 
 ### Integration Goal
-- **Phase 2:** Implement essential review modes → reduce legacy dependency
-- **Phase 3:** Add engagement tools → eliminate need for legacy button
+- **Phase 2 Refinement:** Polish review modes to match legacy quality
+- **Phase 3:** Add engagement tools (meditation, application prompts)
 - **Phase 4:** Surpass legacy with modern capabilities → remove legacy entirely
 
 **Documentation:** See `legacy-features-inventory.md` for complete feature catalog
@@ -163,33 +193,32 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 - **Browser**: Chrome/Firefox for testing
 
 ### Active Servers
-- **Frontend Dev**: `npm run dev` at localhost:5173
-- **Backend**: `php -S localhost:8000 router.php`
+- **Frontend Dev**: `npm run dev` at localhost:3000 (Vite HMR)
+- **Backend**: Laravel Herd at https://biblememory.test
 - **Database**: `server/api/db.sqlite`
 
 ## Quick Reference
 
 ### Common Commands
 ```bash
-# Frontend
-cd client && npm run dev        # Dev server with HMR
-cd client && npm run build      # Production build
+# Frontend (from root)
+npm run dev                # Dev server with HMR (port 3000)
+npm run build             # Install deps + build for production
+npm run preview           # Preview production build
 
-# Backend
-cd server && php api/migrate.php              # Setup database
-cd server/public && php -S localhost:8000 router.php  # Start server
-
-# Database
-sqlite3 server/api/db.sqlite    # Open database
-rm server/api/db.sqlite && php api/migrate.php  # Reset
+# Database (from root)
+npm run migrate           # Setup database
+npm run db:reset          # Delete database and recreate
+npm run db:open           # Open SQLite CLI
 ```
 
 ### Key Files
+- `client/src/composables/useReview.ts` - Review mode logic (Phase 2)
+- `client/src/App.vue` - Main UI component
+- `client/src/app.ts` - App composition and exports
 - `client/src/db.ts` - Dexie schema (7 tables)
 - `client/src/actions.ts` - CRUD operations
 - `client/src/sync.ts` - Push/pull sync
-- `client/src/App.vue` - Vue.js 3 Single File Component
-- `client/src/app.ts` - Composition API logic
 - `client/src/main.ts` - Vue app initialization
 - `server/api/lib.php` - Shared PHP functions
 - `server/schema.sql` - Database schema
@@ -228,3 +257,4 @@ This index provides titles and links for reference when needed.
 - **017** - Git Ignore Cleanup → [previous-work/017_gitignore_cleanup.md](previous-work/017_gitignore_cleanup.md)
 - **018** - Legacy App Routing Fix → [previous-work/018_legacy_app_routing_fix.md](previous-work/018_legacy_app_routing_fix.md)
 - **019** - Mobile-First Optimizations → [previous-work/019_mobile_first_optimizations.md](previous-work/019_mobile_first_optimizations.md)
+- **020** - Phase 2 Review Modes Initial → [previous-work/020_phase2_review_modes_initial.md](previous-work/020_phase2_review_modes_initial.md)

@@ -159,6 +159,27 @@ export function bibleMemoryApp() {
     markReview: reviewLogic.markReview,
     resetReview: reviewLogic.resetReview,
 
+    // Phase 2: Review modes
+    reviewMode: reviewLogic.reviewMode,
+    hintsShown: reviewLogic.hintsShown,
+    flashcardLevel: reviewLogic.flashcardLevel,
+    flashcardHiddenWords: reviewLogic.flashcardHiddenWords,
+    flashcardRevealedWords: reviewLogic.flashcardRevealedWords,
+    switchToReference: reviewLogic.switchToReference,
+    switchToContent: reviewLogic.switchToContent,
+    switchToHints: reviewLogic.switchToHints,
+    addHint: reviewLogic.addHint,
+    switchToFirstLetters: reviewLogic.switchToFirstLetters,
+    switchToFlashCards: reviewLogic.switchToFlashCards,
+    getHintedContent: reviewLogic.getHintedContent,
+    getFirstLettersContent: reviewLogic.getFirstLettersContent,
+    getWords: reviewLogic.getWords,
+    revealWord: reviewLogic.revealWord,
+    nextVerse: reviewLogic.nextVerse,
+    previousVerse: reviewLogic.previousVerse,
+    getHumanReadableTime: reviewLogic.getHumanReadableTime,
+    getReviewCategory: reviewLogic.getReviewCategory,
+
     // Sync (from useSync)
     lastSyncSuccess: sync.lastSyncSuccess,
     lastSyncError: sync.lastSyncError,

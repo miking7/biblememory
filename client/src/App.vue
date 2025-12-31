@@ -254,7 +254,7 @@
           <p class="text-slate-500 text-lg">No verses due for review today.</p>
         </div>
 
-        <div v-show="dueForReview.length > 0">
+        <div v-show="dueForReview.length > 0 && !reviewComplete">
           <div class="mb-6 text-center">
             <span class="text-slate-600 font-medium">Progress: </span>
             <span class="font-bold text-blue-600 text-lg" v-text="currentReviewIndex + 1"></span>
@@ -263,58 +263,181 @@
           </div>
 
           <template v-if="currentReviewVerse">
-            <div class="review-card rounded-2xl p-4 sm:p-10 min-h-[350px] flex flex-col justify-center items-center">
-              <div class="text-center mb-8">
+            <div class="review-card rounded-2xl p-4 sm:p-10 min-h-[400px] flex flex-col justify-between">
+              
+              <!-- Header: Reference and Translation -->
+              <div class="text-center mb-6">
                 <h3 class="text-2xl sm:text-4xl font-bold text-slate-800 mb-2" v-text="currentReviewVerse.reference"></h3>
-                <div class="flex flex-wrap items-center justify-center gap-2 mt-3">
-                  <span v-show="currentReviewVerse.translation"
-                        class="text-sm text-slate-500 font-medium px-3 py-1 bg-slate-100 rounded-full"
-                        v-text="currentReviewVerse.translation"></span>
-                  <template v-if="currentReviewVerse.tags && currentReviewVerse.tags.length > 0">
-                    <template v-for="tag in currentReviewVerse.tags" :key="tag.key">
-                      <span class="text-sm text-purple-700 font-medium px-3 py-1 bg-purple-50 rounded-full" v-text="formatTagForDisplay(tag)"></span>
+                <span v-show="currentReviewVerse.translation"
+                      class="text-sm text-slate-500 font-medium px-3 py-1 bg-slate-100 rounded-full"
+                      v-text="currentReviewVerse.translation"></span>
+              </div>
+
+              <!-- Content Area - Changes based on mode -->
+              <div class="flex-1 flex flex-col justify-center">
+                
+                <!-- Reference Mode: Show only reference, wait for reveal -->
+                <div v-if="reviewMode === 'reference'" class="text-center">
+                  <p class="text-slate-500 mb-6">Try to recall the verse...</p>
+                  <button
+                    @click="switchToContent()"
+                    class="btn-gold px-10 py-4 text-white rounded-xl font-semibold text-lg">
+                    Reveal Verse
+                  </button>
+                </div>
+
+                <!-- Content Mode: Show full verse with action buttons -->
+                <div v-if="reviewMode === 'content'" class="w-full">
+                  <p class="verse-content text-xl text-slate-700 text-center mb-8 leading-relaxed font-light" v-text="currentReviewVerse.content"></p>
+
+                  <div class="flex gap-4 justify-center">
+                    <button
+                      @click="markReview(true)"
+                      class="btn-success px-8 py-4 text-white rounded-xl font-semibold">
+                      ✓ Got it!
+                    </button>
+                    <button
+                      @click="markReview(false)"
+                      class="btn-warning px-8 py-4 text-white rounded-xl font-semibold">
+                      Need Practice
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Hints Mode: Progressive word revelation -->
+                <div v-if="reviewMode === 'hints'" class="text-center">
+                  <p class="verse-content text-xl text-slate-700 mb-6 leading-relaxed font-mono" 
+                     v-text="getHintedContent(currentReviewVerse.content, hintsShown)"></p>
+                  <p class="text-sm text-slate-500 mb-4">
+                    Showing <span class="font-bold" v-text="hintsShown"></span> of 
+                    <span class="font-bold" v-text="getWords(currentReviewVerse.content).length"></span> words
+                  </p>
+                  <button
+                    @click="addHint()"
+                    :disabled="hintsShown >= getWords(currentReviewVerse.content).length"
+                    class="px-8 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                    Show One More Word
+                  </button>
+                </div>
+
+                <!-- First Letters Mode: First letter + punctuation -->
+                <div v-if="reviewMode === 'firstletters'" class="text-center">
+                  <p class="text-2xl text-slate-700 mb-4 font-mono tracking-tight leading-relaxed" 
+                     v-text="getFirstLettersContent(currentReviewVerse.content)"></p>
+                  <p class="text-sm text-slate-500">First letter of each word + punctuation</p>
+                </div>
+
+                <!-- Flash Cards Mode: Random word hiding with difficulty levels -->
+                <div v-if="reviewMode === 'flashcards'" class="text-center">
+                  <div class="mb-4">
+                    <label class="text-sm text-slate-600 mr-2">Difficulty:</label>
+                    <select 
+                      v-model.number="flashcardLevel" 
+                      @change="switchToFlashCards(flashcardLevel)"
+                      class="px-3 py-2 border-2 border-slate-200 rounded-lg font-medium text-sm">
+                      <option :value="0">Show Verse (0%)</option>
+                      <option :value="10">Beginner (10%)</option>
+                      <option :value="25">Intermediate (25%)</option>
+                      <option :value="45">Advanced (45%)</option>
+                      <option :value="100">Memorized (100%)</option>
+                    </select>
+                  </div>
+                  <p class="text-xl text-slate-700 leading-relaxed">
+                    <template v-for="(word, index) in getWords(currentReviewVerse.content)" :key="index">
+                      <span 
+                        v-if="flashcardHiddenWords.has(index)"
+                        @click="revealWord(index)"
+                        :class="flashcardRevealedWords.has(index) ? 'text-red-600 cursor-default' : 'cursor-pointer'"
+                        class="inline-block min-w-[2em] border-b-2 border-slate-400"
+                        :style="flashcardRevealedWords.has(index) ? '' : 'color: transparent;'">
+                        {{ word }}
+                      </span>
+                      <span v-else>{{ word }}</span>
+                      {{ ' ' }}
                     </template>
+                  </p>
+                  <p class="text-xs text-slate-500 mt-4">Click hidden words to reveal them</p>
+                </div>
+
+              </div>
+
+              <!-- 3-Column Metadata Footer -->
+              <div class="grid grid-cols-3 gap-4 text-sm text-slate-600 border-t border-slate-200 pt-4 mt-6">
+                <div class="text-left">
+                  <span class="font-medium capitalize" v-text="getReviewCategory(currentReviewVerse)"></span>
+                </div>
+                <div class="text-center">
+                  <template v-if="currentReviewVerse.tags && currentReviewVerse.tags.length > 0">
+                    <div v-for="tag in currentReviewVerse.tags" :key="tag.key" class="mb-1">
+                      <span class="text-purple-700 text-xs">
+                        {{ formatTagForDisplay(tag) }}
+                      </span>
+                    </div>
                   </template>
+                </div>
+                <div class="text-right">
+                  <span v-text="getHumanReadableTime(currentReviewVerse.startedAt || undefined)"></span>
                 </div>
               </div>
 
-              <div v-show="!showVerseText" class="text-center">
+              <!-- Mode Buttons (Always Visible) -->
+              <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mt-6 border-t border-slate-200 pt-6">
                 <button
-                  @click="showVerseText = true"
-                  class="btn-gold px-10 py-4 text-white rounded-xl font-semibold text-lg">
-                  Reveal Verse
+                  @click="switchToHints()"
+                  :class="reviewMode === 'hints' ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white' : 'bg-slate-200 text-slate-700'"
+                  class="px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all">
+                  💡 Hints
+                </button>
+                
+                <button
+                  @click="switchToFlashCards(flashcardLevel)"
+                  :class="reviewMode === 'flashcards' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'bg-slate-200 text-slate-700'"
+                  class="px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all">
+                  🎴 Flash Cards
+                </button>
+                
+                <button
+                  @click="switchToFirstLetters()"
+                  :class="reviewMode === 'firstletters' ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white' : 'bg-slate-200 text-slate-700'"
+                  class="px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all">
+                  🔤 First Letters
                 </button>
               </div>
 
-              <div v-show="showVerseText"  class="w-full">
-                <p class="verse-content text-xl text-slate-700 text-center mb-8 leading-relaxed font-light" v-text="currentReviewVerse.content"></p>
-
-                <div class="flex gap-4 justify-center">
-                  <button
-                    @click="markReview(true)"
-                    class="btn-success px-8 py-4 text-white rounded-xl font-semibold">
-                    ✓ Got it!
-                  </button>
-                  <button
-                    @click="markReview(false)"
-                    class="btn-warning px-8 py-4 text-white rounded-xl font-semibold">
-                    Need Practice
-                  </button>
-                </div>
+              <!-- Navigation Buttons -->
+              <div class="flex gap-3 justify-center mt-4">
+                <button
+                  @click="previousVerse()"
+                  :disabled="currentReviewIndex === 0"
+                  class="px-6 py-2 bg-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  ← Previous
+                </button>
+                <button
+                  @click="switchToReference()"
+                  class="px-6 py-2 bg-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-300 transition-all">
+                  Reset View
+                </button>
+                <button
+                  @click="nextVerse()"
+                  :disabled="currentReviewIndex >= dueForReview.length - 1"
+                  class="px-6 py-2 bg-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  Next →
+                </button>
               </div>
+
             </div>
           </template>
+        </div>
 
-          <div v-show="reviewComplete"  class="text-center py-16">
-            <div class="text-5xl sm:text-7xl mb-4">🎉</div>
-            <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">Review Complete!</p>
-            <p class="text-slate-500 mb-6 text-lg">Great job reviewing today's verses.</p>
-            <button
-              @click="resetReview()"
-              class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
-              Review Again
-            </button>
-          </div>
+        <div v-show="reviewComplete" class="text-center py-16">
+          <div class="text-5xl sm:text-7xl mb-4">🎉</div>
+          <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">Review Complete!</p>
+          <p class="text-slate-500 mb-6 text-lg">Great job reviewing today's verses.</p>
+          <button
+            @click="resetReview()"
+            class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
+            Review Again
+          </button>
         </div>
       </div>
     </div>
@@ -599,6 +722,13 @@ const {
   lastSyncError,
   lastSyncAttempt,
 
+  // Phase 2: Review mode state
+  reviewMode,
+  hintsShown,
+  flashcardLevel,
+  flashcardHiddenWords,
+  flashcardRevealedWords,
+
   // Computed
   filteredVerses,
   hasVersesButNoSearchResults,
@@ -621,5 +751,21 @@ const {
   handleRegister,
   handleLogout,
   exportToLegacyAndOpen,
+
+  // Phase 2: Review mode methods
+  switchToReference,
+  switchToContent,
+  switchToHints,
+  addHint,
+  switchToFirstLetters,
+  switchToFlashCards,
+  getHintedContent,
+  getFirstLettersContent,
+  getWords,
+  revealWord,
+  nextVerse,
+  previousVerse,
+  getHumanReadableTime,
+  getReviewCategory,
 } = bibleMemoryApp();
 </script>
