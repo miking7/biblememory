@@ -57,7 +57,8 @@ A modern Bible memory app that combines:
 7. Verse immediately available offline
 8. Syncs to server when online
 
-#### Reviewing Verses
+#### Reviewing Verses (Basic - Phase 1)
+**Current Implementation:**
 1. User clicks "Review" tab
 2. App shows verses due for review based on spaced repetition
 3. User sees reference, tries to recall content
@@ -65,6 +66,16 @@ A modern Bible memory app that combines:
 5. Marks as "Got it!" or "Need Practice"
 6. Review recorded, next verse appears
 7. Algorithm adjusts future review schedule
+
+**Advanced Features (Legacy App - Phase 2+):**
+For enhanced practice modes, users can access legacy app via "Legacy..." button:
+- Flash Cards mode (5 difficulty levels for graduated practice)
+- First Letters mode (first letter + punctuation memory aids)
+- Progressive Hints mode (incremental word reveal)
+- Keyboard shortcuts for efficient navigation (n/p/h/f/Space)
+- Meditation and Application prompts for deeper engagement
+
+**Roadmap:** Phase 2 will integrate these advanced modes into modern app
 
 #### Managing Verses
 1. User clicks "My Verses" tab
@@ -114,6 +125,37 @@ This ensures:
 5. User edits on both devices offline
 6. Both sync when online
 7. Last edit wins (based on server timestamp)
+
+### Legacy App Integration
+
+**During Transition Period:**
+Users have access to both modern and legacy apps:
+
+**Modern App (Primary):**
+- All verse management (add, edit, delete, import, export)
+- Multi-device sync with cloud backup
+- Basic review flow (reference → content reveal)
+- Mobile-optimized responsive design
+
+**Legacy App (Temporary - Advanced Features):**
+- 5 review modes (Flash Cards, Hints, First Letters, etc.)
+- Meditation and Application reflection prompts
+- Keyboard shortcuts for power users
+- BibleGateway chapter lookup
+
+**Switching Between Apps:**
+1. Click "Legacy..." button in modern app
+2. Verses automatically export to legacy format
+3. Browser redirects to `/legacy/index.html`
+4. Return to modern app via "Link back to new app" in legacy menu
+
+**Data Consistency:**
+- Modern app is source of truth (IndexedDB + server sync)
+- Legacy reads from localStorage (exported by modern app)
+- Legacy operates in read-only mode
+- Changes in legacy don't sync back to modern app
+
+**Timeline:** Legacy app will be phased out once Phase 2/3 features implemented in modern app
 
 ## User Experience Goals
 

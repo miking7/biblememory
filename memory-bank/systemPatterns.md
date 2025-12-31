@@ -305,6 +305,55 @@ KEY QUESTION THIS FILE ANSWERS: "How is the system architectured and why?"
 
 **Implementation:** See `client/src/composables/useSync.ts` and sync status tracking in `client/src/app.ts`
 
+### 9. Legacy App Integration Pattern
+
+**Purpose:** Provide seamless transition to advanced features during modern app development
+
+**Problem Solved:**
+- Modern app doesn't yet have all features users need (Flash Cards, Hints, etc.)
+- Users need access to full feature set while modern app is under development
+- Must maintain single source of truth for verse data
+- Need gradual migration path without forced cutover
+
+**How It Works:**
+- Modern app stores verses in IndexedDB (authoritative source of truth)
+- "Legacy..." button triggers `exportToLegacyAndOpen()` function
+- Function exports verses to localStorage in legacy-compatible format
+- Redirects browser to `/legacy/index.html`
+- Legacy app reads `localStorage.allVerses` on load
+- User can review with advanced modes in legacy app
+- Return to modern app via "Link back to new app" in legacy menu
+
+**Data Transformation:**
+```typescript
+// Modern format → Legacy format
+{
+  reviewCat: 'auto',           → review_cat: 'auto'
+  startedAt: 1704585600000,    → started_at: '2024-01-07'
+  tags: [{key: 'fast.sk', value: '3'}] → tags: 'fast.sk=3'
+}
+```
+
+**Why This Pattern:**
+- Allows gradual feature migration (no big-bang cutover)
+- Users get best of both worlds during transition
+- Data remains consistent (modern app is source of truth)
+- Legacy changes don't pollute modern data (read-only mode)
+- Clear migration path (remove button once parity achieved)
+- No duplicate data storage (localStorage is export only)
+
+**Trade-offs Accepted:**
+- One-way sync (legacy edits don't sync back to modern app)
+- User must manually switch apps (no auto-redirect)
+- Temporary code duplication (will be removed in Phase 3/4)
+- Extra complexity during transition period
+
+**Implementation:** See `client/src/app.ts` lines 82-106 (`exportToLegacyAndOpen()`)
+
+**Future:** Remove this pattern entirely once Phase 2/3 features implemented in modern app. The legacy app and integration code will be deleted.
+
+**Documentation:** See `memory-bank/legacy-features-inventory.md` for complete feature catalog
+
 ## Component Relationships
 
 ### Data Flow for Adding a Verse

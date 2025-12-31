@@ -10,17 +10,23 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - This file should answer "where are we in the project?"
 -->
 
-## Current Status: Phase 1 Complete ✅
+## Current Status: Phase 1 Complete ✅ (Basic Features)
 
 ## What Works
 
-### ✅ Phase 1 Complete
+### ✅ Phase 1 Complete (Basic Features)
 
-#### Core Features
+**What This Means:**
+- Core infrastructure complete (build system, offline-first, sync, auth)
+- Basic review functionality implemented (reference → content reveal)
+- CRUD operations for verses working
+- Ready for daily use with basic memorization workflow
+
+#### Implemented Features
 - **Build System**: Vite 5.x + TypeScript + HMR + Vue 3 SFC
 - **User Interface**: Glass-morphism design, responsive layout, tab navigation, modals
 - **Data Management**: Verse CRUD, multi-paragraph support, structured tags, IndexedDB storage
-- **Review System**: Spaced repetition algorithm (learn/daily/weekly/monthly phases)
+- **Review System (Basic)**: Spaced repetition algorithm (auto-categorization: 8→56→112 days), simple reveal flow
 - **Offline-First**: Full offline functionality, automatic sync when online
 - **Sync**: OpLog pattern, cursor-based pagination, LWW conflict resolution
 - **Authentication**: Registration, login, token-based auth, secure storage
@@ -28,7 +34,65 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - **Backend**: PHP 8.0+ REST API, SQLite with WAL mode, 5 endpoints
 - **Search**: Unicode-insensitive, tags search, context-aware empty states
 
+**Legacy App Status:**
+- Remains accessible via "Legacy..." button for advanced review features
+- Provides 5 review modes (vs modern's 1): Flash Cards, Hints, First Letters, etc.
+- Will be phased out once Phase 2/3 features implemented in modern app
+
 **Details:** See productContext.md for feature descriptions and techContext.md for technical implementation
+
+## Legacy Feature Parity Status
+
+### ✅ Implemented in Modern App (Phase 1)
+- Verse CRUD (add, edit, delete)
+- Spaced repetition algorithm (auto-categorization: 8→56→112 day thresholds)
+- Basic review flow (reference → content reveal)
+- Verse list display with search (reference, content, tags)
+- Statistics (total verses, reviewed today, current streak)
+- Authentication and multi-device sync
+- Offline-first architecture (IndexedDB + OpLog sync)
+- Import/Export (JSON with smart ID handling)
+- Mobile-first responsive design
+- Tag support (structured key-value pairs)
+
+### ⏳ Planned - Phase 2: Enhanced Review (3-4 weeks)
+**Goal:** Match legacy review capabilities
+
+**Priority 1 - Review Modes:**
+- [ ] Flash Cards mode (5 difficulty levels: 0%, 10%, 25%, 45%, 100% hidden words)
+- [ ] First Letters mode (show first letter + punctuation)
+- [ ] Progressive Hints mode (start with 3 words, add 1 per hint)
+
+**Priority 2 - Navigation & UX:**
+- [ ] Keyboard shortcuts (n/p/h/f/Space for navigation and modes)
+- [ ] Verse List quick jump (click verse to start review from that point)
+- [ ] Human-readable time display ("3 weeks" vs "21 days")
+- [ ] Tag value formatting in UI ("fast.sk (3)")
+
+**Estimated Scope:** 3-4 weeks focused development
+
+### ⏳ Planned - Phase 3: Deep Engagement (2-3 weeks)
+**Goal:** Integrate reflection and application tools
+
+- [ ] Meditation questions modal (structured reflection prompts)
+- [ ] Application questions modal (4 life areas: Goals, Decisions, Lifestyle, Problems)
+- [ ] BibleGateway chapter lookup integration
+- [ ] Context-sensitive help and guidance
+- [ ] Review mode switching UI
+
+**Estimated Scope:** 2-3 weeks
+
+### 🎯 Planned - Phase 4: Modern Enhancements (4-6 weeks)
+**Goal:** Surpass legacy with features it doesn't have
+
+- [ ] Statistics dashboard with charts
+- [ ] Dark mode
+- [ ] Streak tracking with achievements
+- [ ] Multiple sort options (date added, last reviewed, frequency)
+- [ ] PWA installation and service worker
+- [ ] Background sync and push notifications
+
+---
 
 ## What's Left to Build
 
@@ -83,7 +147,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 
 **See:** `memory-bank/authentication-implementation-plan.md` for detailed plan
 
-### Phase 2: Enhanced Features (Planned)
+### Phase 2: Enhanced Review Modes (Planned - See Legacy Feature Parity Above)
 
 #### Multiple Review Modes
 - [ ] Hints mode (progressive word revelation)
@@ -307,7 +371,6 @@ See Technical Debt section below.
 - **API Endpoints**: 5 endpoints
 
 ### Performance
-- **Bundle Size**: 179 KB (56 KB gzipped)
 - **Load Time**: < 300ms (localhost)
 - **Time to Interactive**: < 200ms
 - **Sync Speed**: < 500ms typical

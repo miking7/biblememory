@@ -23,8 +23,6 @@ KEY QUESTION THIS FILE ANSWERS: "What technologies do we use and how?"
   - Build-time template compilation
   - Full TypeScript integration
   - Vue DevTools support
-  - **Bundle Size:** 181KB JS (63KB gzipped) + 30KB CSS (6KB gzipped)
-  - **Total:** ~69KB gzipped (excellent for a full-featured SPA)
 
 #### Styling
 - **Tailwind CSS v4.1.16** - Utility-first CSS framework
@@ -466,7 +464,7 @@ rm server/api/db.sqlite && cd server && php api/migrate.php  # Reset
 ## Performance Considerations
 
 ### Frontend Optimization
-- **Phase 1** - Vue.js 3 bundled and optimized (69KB gzipped total)
+- **Phase 1** - Vue.js 3 bundled and optimized
 - **Phase 2** - Bundle and purge Tailwind CSS (smaller bundle size)
 - **Lazy Loading** - Load components on demand (future)
 - **Code Splitting** - Separate vendor and app code (future)

@@ -15,14 +15,21 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Paused for memory bank cleanup and reorganization
+**Status:** Phase 1 Complete - Planning Phase 2 Implementation
 
-**Goal:** Ensure memory bank files align with .clinerules intent:
-- progress.md = central hub for all progress tracking
-- productContext.md = timeless product vision (no progress/phase status)
-- activeContext.md = ephemeral current work only (no future plans or duplicate status)
+**Current State:**
+- Modern app provides basic memorization workflow (CRUD + simple review)
+- Legacy app provides advanced features (Flash Cards, Hints, Meditation prompts)
+- Users switch between apps via "Legacy..." button as needed
+- Memory bank aligned with actual project state
 
-**See [progress.md](progress.md) for current project status, version, and roadmap.**
+**Next Phase:** Enhanced Review Modes (Phase 2)
+- Flash Cards mode (5 difficulty levels)
+- First Letters mode
+- Progressive Hints mode
+- Keyboard shortcuts (n/p/h/f/Space)
+
+**See [progress.md](progress.md) for complete roadmap and feature parity status.**
 
 ## Active Decisions and Considerations
 
@@ -83,10 +90,11 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 5. **TypeScript**: Catches bugs early, improves maintainability
 
 ### What Needs Improvement
-1. **Bundle Size**: Tailwind CSS from CDN is 3.5MB (will optimize in Phase 2)
-2. **Testing**: No automated tests yet (manual testing only)
-3. **Error Messages**: Could be more user-friendly
-4. **Performance**: No pagination on verse list (could be slow with 1000+ verses)
+1. **Review Modes**: Only basic reveal mode (need Flash Cards, Hints, First Letters)
+2. **Keyboard Shortcuts**: No keyboard navigation yet (planned Phase 2)
+3. **Testing**: No automated tests yet (manual testing only)
+4. **Error Messages**: Could be more user-friendly
+5. **Performance**: No pagination on verse list (could be slow with 1000+ verses)
 
 ### Key Technical Decisions
 1. **SQLite Only**: Simpler than supporting multiple databases
@@ -99,6 +107,39 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 2. **Sync is Complex**: OpLog pattern handles edge cases well
 3. **LWW is Simple**: Works well for personal apps, no user confusion
 4. **Cursor Pagination**: Essential for scaling to large datasets
+5. **Legacy Integration**: One-way data bridge works well for gradual migration
+
+## Legacy System Integration
+
+### Current Architecture
+**Purpose:** Provide feature bridge during modern app development
+
+**Data Flow:**
+1. Modern app maintains verses in IndexedDB (source of truth)
+2. "Legacy..." button exports verses to localStorage (`allVerses`)
+3. Legacy app reads from localStorage on load
+4. Data transformation: camelCase → snake_case, epoch → YYYY-MM-DD
+5. Legacy operates in read-only mode (changes don't sync back)
+
+**Implementation:** `client/src/app.ts` `exportToLegacyAndOpen()` function
+
+### Legacy App Capabilities
+**Features Modern App Lacks:**
+- 5 review modes (vs modern's 1): Reference, Content, Hints, First Letters, Flash Cards
+- Meditation questions (structured reflection prompts)
+- Application questions (4 life areas for practical integration)
+- Keyboard shortcuts (n/p/h/f/Space)
+- BibleGateway chapter lookup
+- Human-readable time display
+
+**Core Algorithm:** ✅ Same spaced repetition (8→56→112 days, probabilistic weekly/monthly)
+
+### Integration Goal
+- **Phase 2:** Implement essential review modes → reduce legacy dependency
+- **Phase 3:** Add engagement tools → eliminate need for legacy button
+- **Phase 4:** Surpass legacy with modern capabilities → remove legacy entirely
+
+**Documentation:** See `legacy-features-inventory.md` for complete feature catalog
 
 ## Development Environment
 
