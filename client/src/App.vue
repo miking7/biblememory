@@ -292,16 +292,16 @@
                   <!-- Flash Cards Mode: Reference with potential hiding -->
                   <h3 v-if="reviewMode === 'flashcards'" class="text-2xl sm:text-4xl font-bold text-slate-800">
                     <template v-for="(word, index) in getReferenceWords()" :key="'ref-' + index">
-                      <br v-if="word === '\n'">
+                      <br v-if="word.str === '\n'">
                       <span
                         v-else-if="flashcardHiddenWords.has(index)"
                         @click="revealWord(index)"
                         :class="flashcardRevealedWords.has(index) ? 'text-red-600 cursor-default' : 'cursor-pointer'"
                         class="inline-block border-b-2 border-black"
                         :style="flashcardRevealedWords.has(index) ? '' : 'color: transparent;'">
-                        {{ word }}
+                        {{ word.str }}
                       </span>
-                      <span v-else-if="word !== '\n'">{{ word }}</span>
+                      <span v-else>{{ word.str }}</span>
                     </template>
                   </h3>
                   <!-- All Other Modes: Normal reference display -->
@@ -333,7 +333,7 @@
                      v-text="getHintedContent(currentReviewVerse.content, hintsShown)"></p>
                   <p class="text-sm text-slate-500">
                     Showing <span class="font-bold" v-text="hintsShown"></span> of
-                    <span class="font-bold" v-text="getWords(currentReviewVerse.content).length"></span> words
+                    <span class="font-bold" v-text="getWords(currentReviewVerse.content).filter(w => w.isWord).length"></span> words
                   </p>
                 </div>
 
@@ -359,16 +359,16 @@
                   </div>
                   <div class="text-base sm:text-lg text-slate-800 leading-relaxed">
                     <template v-for="(word, index) in getWords(currentReviewVerse.content)" :key="'content-' + index">
-                      <br v-if="word === '\n'">
+                      <br v-if="word.str === '\n'">
                       <span
                         v-else-if="flashcardHiddenWords.has(index + getContentWordsStartIndex())"
                         @click="revealWord(index + getContentWordsStartIndex())"
                         :class="flashcardRevealedWords.has(index + getContentWordsStartIndex()) ? 'text-red-600 cursor-default' : 'cursor-pointer'"
                         class="inline-block border-b-2 border-black"
                         :style="flashcardRevealedWords.has(index + getContentWordsStartIndex()) ? '' : 'color: transparent;'">
-                        {{ word }}
+                        {{ word.str }}
                       </span>
-                      <span v-else-if="word !== '\n'">{{ word }}</span>
+                      <span v-else>{{ word.str }}</span>
                     </template>
                   </div>
                 </div>

@@ -175,11 +175,11 @@ export function useReview() {
     // Combine into one pool (key insight from legacy!)
     const allWords = [...refWords, ...contentWords];
 
-    // Filter out newline markers when counting actual words
+    // Filter to only count actual words (isWord: true), not punctuation or spaces
     const wordIndices = allWords
-      .map((word, index) => ({ word, index }))
-      .filter(item => item.word !== '\n')
-      .map(item => item.index);
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => item.isWord)
+      .map(({ index }) => index);
 
     const wordCount = wordIndices.length;
     const hideCount = Math.floor(wordCount * difficulty / 100);
@@ -202,56 +202,64 @@ export function useReview() {
     flashcardRevealedWords.value.add(index);
   };
 
-  const getWords = (content: string, allowNumbers: boolean = false): string[] => {
-    // For Flash Cards, we need to preserve line breaks
-    // Split by space only (not all whitespace) and include line break markers
-    // allowNumbers parameter matches legacy: true for reference, false for content
+  // Word object type to match legacy pattern
+  interface WordItem {
+    isWord: boolean;
+    str: string;
+  }
+
+  const getWords = (content: string, allowNumbers: boolean = false): WordItem[] => {
+    // Matches legacy wordSplit() - returns objects with {isWord, str}
+    // This preserves ALL content including spaces and punctuation
     const lines = content.split('\n');
-    const result: string[] = [];
+    const result: WordItem[] = [];
 
     lines.forEach((line, lineIndex) => {
-      // Use a simple word splitting approach
-      // Words can contain letters, numbers (if allowed), apostrophes, and hyphens
-      const pattern = allowNumbers
-        ? /[A-Za-z0-9]+(?:['\-][A-Za-z0-9]+)*/g  // Allow numbers in words (for references like "143")
-        : /[A-Za-z]+(?:['\-][A-Za-z]+)*/g;        // Only letters (for verse content)
+      // Regex patterns matching legacy implementation
+      const wordStartPattern = allowNumbers
+        ? /[A-Za-z0-9]/          // Word can start with letter or number (for references)
+        : /[A-Za-z]/;             // Word must start with letter (for content)
+      const wordStopPattern = /[^A-Za-z0-9'\-]/;  // Word can contain letters, numbers, apostrophes, hyphens
 
-      const matches = line.match(pattern) || [];
+      let str = line;
+      let isWord = wordStartPattern.test(str.charAt(0));
 
-      if (matches.length > 0) {
-        // Add words and spaces between them
-        let lastIndex = 0;
-        matches.forEach((match) => {
-          const matchIndex = line.indexOf(match, lastIndex);
+      // Main loop - alternates between words and non-words
+      while (str.length > 0) {
+        let nextIndex = -1;
 
-          // Add any non-word characters before this word (spaces, punctuation)
-          if (matchIndex > lastIndex) {
-            const between = line.substring(lastIndex, matchIndex);
-            if (between.trim().length === 0) {
-              // Just whitespace, skip it
-            } else {
-              // Has punctuation, keep it as-is
-              result.push(between);
+        if (isWord) {
+          // Search for end of word
+          const match = wordStopPattern.exec(str);
+          nextIndex = match ? match.index : -1;
+        } else {
+          // Search for start of next word
+          for (let i = 0; i < str.length; i++) {
+            if (wordStartPattern.test(str.charAt(i))) {
+              nextIndex = i;
+              break;
             }
           }
+        }
 
-          // Add the word itself
-          result.push(match);
-          lastIndex = matchIndex + match.length;
+        if (nextIndex < 0) {
+          nextIndex = str.length;  // Use rest of string
+        }
+
+        // Add this part to array
+        result.push({
+          isWord: isWord,
+          str: str.substring(0, nextIndex)
         });
 
-        // Add any trailing non-word characters
-        if (lastIndex < line.length) {
-          const trailing = line.substring(lastIndex);
-          if (trailing.trim().length > 0) {
-            result.push(trailing);
-          }
-        }
+        // Prepare for next part
+        str = str.substring(nextIndex);
+        isWord = !isWord;
       }
 
-      // Add a special marker for line breaks (except after the last line)
+      // Add line break marker (except after last line)
       if (lineIndex < lines.length - 1) {
-        result.push('\n');
+        result.push({ isWord: false, str: '\n' });
       }
     });
 
@@ -354,7 +362,7 @@ export function useReview() {
   };
 
   // Phase 2: Helper to get reference words for Flash Cards rendering
-  const getReferenceWords = (): string[] => {
+  const getReferenceWords = (): WordItem[] => {
     if (!currentReviewVerse.value) return [];
     return getWords(currentReviewVerse.value.reference, true);
   };
