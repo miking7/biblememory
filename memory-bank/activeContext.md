@@ -15,33 +15,34 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Phase 2 MVP Complete - Basic functionality working, styling refinements needed
+**Status:** Phase 2 Refinements Complete - Matches legacy UX, ready for testing
 
 **Completed This Session:**
-- ✅ Implemented review mode state management in `useReview.ts`
-- ✅ Added 5 review modes (reference, content, hints, firstletters, flashcards)
-- ✅ Built mode-specific UI rendering in App.vue
-- ✅ Added mode buttons and navigation controls
-- ✅ Implemented content transformation functions
-- ✅ Fixed critical bug: App.vue wasn't destructuring Phase 2 properties
-- ✅ Basic testing confirms MVP functionality
+- ✅ Refined review card layout to match legacy UX (left-aligned, clean styling)
+- ✅ Restructured header: Back | Title | Progress | Prev/Next navigation
+- ✅ Moved mode buttons outside/below card (matches legacy placement)
+- ✅ Changed Flash Cards from dropdown to horizontal difficulty links
+- ✅ Fixed "Got it!" / "Need Practice" to reset to reference mode
+- ✅ Integrated keyboard shortcuts with Vue lifecycle hooks
+- ✅ Added getShortReference() for Flash Cards ("143:" format)
+- ✅ Fixed paragraph/newline preservation in ALL review modes
 
 **Current State:**
-- MVP is functional - users can switch between all 5 review modes
-- Significant styling and layout issues identified (deferred)
-- Keyboard shortcuts implemented but not yet integrated
-- Ready for refinement phase
+- Phase 2 refinements complete - layout matches legacy app
+- All 5 review modes functional with proper paragraph support
+- Keyboard shortcuts active (space, n, p, h, f, escape)
+- Clean, functional design matching proven legacy patterns
+- Ready for comprehensive testing
 
 **Next Steps:**
-1. **Review legacy screenshots** before continuing (critical for styling)
-   - Screenshot 1-3: Legacy app review modes
-   - Screenshot 4: Modern app's clean card layout (use as template)
-2. Fix styling/layout issues to match legacy UX (with clean card layout styling from new)
-3. Integrate keyboard shortcuts
-4. Polish and test thoroughly
+1. Test all review modes with real multi-paragraph verses
+2. Test keyboard shortcuts thoroughly
+3. Mobile optimization and touch target testing
+4. Consider additional polish (transitions, visual feedback)
 
 **See:**
-- [previous-work/020_phase2_review_modes_initial.md](previous-work/020_phase2_review_modes_initial.md) - Complete implementation details and issues list
+- [previous-work/020_phase2_review_modes_initial.md](previous-work/020_phase2_review_modes_initial.md) - Initial MVP implementation
+- [previous-work/021_phase2_refinements.md](previous-work/021_phase2_refinements.md) - Layout refinements and paragraph fixes
 
 ## Active Decisions and Considerations
 
@@ -52,22 +53,23 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 - **Navigation**: Always resets to reference mode on verse change
 
 ### Known Issues Requiring Attention
-**Critical:**
-- Styling/layout needs to come a lot closer to that of the legacy app (significant issues reported)
-- "Got it!" / "Need Practice" buttons don't reset mode properly
-- Flash Cards word hiding may not handle punctuation correctly
+**Resolved in This Session:**
+- ✅ Styling/layout now matches legacy app (left-aligned, clean design)
+- ✅ "Got it!" / "Need Practice" now reset to reference mode properly
+- ✅ Keyboard shortcuts fully integrated
+- ✅ Paragraph/newline preservation fixed in all modes
 
-**Important:**
-- Keyboard shortcuts not integrated
-- Mode buttons need better active state indication
-- Mobile touch targets need testing
-- Metadata footer layout needs refinement
+**Testing Needed:**
+- Mobile touch targets and responsive design
+- Multi-paragraph verses in all modes
+- Keyboard shortcuts in various scenarios
+- Flash Cards punctuation handling edge cases
 
-**Nice-to-have:**
+**Nice-to-have (Future):**
 - Smooth transitions between modes
-- Hints remaining counter
-- Flash Cards reveal feedback
-- Mode persistence across verses
+- Hints remaining counter with better UI
+- Flash Cards reveal feedback/animation
+- Mode persistence option across verses
 
 ### Data Model Patterns
 - **Reference Format**: Users manually enter both `reference` (human-readable) and `refSort` (machine-sortable)
@@ -258,3 +260,4 @@ This index provides titles and links for reference when needed.
 - **018** - Legacy App Routing Fix → [previous-work/018_legacy_app_routing_fix.md](previous-work/018_legacy_app_routing_fix.md)
 - **019** - Mobile-First Optimizations → [previous-work/019_mobile_first_optimizations.md](previous-work/019_mobile_first_optimizations.md)
 - **020** - Phase 2 Review Modes Initial → [previous-work/020_phase2_review_modes_initial.md](previous-work/020_phase2_review_modes_initial.md)
+- **021** - Phase 2 Refinements & Paragraph Fixes → [previous-work/021_phase2_refinements.md](previous-work/021_phase2_refinements.md)

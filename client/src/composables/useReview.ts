@@ -68,6 +68,9 @@ export function useReview() {
 
       await updateStats();
 
+      // Reset to reference mode before advancing
+      switchToReference();
+
       currentReviewIndex.value++;
       showVerseText.value = false;
 
@@ -128,46 +131,64 @@ export function useReview() {
 
   // Phase 2: Content transformation functions
   const getHintedContent = (content: string, wordsToShow: number): string => {
-    const words = content.split(/\s+/);
-    return words.map((word, index) => {
-      if (index < wordsToShow) {
-        return word;
-      } else {
-        return '_'.repeat(Math.max(word.length, 1));
-      }
-    }).join(' ');
+    // Split into lines first to preserve paragraph structure
+    const lines = content.split('\n');
+    let wordsSoFar = 0;
+
+    return lines.map(line => {
+      const words = line.split(' ').filter(w => w.length > 0);
+      return words.map(word => {
+        if (wordsSoFar < wordsToShow) {
+          wordsSoFar++;
+          return word;
+        } else {
+          return '_'.repeat(Math.max(word.length, 1));
+        }
+      }).join(' ');
+    }).join('\n');
   };
 
   const getFirstLettersContent = (content: string): string => {
-    const words = content.split(/(\s+|[.,;:!?'"()—\-])/);
-    return words.map(part => {
-      // Keep punctuation as-is
-      if (/^[.,;:!?'"()—\-]+$/.test(part)) return part;
-      // Skip whitespace
-      if (/^\s+$/.test(part)) return '';
-      // Return first letter of words
-      if (part.length > 0) return part.charAt(0);
-      return '';
-    }).join('');
+    // Process line by line to preserve paragraphs
+    const lines = content.split('\n');
+    return lines.map(line => {
+      const words = line.split(/(\s+|[.,;:!?'"()—\-])/);
+      return words.map(part => {
+        // Keep punctuation as-is
+        if (/^[.,;:!?'"()—\-]+$/.test(part)) return part;
+        // Skip spaces (but we already split by line, so this is just internal spaces)
+        if (/^\s+$/.test(part)) return '';
+        // Return first letter of words
+        if (part.length > 0) return part.charAt(0);
+        return '';
+      }).join('');
+    }).join('\n');
   };
 
   const generateHiddenWords = (difficulty: number) => {
     if (!currentReviewVerse.value) return;
-    
-    const words = currentReviewVerse.value.content.split(/\s+/);
-    const wordCount = words.length;
+
+    const words = getWords(currentReviewVerse.value.content);
+    // Filter out newline markers when counting actual words
+    const wordIndices = words
+      .map((word, index) => ({ word, index }))
+      .filter(item => item.word !== '\n')
+      .map(item => item.index);
+
+    const wordCount = wordIndices.length;
     const hideCount = Math.floor(wordCount * difficulty / 100);
-    
-    // Generate random indices
-    const indices: number[] = [];
-    while (indices.length < hideCount) {
-      const randomIndex = Math.floor(Math.random() * wordCount);
-      if (!indices.includes(randomIndex)) {
-        indices.push(randomIndex);
+
+    // Generate random indices from the actual word positions
+    const selectedIndices: number[] = [];
+    while (selectedIndices.length < hideCount) {
+      const randomWordIndex = Math.floor(Math.random() * wordCount);
+      const actualIndex = wordIndices[randomWordIndex];
+      if (!selectedIndices.includes(actualIndex)) {
+        selectedIndices.push(actualIndex);
       }
     }
-    
-    flashcardHiddenWords.value = new Set(indices);
+
+    flashcardHiddenWords.value = new Set(selectedIndices);
     flashcardRevealedWords.value.clear();
   };
 
@@ -176,7 +197,21 @@ export function useReview() {
   };
 
   const getWords = (content: string): string[] => {
-    return content.split(/\s+/);
+    // For Flash Cards, we need to preserve line breaks
+    // Split by space only (not all whitespace) and include line break markers
+    const lines = content.split('\n');
+    const result: string[] = [];
+
+    lines.forEach((line, lineIndex) => {
+      const words = line.split(' ').filter(w => w.length > 0);
+      result.push(...words);
+      // Add a special marker for line breaks (except after the last line)
+      if (lineIndex < lines.length - 1) {
+        result.push('\n');
+      }
+    });
+
+    return result;
   };
 
   // Phase 2: Navigation that resets to reference mode
@@ -274,6 +309,18 @@ export function useReview() {
     return tag.key;
   };
 
+  // Phase 2: Helper for short reference (Flash Cards mode)
+  const getShortReference = (reference: string): string => {
+    // Convert "Psalms 143:8" to "143:"
+    // Extract chapter:verse pattern
+    const match = reference.match(/(\d+):(\d+)/);
+    if (match) {
+      return `${match[1]}:`;
+    }
+    // Fallback to full reference if no match
+    return reference;
+  };
+
   return {
     // State
     currentReviewIndex,
@@ -324,6 +371,7 @@ export function useReview() {
     // Phase 2: UI helpers
     getHumanReadableTime,
     getReviewCategory,
-    formatTagForDisplay
+    formatTagForDisplay,
+    getShortReference
   };
 }

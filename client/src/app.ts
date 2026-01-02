@@ -179,6 +179,9 @@ export function bibleMemoryApp() {
     previousVerse: reviewLogic.previousVerse,
     getHumanReadableTime: reviewLogic.getHumanReadableTime,
     getReviewCategory: reviewLogic.getReviewCategory,
+    formatTagForDisplay: reviewLogic.formatTagForDisplay,
+    getShortReference: reviewLogic.getShortReference,
+    handleKeyPress: reviewLogic.handleKeyPress,
 
     // Sync (from useSync)
     lastSyncSuccess: sync.lastSyncSuccess,
