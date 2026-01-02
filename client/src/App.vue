@@ -254,14 +254,8 @@
         </div>
 
         <div v-show="dueForReview.length > 0 && !reviewComplete">
-          <!-- Header: Back, Title, Progress, Prev/Next -->
+          <!-- Header: Title, Progress, Prev/Next -->
           <div class="flex justify-between items-center mb-6">
-            <button
-              @click="currentTab = 'list'"
-              class="px-4 py-2 bg-white text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-all border border-slate-300">
-              Back
-            </button>
-
             <h2 class="text-2xl sm:text-4xl font-bold text-slate-800">Daily Review</h2>
 
             <div class="flex items-center gap-3">
@@ -284,20 +278,27 @@
           </div>
 
           <template v-if="currentReviewVerse">
-            <div class="review-card rounded-xl p-6 sm:p-8 min-h-[400px] flex flex-col justify-between bg-white border-2 border-slate-300">
+            <div class="review-card rounded-xl p-6 sm:p-8 min-h-[400px] flex flex-col justify-between bg-white border-2 border-slate-300 relative">
+
+              <!-- Progress Indicator (Top Right Corner) -->
+              <div class="absolute top-4 right-4 text-slate-600 text-sm sm:text-base">
+                <span class="font-bold" v-text="currentReviewIndex + 1"></span>/<span v-text="dueForReview.length"></span>
+              </div>
 
               <!-- Header: Reference and Translation -->
               <div class="mb-6">
-                <div class="flex items-baseline gap-3 mb-2">
+                <div class="flex flex-wrap items-center gap-2">
                   <!-- Flash Cards Mode: Reference with potential hiding -->
-                  <h3 v-if="reviewMode === 'flashcards'" class="text-2xl sm:text-4xl font-bold text-slate-800">
+                  <h3 v-if="reviewMode === 'flashcards'" class="font-bold text-lg sm:text-xl text-slate-800">
                     <template v-for="(word, index) in getReferenceWords()" :key="'ref-' + index">
                       <br v-if="word.str === '\n'">
                       <span
                         v-else-if="flashcardHiddenWords.has(index)"
                         @click="revealWord(index)"
-                        :class="flashcardRevealedWords.has(index) ? 'text-red-600 cursor-default' : 'cursor-pointer'"
-                        class="inline-block border-b-2 border-black"
+                        :class="[
+                          'flashcard-underline',
+                          flashcardRevealedWords.has(index) ? 'text-red-600 cursor-default' : 'cursor-pointer'
+                        ]"
                         :style="flashcardRevealedWords.has(index) ? '' : 'color: transparent;'">
                         {{ word.str }}
                       </span>
@@ -305,13 +306,12 @@
                     </template>
                   </h3>
                   <!-- All Other Modes: Normal reference display -->
-                  <h3 v-else class="text-2xl sm:text-4xl font-bold text-slate-800" v-text="currentReviewVerse.reference"></h3>
+                  <h3 v-else class="font-bold text-lg sm:text-xl text-slate-800" v-text="currentReviewVerse.reference"></h3>
 
-                  <span class="text-slate-600 text-sm" v-text="currentReviewIndex + 1 + '/' + dueForReview.length"></span>
+                  <span v-show="currentReviewVerse.translation"
+                        class="text-xs text-slate-500 font-medium px-2 py-1 bg-slate-100 rounded"
+                        v-text="currentReviewVerse.translation"></span>
                 </div>
-                <span v-show="currentReviewVerse.translation"
-                      class="text-xs text-slate-500 font-medium"
-                      v-text="'[' + currentReviewVerse.translation + ']'"></span>
               </div>
 
               <!-- Content Area - Changes based on mode -->
@@ -324,14 +324,14 @@
 
                 <!-- Content Mode: Show full verse -->
                 <div v-if="reviewMode === 'content'">
-                  <p class="verse-content text-base sm:text-lg text-slate-800 leading-relaxed" v-text="currentReviewVerse.content"></p>
+                  <p class="verse-content text-sm sm:text-base text-slate-800 leading-relaxed" v-text="currentReviewVerse.content"></p>
                 </div>
 
                 <!-- Hints Mode: Progressive word revelation -->
                 <div v-if="reviewMode === 'hints'">
-                  <p class="verse-content text-base sm:text-lg text-slate-800 leading-relaxed font-mono"
+                  <p class="verse-content text-sm sm:text-base text-slate-800 leading-relaxed font-mono"
                      v-text="getHintedContent(currentReviewVerse.content, hintsShown)"></p>
-                  <p class="text-sm text-slate-500">
+                  <p class="text-sm text-slate-500 mt-2">
                     Showing <span class="font-bold" v-text="hintsShown"></span> of
                     <span class="font-bold" v-text="getWords(currentReviewVerse.content).filter(w => w.isWord).length"></span> words
                   </p>
@@ -339,20 +339,22 @@
 
                 <!-- First Letters Mode: First letter + punctuation -->
                 <div v-if="reviewMode === 'firstletters'">
-                  <p class="verse-content text-base sm:text-lg text-slate-800 font-mono tracking-tight leading-relaxed"
+                  <p class="verse-content text-sm sm:text-base text-slate-800 font-mono tracking-tight leading-relaxed"
                      v-text="getFirstLettersContent(currentReviewVerse.content)"></p>
                 </div>
 
                 <!-- Flash Cards Mode: Random word hiding with difficulty levels -->
                 <div v-if="reviewMode === 'flashcards'">
-                  <div class="text-base sm:text-lg text-slate-800 leading-relaxed">
+                  <div class="text-sm sm:text-base text-slate-800 leading-relaxed">
                     <template v-for="(word, index) in getWords(currentReviewVerse.content)" :key="'content-' + index">
                       <br v-if="word.str === '\n'">
                       <span
                         v-else-if="flashcardHiddenWords.has(index + getContentWordsStartIndex())"
                         @click="revealWord(index + getContentWordsStartIndex())"
-                        :class="flashcardRevealedWords.has(index + getContentWordsStartIndex()) ? 'text-red-600 cursor-default' : 'cursor-pointer'"
-                        class="inline-block border-b-2 border-black"
+                        :class="[
+                          'flashcard-underline',
+                          flashcardRevealedWords.has(index + getContentWordsStartIndex()) ? 'text-red-600 cursor-default' : 'cursor-pointer'
+                        ]"
                         :style="flashcardRevealedWords.has(index + getContentWordsStartIndex()) ? '' : 'color: transparent;'">
                         {{ word.str }}
                       </span>

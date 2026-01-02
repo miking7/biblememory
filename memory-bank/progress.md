@@ -387,11 +387,12 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 
 ### Known Issues
 **Resolved This Session:**
-- ✅ Styling/Layout now matches legacy app (left-aligned, clean design)
-- ✅ "Got it!" / "Need Practice" properly reset to reference mode
-- ✅ Keyboard shortcuts fully integrated and working
-- ✅ Paragraph/newline preservation fixed in all modes
-- ✅ Flash Cards horizontal difficulty links (matches legacy)
+- ✅ Review card styling aligned to match My Verses cards
+- ✅ Back button removed from navigation (cleaner layout)
+- ✅ Progress indicator moved to top-right corner
+- ✅ Font sizes matched across all review modes (text-sm sm:text-base)
+- ✅ Flash Cards underlines refined (thinner, baseline-aligned)
+- ✅ Visual consistency achieved across entire app
 
 **Testing Needed:**
 - Mobile touch targets and responsive design
@@ -481,4 +482,3 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - All critical bugs fixed
 - Mobile experience tested and optimized
 - Ready for daily use without friction
-
