@@ -394,26 +394,26 @@
               </button>
 
               <!-- Flash Cards with +/- buttons (fused when active) -->
-              <div v-if="reviewMode === 'flashcards'" class="flex gap-0">
+              <div v-if="reviewMode === 'flashcards'" class="flashcard-group-active flex gap-0 rounded-lg">
                 <button
                   @click="decreaseFlashCardDifficulty()"
                   :disabled="!canDecreaseFlashCardDifficulty"
                   :title="canDecreaseFlashCardDifficulty ? 'Decrease difficulty' : 'Already at easiest'"
-                  class="flashcard-sub-button rounded-l-lg border-r-0"
+                  class="flashcard-sub-button-in-group rounded-l-lg"
                   :class="canDecreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'">
                   −
                 </button>
                 <button
                   @click="switchToFlashCards()"
                   :title="getFlashCardLevelName"
-                  class="mode-button-active px-5 py-2.5 rounded-none font-medium transition-all border-x-0">
+                  class="flashcard-main-active px-2 py-2.5 font-medium transition-all">
                   Flash Cards
                 </button>
                 <button
                   @click="increaseFlashCardDifficulty()"
                   :disabled="!canIncreaseFlashCardDifficulty"
                   :title="canIncreaseFlashCardDifficulty ? 'Increase difficulty' : 'Already at hardest'"
-                  class="flashcard-sub-button rounded-r-lg border-l-0"
+                  class="flashcard-sub-button-in-group rounded-r-lg"
                   :class="canIncreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'">
                   +
                 </button>
@@ -434,8 +434,8 @@
 
               <button
                 @click="smartButtonAction()"
-                class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
-                style="min-width: 5rem;">
+                class="mode-button-inactive px-6 py-2.5 rounded-lg font-medium transition-all"
+                style="min-width: 6.5rem;">
                 {{ smartButtonLabel }}
               </button>
             </div>
@@ -451,23 +451,23 @@
                 </button>
 
                 <!-- Flash Cards with +/- buttons (fused when active) -->
-                <div v-if="reviewMode === 'flashcards'" class="flex-1 flex gap-0">
+                <div v-if="reviewMode === 'flashcards'" class="flashcard-group-active flex-1 flex gap-0 rounded-lg">
                   <button
                     @click="decreaseFlashCardDifficulty()"
                     :disabled="!canDecreaseFlashCardDifficulty"
-                    class="flashcard-sub-button rounded-l-lg border-r-0"
+                    class="flashcard-sub-button-in-group rounded-l-lg"
                     :class="canDecreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'">
                     −
                   </button>
                   <button
                     @click="switchToFlashCards()"
-                    class="mode-button-active flex-1 py-2.5 rounded-none font-medium transition-all border-x-0 text-sm">
+                    class="flashcard-main-active flex-1 py-2.5 font-medium transition-all text-sm px-2">
                     Flash Cards
                   </button>
                   <button
                     @click="increaseFlashCardDifficulty()"
                     :disabled="!canIncreaseFlashCardDifficulty"
-                    class="flashcard-sub-button rounded-r-lg border-l-0"
+                    class="flashcard-sub-button-in-group rounded-r-lg"
                     :class="canIncreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'">
                     +
                   </button>
@@ -489,7 +489,7 @@
 
                 <button
                   @click="smartButtonAction()"
-                  class="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
+                  class="mode-button-inactive flex-1 py-2.5 rounded-lg font-medium transition-all">
                   {{ smartButtonLabel }}
                 </button>
               </div>
