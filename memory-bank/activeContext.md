@@ -25,7 +25,8 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 - ✅ Fixed "Got it!" / "Need Practice" to reset to reference mode
 - ✅ Integrated keyboard shortcuts with Vue lifecycle hooks
 - ✅ Fixed paragraph/newline preservation in ALL review modes
-- ✅ **Fixed Flash Cards to hide reference parts (not shorten)**
+- ✅ Fixed Flash Cards to hide reference parts randomly (combined pool approach)
+- ✅ **Fixed Flash Cards spacing and punctuation handling (WordItem refactor)**
 
 **Current State:**
 - Phase 2 complete - all features match legacy app exactly

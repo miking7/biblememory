@@ -132,6 +132,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - ✅ Navigation flow fixed ("Got it!" properly resets mode)
 - ✅ Flash Cards rendering handles multi-paragraph verses
 - ✅ Flash Cards hides reference parts (not shortens) - matches legacy exactly
+- ✅ Flash Cards spacing and punctuation handling (WordItem refactor) - matches legacy exactly
 
 **Testing Needed:**
 - [ ] Mobile touch targets and responsive design

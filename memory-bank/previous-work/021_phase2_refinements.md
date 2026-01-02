@@ -226,6 +226,98 @@ Perfect match with legacy! Now "Psalms", "143", or "8" can be individually hidde
 - Removed `getShortReference()` hack
 - Fixed duplicate `formatTagForDisplay` export
 
+### Commit 5: "Fix Flash Cards spacing and punctuation handling" (January 2, 2026)
+**SHA:** 0d5e0a6
+
+**Problem Discovered:**
+After testing Commit 4, two issues were identified:
+1. Lost spacing between words in Flash Cards rendering
+2. Punctuation being treated as hideable words
+
+**Root Cause:**
+The `getWords()` function was skipping spaces (lines 230-231) and pushing punctuation as separate array elements (lines 234, 247). This meant:
+- Spaces were lost completely (not in the array)
+- Punctuation was treated as separate words that could be hidden
+- Template had no spacing between rendered word spans
+
+**Investigation:**
+Examined legacy `wordSplit()` function and discovered the correct pattern:
+- Returns objects with `{isWord: boolean, str: string}`
+- Includes ALL content: words, spaces, punctuation
+- Only items with `isWord: true` are counted and can be hidden
+- Rendering loops through ALL items, naturally preserving spacing
+
+**Solution - Complete Refactor:**
+
+**1. Added WordItem interface:**
+```typescript
+interface WordItem {
+  isWord: boolean;
+  str: string;
+}
+```
+
+**2. Refactored getWords():**
+```typescript
+const getWords = (content: string, allowNumbers: boolean = false): WordItem[] => {
+  // Matches legacy wordSplit() exactly
+  // Returns objects with {isWord, str}
+  // Includes ALL content (words, spaces, punctuation)
+
+  // Alternates between words and non-words
+  while (str.length > 0) {
+    if (isWord) {
+      // Find end of word
+    } else {
+      // Find start of next word
+    }
+    result.push({ isWord, str: substring });
+  }
+}
+```
+
+**3. Updated generateHiddenWords():**
+```typescript
+// Filter to only count actual words (isWord: true)
+const wordIndices = allWords
+  .map((item, index) => ({ item, index }))
+  .filter(({ item }) => item.isWord)  // Only words, not punctuation
+  .map(({ index }) => index);
+```
+
+**4. Updated App.vue template:**
+```vue
+<!-- Reference rendering -->
+<template v-for="(word, index) in getReferenceWords()">
+  <br v-if="word.str === '\n'">
+  <span v-else-if="flashcardHiddenWords.has(index)">{{ word.str }}</span>
+  <span v-else>{{ word.str }}</span>  <!-- All items rendered, including spaces -->
+</template>
+
+<!-- Content rendering -->
+<template v-for="(word, index) in getWords(currentReviewVerse.content)">
+  <br v-if="word.str === '\n'">
+  <span v-else-if="flashcardHiddenWords.has(...)">{{ word.str }}</span>
+  <span v-else>{{ word.str }}</span>  <!-- All items rendered -->
+</template>
+```
+
+**5. Updated hints counter:**
+```vue
+<!-- Only count actual words -->
+<span v-text="getWords(currentReviewVerse.content).filter(w => w.isWord).length"></span>
+```
+
+**Files Changed:**
+- `client/src/composables/useReview.ts` - Refactored getWords() completely
+- `client/src/App.vue` - Updated all templates to access word.str
+
+**Result:**
+Perfect match with legacy implementation! Now:
+- Spacing preserved naturally (spaces are in the array)
+- Punctuation not treated as words (isWord: false)
+- Clean, maintainable code matching proven legacy pattern
+
 ## Testing Checklist
 
 ### Layout & Styling
@@ -233,7 +325,8 @@ Perfect match with legacy! Now "Psalms", "143", or "8" can be individually hidde
 - [ ] Content is left-aligned in all modes
 - [ ] Mode buttons positioned outside/below card
 - [ ] Flash Cards difficulty links horizontal
-- [ ] Short reference format in Flash Cards ("143:")
+- [x] Flash Cards hides reference parts randomly (matches legacy) ✅
+- [x] Flash Cards preserves spacing and punctuation correctly ✅
 - [ ] Clean white card styling
 
 ### Functionality
