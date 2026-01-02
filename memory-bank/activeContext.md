@@ -18,18 +18,18 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 **Status:** Phase 2 COMPLETE ✅
 
 **Completed This Session:**
-- ✅ Review card styling aligned to match My Verses cards
-- ✅ Removed redundant Back button from navigation
-- ✅ Progress indicator moved to top-right corner
-- ✅ Font sizes matched across all review modes
-- ✅ Flash Cards underlines refined (thinner, baseline-aligned)
-- ✅ First Letters mode spacing fixed to match legacy (spaces after punctuation preserved)
+- ✅ Fixed button height inconsistency (Flash Cards +/− font-size reduced)
+- ✅ Added width consistency to Flash Cards button (prevents layout shift)
+- ✅ Added 'c' keyboard shortcut for Flash Cards mode
+- ✅ Updated phase2-architecture.md with keyboard shortcut documentation
 
 **Current State:**
 - Phase 2 MOSTLY COMPLETE
 - Manual  UX refinements still required to polish
-- All 5 review modes functional with polished styling
+- All 5 review modes functional with consistent button behavior
+- Complete keyboard shortcut coverage (h, f, c, Space, n, p, Escape)
 - Visual consistency achieved across app
+- Button layout remains stable regardless of active mode
 - Ready for comprehensive testing and Phase 3 planning
 
 **Next Steps:**
@@ -272,3 +272,4 @@ This index provides titles and links for reference when needed.
 - **022** - Phase 2 UX Refinements Final → [previous-work/022_phase2_ux_refinements_final.md](previous-work/022_phase2_ux_refinements_final.md)
 - **023** - Phase 2 Card Styling Alignment → [previous-work/023_phase2_card_styling_alignment.md](previous-work/023_phase2_card_styling_alignment.md)
 - **024** - Spacebar Unified Behavior → [previous-work/024_spacebar_unified_behavior.md](previous-work/024_spacebar_unified_behavior.md)
+- **025** - Button Height Fix & Flash Cards Keyboard Shortcut → [previous-work/025_button_height_fix_flashcards_shortcut.md](previous-work/025_button_height_fix_flashcards_shortcut.md)

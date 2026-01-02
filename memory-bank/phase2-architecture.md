@@ -454,6 +454,9 @@ const handleKeyPress = (event: KeyboardEvent) => {
     case 'f':
       switchToFirstLetters();
       break;
+    case 'c':
+      switchToFlashCards();
+      break;
     case 'escape':
       switchToReference();
       break;

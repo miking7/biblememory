@@ -394,6 +394,9 @@ export function useReview() {
       case 'f':
         switchToFirstLetters();
         return true;
+      case 'c':
+        switchToFlashCards();
+        return true;
       case 'escape':
         switchToReference();
         return true;
