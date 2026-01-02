@@ -28,6 +28,7 @@ export function useReview() {
   const flashcardLevel = ref(25);
   const flashcardHiddenWords = ref<Set<number>>(new Set());
   const flashcardRevealedWords = ref<Set<number>>(new Set());
+  const firstLettersRevealedGroups = ref<Set<number>>(new Set());
 
   // Stats
   const reviewedToday = ref(0);
@@ -121,6 +122,7 @@ export function useReview() {
 
   const switchToFirstLetters = () => {
     reviewMode.value = 'firstletters';
+    firstLettersRevealedGroups.value.clear(); // Reset reveals
   };
 
   const switchToFlashCards = (level?: number) => {
@@ -242,6 +244,61 @@ export function useReview() {
         }
       }).join('');
     }).join('\n');
+  };
+
+  // Split content into sentence groups based on major punctuation and newlines
+  const getSentenceGroups = (content: string): string[] => {
+    // Major sentence delimiters: . ; : ? ! and newlines
+    const groups: string[] = [];
+    let currentGroup = '';
+    
+    for (let i = 0; i < content.length; i++) {
+      const char = content[i];
+      currentGroup += char;
+      
+      // Check if this is a major delimiter
+      if (char === '.' || char === ';' || char === ':' || char === '?' || char === '!' || char === '\n') {
+        // Include any trailing spaces as part of this group
+        while (i + 1 < content.length && content[i + 1] === ' ') {
+          i++;
+          currentGroup += content[i];
+        }
+        
+        // Save this group
+        if (currentGroup.trim().length > 0) {
+          groups.push(currentGroup);
+        }
+        currentGroup = '';
+      }
+    }
+    
+    // Add any remaining content as final group
+    if (currentGroup.trim().length > 0) {
+      groups.push(currentGroup);
+    }
+    
+    return groups;
+  };
+
+  // Get first letters for a single group (sentence/phrase)
+  const getFirstLettersForGroup = (group: string): string => {
+    const segments = wordSplit(group);
+    return segments.map(seg => {
+      if (seg.isWord) {
+        // Return first letter of words
+        return seg.str.charAt(0);
+      } else {
+        // Keep non-word segments UNLESS they're exactly a single space
+        // This preserves punctuation with trailing spaces (e.g., ", " or ": ")
+        // while removing standalone spaces between words
+        return seg.str !== ' ' ? seg.str : '';
+      }
+    }).join('');
+  };
+
+  // Reveal a sentence group in First Letters mode
+  const revealFirstLetterGroup = (index: number) => {
+    firstLettersRevealedGroups.value.add(index);
   };
 
   const generateHiddenWords = (difficulty: number) => {
@@ -492,6 +549,7 @@ export function useReview() {
     flashcardLevel,
     flashcardHiddenWords,
     flashcardRevealedWords,
+    firstLettersRevealedGroups,
 
     // Computed
     currentReviewVerse,
@@ -519,6 +577,9 @@ export function useReview() {
     // Phase 2: Content transformation
     getHintedContent,
     getFirstLettersContent,
+    getSentenceGroups,
+    getFirstLettersForGroup,
+    revealFirstLetterGroup,
     getWords,
     revealWord,
     generateHiddenWords,

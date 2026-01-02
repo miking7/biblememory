@@ -334,10 +334,20 @@
                   </p>
                 </div>
 
-                <!-- First Letters Mode: First letter + punctuation -->
+                <!-- First Letters Mode: First letter + punctuation with clickable groups -->
                 <div v-if="reviewMode === 'firstletters'">
-                  <p class="verse-content text-sm sm:text-base text-slate-800 font-mono tracking-tight leading-relaxed"
-                     v-text="getFirstLettersContent(currentReviewVerse.content)"></p>
+                  <div class="verse-content text-sm sm:text-base text-slate-800 font-mono tracking-tight leading-relaxed">
+                    <span v-for="(group, index) in getSentenceGroups(currentReviewVerse.content)"
+                          :key="'fl-group-' + index"
+                          @click="revealFirstLetterGroup(index)"
+                          :class="[
+                            firstLettersRevealedGroups.has(index)
+                              ? 'text-red-600'
+                              : 'cursor-pointer hover:text-blue-600 transition-colors'
+                          ]">
+                      {{ firstLettersRevealedGroups.has(index) ? group : getFirstLettersForGroup(group) }}
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Flash Cards Mode: Random word hiding with difficulty levels -->
@@ -797,6 +807,7 @@ const {
   flashcardLevel,
   flashcardHiddenWords,
   flashcardRevealedWords,
+  firstLettersRevealedGroups,
 
   // Computed
   filteredVerses,
@@ -836,6 +847,9 @@ const {
   decreaseFlashCardDifficulty,
   getHintedContent,
   getFirstLettersContent,
+  getSentenceGroups,
+  getFirstLettersForGroup,
+  revealFirstLetterGroup,
   getWords,
   revealWord,
   nextVerse,
