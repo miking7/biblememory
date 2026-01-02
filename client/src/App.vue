@@ -259,9 +259,6 @@
             <h2 class="text-2xl sm:text-4xl font-bold text-slate-800">Daily Review</h2>
 
             <div class="flex items-center gap-3">
-              <span class="text-slate-600 text-sm sm:text-base">
-                <span class="font-bold" v-text="currentReviewIndex + 1"></span>/<span v-text="dueForReview.length"></span>
-              </span>
               <button
                 @click="previousVerse()"
                 :disabled="currentReviewIndex === 0"
@@ -477,7 +474,7 @@
                 <button
                   v-else
                   @click="switchToFlashCards()"
-                  class="mode-button-inactive flex-1 py-2.5 rounded-lg font-medium transition-all text-sm">
+                  class="mode-button-inactive flashcard-button-inactive flex-1 py-2.5 rounded-lg font-medium transition-all text-sm">
                   Flash Cards
                 </button>
               </div>
