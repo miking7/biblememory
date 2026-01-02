@@ -262,3 +262,4 @@ This index provides titles and links for reference when needed.
 - **021** - Phase 2 Refinements & Paragraph Fixes → [previous-work/021_phase2_refinements.md](previous-work/021_phase2_refinements.md)
 - **022** - Phase 2 UX Refinements Final → [previous-work/022_phase2_ux_refinements_final.md](previous-work/022_phase2_ux_refinements_final.md)
 - **023** - Phase 2 Card Styling Alignment → [previous-work/023_phase2_card_styling_alignment.md](previous-work/023_phase2_card_styling_alignment.md)
+- **024** - Spacebar Unified Behavior → [previous-work/024_spacebar_unified_behavior.md](previous-work/024_spacebar_unified_behavior.md)

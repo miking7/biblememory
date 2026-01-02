@@ -347,11 +347,7 @@ export function useReview() {
         return true;
       case ' ':
         event.preventDefault(); // Prevent page scroll
-        if (reviewMode.value === 'reference') {
-          switchToContent();
-        } else if (reviewMode.value === 'content') {
-          nextVerse();
-        }
+        smartButtonAction(); // Unified with smart button behavior
         return true;
       case 'h':
         if (reviewMode.value === 'hints') {
