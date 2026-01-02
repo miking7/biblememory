@@ -329,7 +329,7 @@
 
                 <!-- Hints Mode: Progressive word revelation -->
                 <div v-if="reviewMode === 'hints'">
-                  <p class="verse-content text-base sm:text-lg text-slate-800 leading-relaxed font-mono mb-4"
+                  <p class="verse-content text-base sm:text-lg text-slate-800 leading-relaxed font-mono"
                      v-text="getHintedContent(currentReviewVerse.content, hintsShown)"></p>
                   <p class="text-sm text-slate-500">
                     Showing <span class="font-bold" v-text="hintsShown"></span> of
@@ -387,7 +387,7 @@
             <!-- Desktop: Single row -->
             <div class="hidden sm:flex gap-3 justify-center mt-6">
               <button
-                @click="switchToHints()"
+                @click="reviewMode === 'hints' ? addHint() : switchToHints()"
                 :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
                 class="px-5 py-2.5 rounded-lg font-medium transition-all">
                 Hint
@@ -444,7 +444,7 @@
             <div class="sm:hidden flex flex-col gap-3 mt-6">
               <div class="flex gap-3">
                 <button
-                  @click="switchToHints()"
+                  @click="reviewMode === 'hints' ? addHint() : switchToHints()"
                   :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
                   class="flex-1 py-2.5 rounded-lg font-medium transition-all">
                   Hint
