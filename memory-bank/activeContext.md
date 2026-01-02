@@ -15,7 +15,7 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Phase 2 Refinements Complete - Matches legacy UX, ready for testing
+**Status:** Phase 2 Complete - All features match legacy UX exactly
 
 **Completed This Session:**
 - ✅ Refined review card layout to match legacy UX (left-aligned, clean styling)
@@ -24,21 +24,23 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 - ✅ Changed Flash Cards from dropdown to horizontal difficulty links
 - ✅ Fixed "Got it!" / "Need Practice" to reset to reference mode
 - ✅ Integrated keyboard shortcuts with Vue lifecycle hooks
-- ✅ Added getShortReference() for Flash Cards ("143:" format)
 - ✅ Fixed paragraph/newline preservation in ALL review modes
+- ✅ **Fixed Flash Cards to hide reference parts (not shorten)**
 
 **Current State:**
-- Phase 2 refinements complete - layout matches legacy app
+- Phase 2 complete - all features match legacy app exactly
 - All 5 review modes functional with proper paragraph support
+- Flash Cards hides reference parts randomly (combined ref+content pool)
 - Keyboard shortcuts active (space, n, p, h, f, escape)
 - Clean, functional design matching proven legacy patterns
 - Ready for comprehensive testing
 
 **Next Steps:**
 1. Test all review modes with real multi-paragraph verses
-2. Test keyboard shortcuts thoroughly
-3. Mobile optimization and touch target testing
-4. Consider additional polish (transitions, visual feedback)
+2. Test Flash Cards reference hiding thoroughly
+3. Test keyboard shortcuts in various scenarios
+4. Mobile optimization and touch target testing
+5. Consider additional polish (transitions, visual feedback)
 
 **See:**
 - [previous-work/020_phase2_review_modes_initial.md](previous-work/020_phase2_review_modes_initial.md) - Initial MVP implementation

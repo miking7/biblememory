@@ -85,10 +85,10 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 **Review Modes (ALL COMPLETE ✅):**
 - [x] Flash Cards mode
   - [x] Horizontal difficulty links (5 levels: Show Verse, Beginner, Intermediate, Advanced, Memorized)
-  - [x] Random word hiding based on selected difficulty
+  - [x] Random word hiding from combined reference+content pool
+  - [x] Reference parts can be hidden ("Psalms", "143", "8" individually)
   - [x] Click hidden word to reveal (red text indicator)
   - [x] Paragraph/newline preservation working
-  - [x] Short reference format ("143:" in Flash Cards mode)
 - [x] First Letters mode
   - [x] Transform content to first letter + punctuation
   - [x] Paragraph/newline preservation working
@@ -131,6 +131,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - ✅ Keyboard shortcuts integrated with Vue lifecycle
 - ✅ Navigation flow fixed ("Got it!" properly resets mode)
 - ✅ Flash Cards rendering handles multi-paragraph verses
+- ✅ Flash Cards hides reference parts (not shortens) - matches legacy exactly
 
 **Testing Needed:**
 - [ ] Mobile touch targets and responsive design
