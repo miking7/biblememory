@@ -123,11 +123,55 @@ export function useReview() {
     reviewMode.value = 'firstletters';
   };
 
-  const switchToFlashCards = (level: number) => {
+  const switchToFlashCards = (level?: number) => {
     reviewMode.value = 'flashcards';
-    flashcardLevel.value = level;
-    generateHiddenWords(level);
+    // If no level provided, use current level (or default to Beginner)
+    if (level !== undefined) {
+      flashcardLevel.value = level;
+    } else if (flashcardLevel.value === 0) {
+      // First time entering Flash Cards mode, default to Beginner
+      flashcardLevel.value = 10;
+    }
+    // Always regenerate hidden words when entering Flash Cards mode
+    generateHiddenWords(flashcardLevel.value);
   };
+
+  const increaseFlashCardDifficulty = () => {
+    const levels = [0, 10, 25, 45, 100];
+    const currentIndex = levels.indexOf(flashcardLevel.value);
+    if (currentIndex < levels.length - 1) {
+      flashcardLevel.value = levels[currentIndex + 1];
+      generateHiddenWords(flashcardLevel.value);
+    }
+  };
+
+  const decreaseFlashCardDifficulty = () => {
+    const levels = [0, 10, 25, 45, 100];
+    const currentIndex = levels.indexOf(flashcardLevel.value);
+    if (currentIndex > 0) {
+      flashcardLevel.value = levels[currentIndex - 1];
+      generateHiddenWords(flashcardLevel.value);
+    }
+  };
+
+  const canIncreaseFlashCardDifficulty = computed(() => {
+    return flashcardLevel.value < 100;
+  });
+
+  const canDecreaseFlashCardDifficulty = computed(() => {
+    return flashcardLevel.value > 0;
+  });
+
+  const getFlashCardLevelName = computed(() => {
+    const levelNames: Record<number, string> = {
+      0: 'Show Verse (0%)',
+      10: 'Beginner (10%)',
+      25: 'Intermediate (25%)',
+      45: 'Advanced (45%)',
+      100: 'Memorized (100%)'
+    };
+    return levelNames[flashcardLevel.value] || 'Unknown';
+  });
 
   // Phase 2: Content transformation functions
   const getHintedContent = (content: string, wordsToShow: number): string => {
@@ -373,6 +417,32 @@ export function useReview() {
     return getWords(currentReviewVerse.value.reference, true).length;
   };
 
+  // Phase 2: Smart button label and action
+  const smartButtonLabel = computed(() => {
+    switch (reviewMode.value) {
+      case 'reference':
+        return 'Reveal';
+      case 'content':
+        return 'Next';
+      default: // hints, flashcards, firstletters
+        return 'Ref';
+    }
+  });
+
+  const smartButtonAction = () => {
+    switch (reviewMode.value) {
+      case 'reference':
+        switchToContent();
+        break;
+      case 'content':
+        nextVerse();
+        break;
+      default: // hints, flashcards, firstletters
+        switchToReference();
+        break;
+    }
+  };
+
   return {
     // State
     currentReviewIndex,
@@ -391,6 +461,10 @@ export function useReview() {
 
     // Computed
     currentReviewVerse,
+    canIncreaseFlashCardDifficulty,
+    canDecreaseFlashCardDifficulty,
+    getFlashCardLevelName,
+    smartButtonLabel,
 
     // Methods
     loadReviewVerses,
@@ -405,6 +479,8 @@ export function useReview() {
     addHint,
     switchToFirstLetters,
     switchToFlashCards,
+    increaseFlashCardDifficulty,
+    decreaseFlashCardDifficulty,
 
     // Phase 2: Content transformation
     getHintedContent,
@@ -425,6 +501,7 @@ export function useReview() {
     getReviewCategory,
     formatTagForDisplay,
     getReferenceWords,
-    getContentWordsStartIndex
+    getContentWordsStartIndex,
+    smartButtonAction
   };
 }

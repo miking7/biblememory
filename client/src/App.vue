@@ -345,18 +345,6 @@
 
                 <!-- Flash Cards Mode: Random word hiding with difficulty levels -->
                 <div v-if="reviewMode === 'flashcards'">
-                  <!-- Difficulty links (horizontal) -->
-                  <div class="mb-6 text-sm">
-                    <a href="#" @click.prevent="switchToFlashCards(0)" :class="flashcardLevel === 0 ? 'font-bold text-blue-600 underline' : 'text-blue-600 hover:underline'">Show Verse</a>
-                    <span class="mx-1">|</span>
-                    <a href="#" @click.prevent="switchToFlashCards(10)" :class="flashcardLevel === 10 ? 'font-bold text-blue-600 underline' : 'text-blue-600 hover:underline'">Beginner</a>
-                    <span class="mx-1">|</span>
-                    <a href="#" @click.prevent="switchToFlashCards(25)" :class="flashcardLevel === 25 ? 'font-bold text-blue-600 underline' : 'text-blue-600 hover:underline'">Intermediate</a>
-                    <span class="mx-1">|</span>
-                    <a href="#" @click.prevent="switchToFlashCards(45)" :class="flashcardLevel === 45 ? 'font-bold text-blue-600 underline' : 'text-blue-600 hover:underline'">Advanced</a>
-                    <span class="mx-1">|</span>
-                    <a href="#" @click.prevent="switchToFlashCards(100)" :class="flashcardLevel === 100 ? 'font-bold text-blue-600 underline' : 'text-blue-600 hover:underline'">Memorized</a>
-                  </div>
                   <div class="text-base sm:text-lg text-slate-800 leading-relaxed">
                     <template v-for="(word, index) in getWords(currentReviewVerse.content)" :key="'content-' + index">
                       <br v-if="word.str === '\n'">
@@ -396,24 +384,115 @@
             </div>
 
             <!-- Mode Buttons (Outside/Below Card) -->
-            <div class="flex flex-wrap gap-3 justify-center mt-6">
+            <!-- Desktop: Single row -->
+            <div class="hidden sm:flex gap-3 justify-center mt-6">
               <button
                 @click="switchToHints()"
-                class="px-5 py-2.5 bg-white text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-all border border-slate-300">
+                :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
+                class="px-5 py-2.5 rounded-lg font-medium transition-all">
                 Hint
               </button>
 
+              <!-- Flash Cards with +/- buttons (fused when active) -->
+              <div v-if="reviewMode === 'flashcards'" class="flex gap-0">
+                <button
+                  @click="decreaseFlashCardDifficulty()"
+                  :disabled="!canDecreaseFlashCardDifficulty"
+                  :title="canDecreaseFlashCardDifficulty ? 'Decrease difficulty' : 'Already at easiest'"
+                  class="flashcard-sub-button rounded-l-lg border-r-0"
+                  :class="canDecreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'">
+                  −
+                </button>
+                <button
+                  @click="switchToFlashCards()"
+                  :title="getFlashCardLevelName"
+                  class="mode-button-active px-5 py-2.5 rounded-none font-medium transition-all border-x-0">
+                  Flash Cards
+                </button>
+                <button
+                  @click="increaseFlashCardDifficulty()"
+                  :disabled="!canIncreaseFlashCardDifficulty"
+                  :title="canIncreaseFlashCardDifficulty ? 'Increase difficulty' : 'Already at hardest'"
+                  class="flashcard-sub-button rounded-r-lg border-l-0"
+                  :class="canIncreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'">
+                  +
+                </button>
+              </div>
               <button
-                @click="switchToFlashCards(flashcardLevel)"
-                class="px-5 py-2.5 bg-white text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-all border border-slate-300">
+                v-else
+                @click="switchToFlashCards()"
+                class="mode-button-inactive px-5 py-2.5 rounded-lg font-medium transition-all">
                 Flash Cards
               </button>
 
               <button
                 @click="switchToFirstLetters()"
-                class="px-5 py-2.5 bg-white text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-all border border-slate-300">
+                :class="reviewMode === 'firstletters' ? 'mode-button-active' : 'mode-button-inactive'"
+                class="px-5 py-2.5 rounded-lg font-medium transition-all">
                 First Letters
               </button>
+
+              <button
+                @click="smartButtonAction()"
+                class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
+                style="min-width: 5rem;">
+                {{ smartButtonLabel }}
+              </button>
+            </div>
+
+            <!-- Mobile: Two rows -->
+            <div class="sm:hidden flex flex-col gap-3 mt-6">
+              <div class="flex gap-3">
+                <button
+                  @click="switchToHints()"
+                  :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
+                  class="flex-1 py-2.5 rounded-lg font-medium transition-all">
+                  Hint
+                </button>
+
+                <!-- Flash Cards with +/- buttons (fused when active) -->
+                <div v-if="reviewMode === 'flashcards'" class="flex-1 flex gap-0">
+                  <button
+                    @click="decreaseFlashCardDifficulty()"
+                    :disabled="!canDecreaseFlashCardDifficulty"
+                    class="flashcard-sub-button rounded-l-lg border-r-0"
+                    :class="canDecreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'">
+                    −
+                  </button>
+                  <button
+                    @click="switchToFlashCards()"
+                    class="mode-button-active flex-1 py-2.5 rounded-none font-medium transition-all border-x-0 text-sm">
+                    Flash Cards
+                  </button>
+                  <button
+                    @click="increaseFlashCardDifficulty()"
+                    :disabled="!canIncreaseFlashCardDifficulty"
+                    class="flashcard-sub-button rounded-r-lg border-l-0"
+                    :class="canIncreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'">
+                    +
+                  </button>
+                </div>
+                <button
+                  v-else
+                  @click="switchToFlashCards()"
+                  class="mode-button-inactive flex-1 py-2.5 rounded-lg font-medium transition-all text-sm">
+                  Flash Cards
+                </button>
+              </div>
+              <div class="flex gap-3">
+                <button
+                  @click="switchToFirstLetters()"
+                  :class="reviewMode === 'firstletters' ? 'mode-button-active' : 'mode-button-inactive'"
+                  class="flex-1 py-2.5 rounded-lg font-medium transition-all">
+                  First Letters
+                </button>
+
+                <button
+                  @click="smartButtonAction()"
+                  class="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
+                  {{ smartButtonLabel }}
+                </button>
+              </div>
             </div>
 
           </template>
@@ -744,12 +823,18 @@ const {
   exportToLegacyAndOpen,
 
   // Phase 2: Review mode methods
+  canIncreaseFlashCardDifficulty,
+  canDecreaseFlashCardDifficulty,
+  getFlashCardLevelName,
+  smartButtonLabel,
   switchToReference,
   switchToContent,
   switchToHints,
   addHint,
   switchToFirstLetters,
   switchToFlashCards,
+  increaseFlashCardDifficulty,
+  decreaseFlashCardDifficulty,
   getHintedContent,
   getFirstLettersContent,
   getWords,
@@ -760,6 +845,7 @@ const {
   getReviewCategory,
   getReferenceWords,
   getContentWordsStartIndex,
+  smartButtonAction,
 
   // Phase 2: Keyboard shortcuts
   handleKeyPress,
