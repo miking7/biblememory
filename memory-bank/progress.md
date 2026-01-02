@@ -393,6 +393,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - ✅ Font sizes matched across all review modes (text-sm sm:text-base)
 - ✅ Flash Cards underlines refined (thinner, baseline-aligned)
 - ✅ Visual consistency achieved across entire app
+- ✅ First Letters mode spacing fixed (now matches legacy with spaces after punctuation)
 
 **Testing Needed:**
 - Mobile touch targets and responsive design

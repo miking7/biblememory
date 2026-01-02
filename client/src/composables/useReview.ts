@@ -192,19 +192,54 @@ export function useReview() {
     }).join('\n');
   };
 
+  // Helper function to replicate legacy wordSplit behavior
+  // Alternates between "word" and "non-word" segments
+  // This preserves punctuation+space combinations as single units
+  const wordSplit = (str: string): Array<{isWord: boolean, str: string}> => {
+    if (str.length === 0) return [];
+
+    const segments: Array<{isWord: boolean, str: string}> = [];
+    const rWordStart = /[A-Za-z]/;
+    const rWordStop = /[^A-Za-z0-9'\-]/;
+
+    let isWord = rWordStart.test(str[0]);
+
+    while (str.length > 0) {
+      let next: number;
+      if (isWord) {
+        next = str.search(rWordStop);
+      } else {
+        next = str.search(rWordStart);
+      }
+      if (next < 0) next = str.length;
+
+      segments.push({
+        isWord: isWord,
+        str: str.substring(0, next)
+      });
+
+      str = str.substring(next);
+      isWord = !isWord;
+    }
+
+    return segments;
+  };
+
   const getFirstLettersContent = (content: string): string => {
     // Process line by line to preserve paragraphs
     const lines = content.split('\n');
     return lines.map(line => {
-      const words = line.split(/(\s+|[.,;:!?'"()—\-])/);
-      return words.map(part => {
-        // Keep punctuation as-is
-        if (/^[.,;:!?'"()—\-]+$/.test(part)) return part;
-        // Skip spaces (but we already split by line, so this is just internal spaces)
-        if (/^\s+$/.test(part)) return '';
-        // Return first letter of words
-        if (part.length > 0) return part.charAt(0);
-        return '';
+      const segments = wordSplit(line);
+      return segments.map(seg => {
+        if (seg.isWord) {
+          // Return first letter of words
+          return seg.str.charAt(0);
+        } else {
+          // Keep non-word segments UNLESS they're exactly a single space
+          // This preserves punctuation with trailing spaces (e.g., ", " or ": ")
+          // while removing standalone spaces between words
+          return seg.str !== ' ' ? seg.str : '';
+        }
       }).join('');
     }).join('\n');
   };

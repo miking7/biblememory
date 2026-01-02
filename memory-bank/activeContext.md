@@ -23,6 +23,7 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 - ✅ Progress indicator moved to top-right corner
 - ✅ Font sizes matched across all review modes
 - ✅ Flash Cards underlines refined (thinner, baseline-aligned)
+- ✅ First Letters mode spacing fixed to match legacy (spaces after punctuation preserved)
 
 **Current State:**
 - Phase 2 MOSTLY COMPLETE
@@ -51,12 +52,20 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 - **UI Pattern**: Single card that morphs based on `reviewMode` state
 - **Navigation**: Always resets to reference mode on verse change
 
+### First Letters Mode Implementation
+- **Algorithm**: Replicates legacy `wordSplit()` function exactly
+- **Key Insight**: Captures punctuation WITH trailing space as single unit (e.g., `", "` or `": "`)
+- **Filtering**: Removes ONLY standalone spaces (exactly `' '`), keeps all other non-word segments
+- **Result**: Output like `"w, a: t"` instead of cramped `"w,a:t"` - matches legacy perfectly
+- **Location**: `client/src/composables/useReview.ts` lines 195-245
+
 ### Known Issues Requiring Attention
 **Resolved in This Session:**
 - ✅ Styling/layout now matches legacy app (left-aligned, clean design)
 - ✅ "Got it!" / "Need Practice" now reset to reference mode properly
 - ✅ Keyboard shortcuts fully integrated
 - ✅ Paragraph/newline preservation fixed in all modes
+- ✅ First Letters spacing matches legacy (punctuation+space preserved, standalone spaces removed)
 
 **Testing Needed:**
 - Mobile touch targets and responsive design
