@@ -179,8 +179,6 @@ export function bibleMemoryApp() {
     decreaseFlashCardDifficulty: reviewLogic.decreaseFlashCardDifficulty,
     getHintedContent: reviewLogic.getHintedContent,
     getFirstLettersContent: reviewLogic.getFirstLettersContent,
-    getSentenceGroups: reviewLogic.getSentenceGroups,
-    getFirstLettersForGroup: reviewLogic.getFirstLettersForGroup,
     revealFirstLetterGroup: reviewLogic.revealFirstLetterGroup,
     getWords: reviewLogic.getWords,
     revealWord: reviewLogic.revealWord,
