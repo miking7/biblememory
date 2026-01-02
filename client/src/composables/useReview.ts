@@ -168,9 +168,15 @@ export function useReview() {
   const generateHiddenWords = (difficulty: number) => {
     if (!currentReviewVerse.value) return;
 
-    const words = getWords(currentReviewVerse.value.content);
+    // Split reference and content separately (reference allows numbers as word starts)
+    const refWords = getWords(currentReviewVerse.value.reference, true);
+    const contentWords = getWords(currentReviewVerse.value.content, false);
+
+    // Combine into one pool (key insight from legacy!)
+    const allWords = [...refWords, ...contentWords];
+
     // Filter out newline markers when counting actual words
-    const wordIndices = words
+    const wordIndices = allWords
       .map((word, index) => ({ word, index }))
       .filter(item => item.word !== '\n')
       .map(item => item.index);
@@ -196,15 +202,53 @@ export function useReview() {
     flashcardRevealedWords.value.add(index);
   };
 
-  const getWords = (content: string): string[] => {
+  const getWords = (content: string, allowNumbers: boolean = false): string[] => {
     // For Flash Cards, we need to preserve line breaks
     // Split by space only (not all whitespace) and include line break markers
+    // allowNumbers parameter matches legacy: true for reference, false for content
     const lines = content.split('\n');
     const result: string[] = [];
 
     lines.forEach((line, lineIndex) => {
-      const words = line.split(' ').filter(w => w.length > 0);
-      result.push(...words);
+      // Use a simple word splitting approach
+      // Words can contain letters, numbers (if allowed), apostrophes, and hyphens
+      const pattern = allowNumbers
+        ? /[A-Za-z0-9]+(?:['\-][A-Za-z0-9]+)*/g  // Allow numbers in words (for references like "143")
+        : /[A-Za-z]+(?:['\-][A-Za-z]+)*/g;        // Only letters (for verse content)
+
+      const matches = line.match(pattern) || [];
+
+      if (matches.length > 0) {
+        // Add words and spaces between them
+        let lastIndex = 0;
+        matches.forEach((match) => {
+          const matchIndex = line.indexOf(match, lastIndex);
+
+          // Add any non-word characters before this word (spaces, punctuation)
+          if (matchIndex > lastIndex) {
+            const between = line.substring(lastIndex, matchIndex);
+            if (between.trim().length === 0) {
+              // Just whitespace, skip it
+            } else {
+              // Has punctuation, keep it as-is
+              result.push(between);
+            }
+          }
+
+          // Add the word itself
+          result.push(match);
+          lastIndex = matchIndex + match.length;
+        });
+
+        // Add any trailing non-word characters
+        if (lastIndex < line.length) {
+          const trailing = line.substring(lastIndex);
+          if (trailing.trim().length > 0) {
+            result.push(trailing);
+          }
+        }
+      }
+
       // Add a special marker for line breaks (except after the last line)
       if (lineIndex < lines.length - 1) {
         result.push('\n');
@@ -309,16 +353,16 @@ export function useReview() {
     return tag.key;
   };
 
-  // Phase 2: Helper for short reference (Flash Cards mode)
-  const getShortReference = (reference: string): string => {
-    // Convert "Psalms 143:8" to "143:"
-    // Extract chapter:verse pattern
-    const match = reference.match(/(\d+):(\d+)/);
-    if (match) {
-      return `${match[1]}:`;
-    }
-    // Fallback to full reference if no match
-    return reference;
+  // Phase 2: Helper to get reference words for Flash Cards rendering
+  const getReferenceWords = (): string[] => {
+    if (!currentReviewVerse.value) return [];
+    return getWords(currentReviewVerse.value.reference, true);
+  };
+
+  // Phase 2: Helper to get content words starting index in combined array
+  const getContentWordsStartIndex = (): number => {
+    if (!currentReviewVerse.value) return 0;
+    return getWords(currentReviewVerse.value.reference, true).length;
   };
 
   return {
@@ -372,6 +416,7 @@ export function useReview() {
     getHumanReadableTime,
     getReviewCategory,
     formatTagForDisplay,
-    getShortReference
+    getReferenceWords,
+    getContentWordsStartIndex
   };
 }

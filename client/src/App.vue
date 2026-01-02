@@ -289,7 +289,24 @@
               <!-- Header: Reference and Translation -->
               <div class="mb-6">
                 <div class="flex items-baseline gap-3 mb-2">
-                  <h3 class="text-2xl sm:text-4xl font-bold text-slate-800" v-text="reviewMode === 'flashcards' ? getShortReference(currentReviewVerse.reference) : currentReviewVerse.reference"></h3>
+                  <!-- Flash Cards Mode: Reference with potential hiding -->
+                  <h3 v-if="reviewMode === 'flashcards'" class="text-2xl sm:text-4xl font-bold text-slate-800">
+                    <template v-for="(word, index) in getReferenceWords()" :key="'ref-' + index">
+                      <br v-if="word === '\n'">
+                      <span
+                        v-else-if="flashcardHiddenWords.has(index)"
+                        @click="revealWord(index)"
+                        :class="flashcardRevealedWords.has(index) ? 'text-red-600 cursor-default' : 'cursor-pointer'"
+                        class="inline-block border-b-2 border-black"
+                        :style="flashcardRevealedWords.has(index) ? '' : 'color: transparent;'">
+                        {{ word }}
+                      </span>
+                      <span v-else-if="word !== '\n'">{{ word }}</span>
+                    </template>
+                  </h3>
+                  <!-- All Other Modes: Normal reference display -->
+                  <h3 v-else class="text-2xl sm:text-4xl font-bold text-slate-800" v-text="currentReviewVerse.reference"></h3>
+
                   <span class="text-slate-600 text-sm" v-text="currentReviewIndex + 1 + '/' + dueForReview.length"></span>
                 </div>
                 <span v-show="currentReviewVerse.translation"
@@ -341,18 +358,17 @@
                     <a href="#" @click.prevent="switchToFlashCards(100)" :class="flashcardLevel === 100 ? 'font-bold text-blue-600 underline' : 'text-blue-600 hover:underline'">Memorized</a>
                   </div>
                   <div class="text-base sm:text-lg text-slate-800 leading-relaxed">
-                    <template v-for="(word, index) in getWords(currentReviewVerse.content)" :key="index">
+                    <template v-for="(word, index) in getWords(currentReviewVerse.content)" :key="'content-' + index">
                       <br v-if="word === '\n'">
                       <span
-                        v-else-if="flashcardHiddenWords.has(index)"
-                        @click="revealWord(index)"
-                        :class="flashcardRevealedWords.has(index) ? 'text-red-600 cursor-default' : 'cursor-pointer'"
+                        v-else-if="flashcardHiddenWords.has(index + getContentWordsStartIndex())"
+                        @click="revealWord(index + getContentWordsStartIndex())"
+                        :class="flashcardRevealedWords.has(index + getContentWordsStartIndex()) ? 'text-red-600 cursor-default' : 'cursor-pointer'"
                         class="inline-block border-b-2 border-black"
-                        :style="flashcardRevealedWords.has(index) ? '' : 'color: transparent;'">
+                        :style="flashcardRevealedWords.has(index + getContentWordsStartIndex()) ? '' : 'color: transparent;'">
                         {{ word }}
                       </span>
                       <span v-else-if="word !== '\n'">{{ word }}</span>
-                      <span v-if="word !== '\n'">{{ ' ' }}</span>
                     </template>
                   </div>
                 </div>
@@ -742,7 +758,8 @@ const {
   previousVerse,
   getHumanReadableTime,
   getReviewCategory,
-  getShortReference,
+  getReferenceWords,
+  getContentWordsStartIndex,
 
   // Phase 2: Keyboard shortcuts
   handleKeyPress,

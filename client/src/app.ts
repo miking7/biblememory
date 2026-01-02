@@ -143,7 +143,6 @@ export function bibleMemoryApp() {
     startEditVerse: versesLogic.startEditVerse,
     saveEditVerse: versesLogic.saveEditVerse,
     deleteVerse: versesLogic.deleteVerse,
-    formatTagForDisplay: versesLogic.formatTagForDisplay,
     exportVerses: versesLogic.exportVerses,
     importVerses: versesLogic.importVerses,
 
@@ -180,7 +179,8 @@ export function bibleMemoryApp() {
     getHumanReadableTime: reviewLogic.getHumanReadableTime,
     getReviewCategory: reviewLogic.getReviewCategory,
     formatTagForDisplay: reviewLogic.formatTagForDisplay,
-    getShortReference: reviewLogic.getShortReference,
+    getReferenceWords: reviewLogic.getReferenceWords,
+    getContentWordsStartIndex: reviewLogic.getContentWordsStartIndex,
     handleKeyPress: reviewLogic.handleKeyPress,
 
     // Sync (from useSync)
