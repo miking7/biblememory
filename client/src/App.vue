@@ -256,7 +256,7 @@
         <div v-show="dueForReview.length > 0 && !reviewComplete">
           <!-- Header: Title, Progress, Prev/Next -->
           <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl sm:text-4xl font-bold text-slate-800">Daily Review</h2>
+            <h2 class="text-2xl sm:text-3xl font-bold text-slate-800">Daily Review</h2>
 
             <div class="flex items-center gap-3">
               <button
