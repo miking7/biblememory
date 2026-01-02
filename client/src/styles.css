@@ -179,6 +179,11 @@ input:focus, textarea:focus {
     background: rgb(248 250 252); /* slate-50 */
 }
 
+/* Flash Cards button in inactive state - maintain consistent width */
+.flashcard-button-inactive {
+    min-width: 10.5rem; /* 168px - matches active group width (2rem + content + 2rem) */
+}
+
 .mode-button-active {
     background: linear-gradient(to right, rgb(239 246 255), rgb(238 242 255)); /* from-blue-50 to-indigo-50 */
     border: 2px solid rgb(59 130 246); /* blue-500 */
@@ -210,7 +215,7 @@ input:focus, textarea:focus {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem; /* 20px */
+    font-size: 1rem; /* 16px - matches other buttons */
     font-weight: 600;
     transition: all 0.2s ease;
     background: transparent; /* inherit from group */

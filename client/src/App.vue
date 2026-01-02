@@ -423,7 +423,7 @@
               <button
                 v-else
                 @click="switchToFlashCards()"
-                class="mode-button-inactive px-5 py-2.5 rounded-lg font-medium transition-all">
+                class="mode-button-inactive flashcard-button-inactive px-5 py-2.5 rounded-lg font-medium transition-all">
                 Flash Cards
               </button>
 
