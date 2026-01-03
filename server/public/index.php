@@ -52,12 +52,24 @@ if (php_sapi_name() === 'cli-server') {
     }
 }
 
-// Serve static assets from dist/
-if (strpos($path, '/assets/') === 0 || $path === '/favicon.ico') {
+// Serve static assets from dist/ (generic approach)
+// Allow any file in dist/ with safe extensions (PWA-friendly)
+$ext = pathinfo($path, PATHINFO_EXTENSION);
+$allowedExtensions = ['js', 'css', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico',
+                      'woff', 'woff2', 'ttf', 'webmanifest', 'json'];
+
+if (in_array($ext, $allowedExtensions, true)) {
     $assetPath = __DIR__ . '/dist' . $path;
-    if (file_exists($assetPath) && is_file($assetPath)) {
+
+    // Security: Prevent directory traversal
+    $realAssetPath = realpath($assetPath);
+    $realDistPath = realpath(__DIR__ . '/dist');
+
+    if ($realAssetPath && $realDistPath &&
+        strpos($realAssetPath, $realDistPath) === 0 &&
+        is_file($realAssetPath)) {
+
         // Determine content type
-        $ext = pathinfo($assetPath, PATHINFO_EXTENSION);
         $contentTypes = [
             'js' => 'application/javascript',
             'css' => 'text/css',
@@ -70,13 +82,15 @@ if (strpos($path, '/assets/') === 0 || $path === '/favicon.ico') {
             'woff' => 'font/woff',
             'woff2' => 'font/woff2',
             'ttf' => 'font/ttf',
+            'webmanifest' => 'application/manifest+json',
+            'json' => 'application/json',
         ];
-        
+
         if (isset($contentTypes[$ext])) {
             header('Content-Type: ' . $contentTypes[$ext]);
         }
-        
-        readfile($assetPath);
+
+        readfile($realAssetPath);
         exit;
     }
 }
