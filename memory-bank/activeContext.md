@@ -18,10 +18,9 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 **Status:** Phase 2 COMPLETE ✅
 
 **Completed This Session:**
-- ✅ Implemented click-anywhere card functionality matching legacy behavior
-- ✅ Added mode-specific click actions (reveal, next, hint, regenerate, reset)
-- ✅ Event propagation control with @click.stop on interactive elements
-- ✅ Removed cursor pointer from card to maintain interactive element discoverability
+- ✅ Magic button "Reveal" improvement for practice modes
+- ✅ Changed Hints/Flash Cards/First Letters magic button from "Ref" to "Reveal"
+- ✅ Better UX - natural flow from practice to verification
 
 **Current State:**
 - Phase 2 COMPLETE ✅
@@ -29,6 +28,7 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 - Complete keyboard shortcut coverage (h, f, c, Space, n, p, Escape)
 - Click-anywhere functionality working across all modes
 - Interactive elements (Flash Cards words, First Letters chunks) properly isolated
+- Magic button behavior optimized for intuitive review flow
 - Visual consistency achieved across app
 - Ready for comprehensive testing and Phase 3 planning
 
@@ -39,7 +39,7 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 4. Plan Phase 3 (Deep Engagement features - meditation, application prompts)
 
 **See:**
-- [previous-work/027_click_anywhere_card_functionality.md](previous-work/027_click_anywhere_card_functionality.md) - Click-anywhere implementation
+- [previous-work/028_magic_button_reveal_improvement.md](previous-work/028_magic_button_reveal_improvement.md) - Latest UX improvement
 
 ## Active Decisions and Considerations
 
@@ -273,3 +273,4 @@ This index provides titles and links for reference when needed.
 - **026** - First Letters Click-to-Reveal Feature → [previous-work/026_first_letters_click_reveal.md](previous-work/026_first_letters_click_reveal.md)
 - **027** - Hints Mode Clean Display → [previous-work/027_hints_mode_clean_display.md](previous-work/027_hints_mode_clean_display.md)
 - **027** - Click-Anywhere Card Functionality → [previous-work/027_click_anywhere_card_functionality.md](previous-work/027_click_anywhere_card_functionality.md)
+- **028** - Magic Button "Reveal" Improvement → [previous-work/028_magic_button_reveal_improvement.md](previous-work/028_magic_button_reveal_improvement.md)

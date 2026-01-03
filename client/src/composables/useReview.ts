@@ -578,7 +578,7 @@ export function useReview() {
       case 'content':
         return 'Next';
       default: // hints, flashcards, firstletters
-        return 'Ref';
+        return 'Reveal';
     }
   });
 
@@ -591,7 +591,7 @@ export function useReview() {
         nextVerse();
         break;
       default: // hints, flashcards, firstletters
-        switchToReference();
+        switchToContent();
         break;
     }
   };
