@@ -105,6 +105,27 @@ export function bibleMemoryApp() {
     window.location.href = '/legacy/index.html';
   };
 
+  // Click-anywhere card handler
+  const handleCardClick = () => {
+    switch (reviewLogic.reviewMode.value) {
+      case 'reference':
+        reviewLogic.switchToContent();
+        break;
+      case 'content':
+        reviewLogic.nextVerse();
+        break;
+      case 'hints':
+        reviewLogic.addHint();
+        break;
+      case 'flashcards':
+        reviewLogic.switchToFlashCards();
+        break;
+      case 'firstletters':
+        reviewLogic.switchToFirstLetters();
+        break;
+    }
+  };
+
   // Lifecycle
   onMounted(() => {
     init();
@@ -200,6 +221,9 @@ export function bibleMemoryApp() {
     hasSyncIssues: hasSyncIssuesWithAuth,
 
     // Legacy app export
-    exportToLegacyAndOpen
+    exportToLegacyAndOpen,
+
+    // Card click handler
+    handleCardClick
   };
 }

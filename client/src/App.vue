@@ -275,7 +275,8 @@
           </div>
 
           <template v-if="currentReviewVerse">
-            <div class="review-card rounded-xl p-6 sm:p-8 min-h-[400px] flex flex-col justify-between bg-white border-2 border-slate-300 relative">
+            <div class="review-card rounded-xl p-6 sm:p-8 min-h-[400px] flex flex-col justify-between bg-white border-2 border-slate-300 relative"
+                 @click="handleCardClick">
 
               <!-- Progress Indicator (Top Right Corner) -->
               <div class="absolute top-4 right-4 text-slate-600 text-sm sm:text-base">
@@ -291,7 +292,7 @@
                       <br v-if="word.str === '\n'">
                       <span
                         v-else-if="flashcardHiddenWords.has(index)"
-                        @click="revealWord(index)"
+                        @click.stop="revealWord(index)"
                         :class="[
                           'flashcard-underline',
                           flashcardRevealedWords.has(index) ? 'text-red-600 cursor-default' : 'cursor-pointer'
@@ -341,7 +342,7 @@
                       <!-- Clickable word group (if exists) -->
                       <span
                         v-if="chunk.fullText"
-                        @click="revealFirstLetterChunk(index)"
+                        @click.stop="revealFirstLetterChunk(index)"
                         :class="[
                           firstLettersRevealedGroups.has(index)
                             ? 'text-red-600 cursor-default'
@@ -362,7 +363,7 @@
                       <br v-if="word.str === '\n'">
                       <span
                         v-else-if="flashcardHiddenWords.has(index + getContentWordsStartIndex())"
-                        @click="revealWord(index + getContentWordsStartIndex())"
+                        @click.stop="revealWord(index + getContentWordsStartIndex())"
                         :class="[
                           'flashcard-underline',
                           flashcardRevealedWords.has(index + getContentWordsStartIndex()) ? 'text-red-600 cursor-default' : 'cursor-pointer'
@@ -866,6 +867,9 @@ const {
 
   // Phase 2: Keyboard shortcuts
   handleKeyPress,
+
+  // Card click handler
+  handleCardClick,
 } = bibleMemoryApp();
 
 // Set up keyboard shortcuts

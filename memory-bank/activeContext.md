@@ -18,18 +18,18 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 **Status:** Phase 2 COMPLETE ✅
 
 **Completed This Session:**
-- ✅ Fixed button height inconsistency (Flash Cards +/− font-size reduced)
-- ✅ Added width consistency to Flash Cards button (prevents layout shift)
-- ✅ Added 'c' keyboard shortcut for Flash Cards mode
-- ✅ Updated phase2-architecture.md with keyboard shortcut documentation
+- ✅ Implemented click-anywhere card functionality matching legacy behavior
+- ✅ Added mode-specific click actions (reveal, next, hint, regenerate, reset)
+- ✅ Event propagation control with @click.stop on interactive elements
+- ✅ Removed cursor pointer from card to maintain interactive element discoverability
 
 **Current State:**
-- Phase 2 MOSTLY COMPLETE
-- Manual  UX refinements still required to polish
-- All 5 review modes functional with consistent button behavior
+- Phase 2 COMPLETE ✅
+- All 5 review modes fully functional with legacy UX parity
 - Complete keyboard shortcut coverage (h, f, c, Space, n, p, Escape)
+- Click-anywhere functionality working across all modes
+- Interactive elements (Flash Cards words, First Letters chunks) properly isolated
 - Visual consistency achieved across app
-- Button layout remains stable regardless of active mode
 - Ready for comprehensive testing and Phase 3 planning
 
 **Next Steps:**
@@ -39,10 +39,7 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 4. Plan Phase 3 (Deep Engagement features - meditation, application prompts)
 
 **See:**
-- [previous-work/020_phase2_review_modes_initial.md](previous-work/020_phase2_review_modes_initial.md) - Initial MVP implementation
-- [previous-work/021_phase2_refinements.md](previous-work/021_phase2_refinements.md) - Layout refinements and paragraph fixes
-- [previous-work/022_phase2_ux_refinements_final.md](previous-work/022_phase2_ux_refinements_final.md) - Button refinements and styling polish
-- [previous-work/023_phase2_card_styling_alignment.md](previous-work/023_phase2_card_styling_alignment.md) - Card styling alignment
+- [previous-work/027_click_anywhere_card_functionality.md](previous-work/027_click_anywhere_card_functionality.md) - Click-anywhere implementation
 
 ## Active Decisions and Considerations
 
@@ -274,3 +271,4 @@ This index provides titles and links for reference when needed.
 - **024** - Spacebar Unified Behavior → [previous-work/024_spacebar_unified_behavior.md](previous-work/024_spacebar_unified_behavior.md)
 - **025** - Button Height Fix & Flash Cards Keyboard Shortcut → [previous-work/025_button_height_fix_flashcards_shortcut.md](previous-work/025_button_height_fix_flashcards_shortcut.md)
 - **026** - First Letters Click-to-Reveal Feature → [previous-work/026_first_letters_click_reveal.md](previous-work/026_first_letters_click_reveal.md)
+- **027** - Click-Anywhere Card Functionality → [previous-work/027_click_anywhere_card_functionality.md](previous-work/027_click_anywhere_card_functionality.md)
