@@ -280,11 +280,11 @@
 
               <!-- Progress Indicator (Top Right Corner) -->
               <div class="absolute top-4 right-4 text-slate-600 text-sm sm:text-base">
-                <span class="font-bold" v-text="currentReviewIndex + 1"></span>/<span v-text="dueForReview.length"></span>
+                <span v-text="currentReviewIndex + 1"></span>/<span v-text="dueForReview.length"></span>
               </div>
 
               <!-- Header: Reference and Translation -->
-              <div class="mb-6">
+              <div class="mb-3">
                 <div class="flex flex-wrap items-center gap-2">
                   <!-- Flash Cards Mode: Reference with potential hiding -->
                   <h3 v-if="reviewMode === 'flashcards'" class="font-bold text-lg sm:text-xl text-slate-800">
@@ -375,7 +375,7 @@
               </div>
 
               <!-- 3-Column Metadata Footer -->
-              <div class="grid grid-cols-3 gap-4 text-sm text-slate-500 border-t border-slate-300 pt-4 mt-6">
+              <div class="grid grid-cols-3 gap-4 text-sm text-slate-500 mt-2">
                 <div class="text-left">
                   <span class="capitalize" v-text="getReviewCategory(currentReviewVerse)"></span>
                 </div>
