@@ -336,17 +336,20 @@
 
                 <!-- First Letters Mode: First letter + punctuation with clickable groups -->
                 <div v-if="reviewMode === 'firstletters'">
-                  <div class="verse-content text-sm sm:text-base text-slate-800 font-mono tracking-tight leading-relaxed whitespace-pre-wrap">
+                  <div class="verse-content text-sm sm:text-base text-slate-800 font-mono tracking-tight leading-relaxed">
                     <template v-for="(chunk, index) in getFirstLettersChunks(currentReviewVerse.content)" :key="'fl-chunk-' + index">
-                      <br v-if="chunk.isNewline">
-                      <template v-else>
-                        <span
-                              @click="revealFirstLetterChunk(index)"
-                              :class="[
-                                firstLettersRevealedGroups.has(index)
-                                  ? 'text-red-600 cursor-default'
-                                  : 'cursor-pointer hover:text-blue-600 transition-colors'
-                              ]">{{ firstLettersRevealedGroups.has(index) ? chunk.fullText : chunk.firstLetters }}</span>{{ ' ' }}
+                      <!-- Clickable word group (if exists) -->
+                      <span
+                        v-if="chunk.fullText"
+                        @click="revealFirstLetterChunk(index)"
+                        :class="[
+                          firstLettersRevealedGroups.has(index)
+                            ? 'text-red-600 cursor-default'
+                            : 'cursor-pointer hover:text-blue-600 transition-colors'
+                        ]">{{ firstLettersRevealedGroups.has(index) ? chunk.fullText : chunk.firstLetters }}</span><!-- Static separators (punctuation, spaces, newlines, numbers) -->
+                      <template v-for="(part, partIndex) in chunk.separators.split('\n')" :key="'sep-' + index + '-' + partIndex">
+                        <br v-if="partIndex > 0">
+                        <span>{{ part }}</span>
                       </template>
                     </template>
                   </div>

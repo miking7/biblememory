@@ -246,115 +246,83 @@ export function useReview() {
     }).join('\n');
   };
 
-  // Get first-letters chunks - each chunk is a space-separated group that can be clicked
+  // Get first-letters chunks using post-separator approach
+  // Each chunk contains: words (clickable) + trailing separators (static)
   interface FirstLetterChunk {
-    firstLetters: string;  // The abbreviated version
-    fullText: string;      // The full original text
-    isNewline: boolean;    // Whether this represents a paragraph break
+    fullText: string;       // "My soul waiteth" or empty for separator-only groups
+    firstLetters: string;   // "Msw" or empty
+    separators: string;     // ": " or ".\n27 " - includes punctuation, spaces, newlines, numbers
   }
 
   const getFirstLettersChunks = (content: string): FirstLetterChunk[] => {
-    // Process line by line to preserve paragraphs
-    const lines = content.split('\n');
     const chunks: FirstLetterChunk[] = [];
+    const isLetter = (char: string) => /[A-Za-z]/.test(char);
+    const isSpace = (char: string) => char === ' ';
     
-    lines.forEach((line, lineIndex) => {
-      // First, get the complete first-letters output for this line
-      const segments = wordSplit(line);
-      const firstLettersLine = segments.map(seg => {
-        if (seg.isWord) {
-          return seg.str.charAt(0);
+    let currentWords: string[] = [];
+    let currentWord = '';
+    let currentSeparators = '';
+    let accumulatingWords = false;
+    
+    for (let i = 0; i < content.length; i++) {
+      const char = content[i];
+      
+      if (isLetter(char)) {
+        if (!accumulatingWords) {
+          // Starting a new word group - flush previous group if it exists
+          if (currentWords.length > 0 || currentSeparators.length > 0) {
+            const fullText = currentWords.join(' ');
+            const firstLetters = currentWords.map(w => w.charAt(0)).join('');
+            chunks.push({
+              fullText,
+              firstLetters,
+              separators: currentSeparators
+            });
+            currentWords = [];
+            currentSeparators = '';
+          }
+          accumulatingWords = true;
+        }
+        // Accumulate current word
+        currentWord += char;
+      } else if (isSpace(char)) {
+        if (accumulatingWords) {
+          // Space during word accumulation - stays within the group, just finishes current word
+          if (currentWord) {
+            currentWords.push(currentWord);
+            currentWord = '';
+          }
+          // STAY in word-accumulating mode (don't switch to separators)
+          // Spaces keep words together in the same group
         } else {
-          return seg.str !== ' ' ? seg.str : '';
+          // Space during separator accumulation - add to separators
+          currentSeparators += char;
         }
-      }).join('');
-      
-      // Split the first-letters output by spaces to get chunks
-      const firstLetterChunks = firstLettersLine.split(' ').filter(c => c.length > 0);
-      
-      // Now map each first-letter chunk back to its original words
-      let currentWordIndex = 0;
-      const words: string[] = [];
-      
-      // Extract all words from the line (in order)
-      for (const seg of segments) {
-        if (seg.isWord) {
-          words.push(seg.str);
+      } else {
+        // Punctuation, newline, number, etc. - ends the group
+        if (currentWord) {
+          currentWords.push(currentWord);
+          currentWord = '';
         }
+        // Start accumulating separators for next group
+        accumulatingWords = false;
+        currentSeparators += char;
       }
-      
-      // For each first-letter chunk, figure out which words it corresponds to
-      for (const firstLetterChunk of firstLetterChunks) {
-        // Count how many letters (not punctuation) are in this chunk
-        let letterCount = 0;
-        for (const char of firstLetterChunk) {
-          if (/[A-Za-z]/.test(char)) {
-            letterCount++;
-          }
-        }
-        
-        // Collect that many words from our word array
-        const wordsForThisChunk: string[] = [];
-        for (let i = 0; i < letterCount && currentWordIndex < words.length; i++) {
-          wordsForThisChunk.push(words[currentWordIndex]);
-          currentWordIndex++;
-        }
-        
-        // Reconstruct the full text by finding these words in the original with punctuation
-        let fullText = '';
-        let tempLine = line;
-        
-        for (let i = 0; i < wordsForThisChunk.length; i++) {
-          const word = wordsForThisChunk[i];
-          const wordIndex = tempLine.indexOf(word);
-          
-          if (wordIndex !== -1) {
-            // Add everything from start up to and including this word
-            const endIndex = wordIndex + word.length;
-            fullText += tempLine.substring(0, endIndex);
-            tempLine = tempLine.substring(endIndex);
-            
-            // If there's more words coming, check for punctuation/spaces after this word
-            if (i < wordsForThisChunk.length - 1) {
-              // Skip spaces
-              while (tempLine.length > 0 && tempLine[0] === ' ') {
-                fullText += tempLine[0];
-                tempLine = tempLine.substring(1);
-              }
-            }
-          }
-        }
-        
-        // Check for trailing punctuation that belongs to this chunk
-        while (tempLine.length > 0 && /[.,;:!?'"()—\-]/.test(tempLine[0])) {
-          fullText += tempLine[0];
-          tempLine = tempLine.substring(1);
-        }
-        
-        // Skip any trailing spaces (they'll be added between chunks in the UI)
-        while (tempLine.length > 0 && tempLine[0] === ' ') {
-          tempLine = tempLine.substring(1);
-        }
-        
-        // Update line to the remainder for next chunk
-        line = tempLine;
-        
-        chunks.push({
-          firstLetters: firstLetterChunk,
-          fullText: fullText.trim(),
-          isNewline: false
-        });
-      }
-      
-      // Add newline marker between lines (except after last line)
-      if (lineIndex < lines.length - 1) {
-        chunks.push({
-          firstLetters: '',
-          fullText: '',
-          isNewline: true
-        });
-      }
-    });
+    }
+    
+    // Flush final group
+    if (currentWord) {
+      currentWords.push(currentWord);
+    }
+    if (currentWords.length > 0 || currentSeparators.length > 0) {
+      const fullText = currentWords.join(' ');
+      const firstLetters = currentWords.map(w => w.charAt(0)).join('');
+      chunks.push({
+        fullText,
+        firstLetters,
+        separators: currentSeparators
+      });
+    }
     
     return chunks;
   };
