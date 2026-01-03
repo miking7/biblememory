@@ -475,7 +475,7 @@
       </div>
 
       <!-- Mobile: Two rows -->
-      <div class="sm:hidden flex flex-col gap-3 sm:mt-6 fixed bottom-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-lg p-4 review-mode-sticky-footer">
+      <div class="sm:hidden flex flex-col gap-3 sm:mt-6 fixed bottom-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-lg px-3 py-4 review-mode-sticky-footer">
         <div class="flex gap-3">
           <button
             @click="reviewMode === 'hints' ? addHint() : switchToHints()"
@@ -495,7 +495,7 @@
             </button>
             <button
               @click="switchToFlashCards()"
-              class="flashcard-main-active flex-1 py-2.5 font-medium transition-all text-sm px-2">
+              class="flashcard-main-active flex-1 py-2.5 font-medium transition-all text-sm">
               Flash Cards
             </button>
             <button
