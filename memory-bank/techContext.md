@@ -62,6 +62,29 @@ KEY QUESTION THIS FILE ANSWERS: "What technologies do we use and how?"
   - Autoprefixer for browser compatibility
   - Minification in production
 
+#### PWA (Progressive Web App)
+- **vite-plugin-pwa 1.2.0** - PWA plugin for Vite
+  - Auto-generates web app manifest
+  - Auto-generates service worker with Workbox
+  - Supports auto-update strategy
+  - Development mode without SW (fast HMR)
+  - Production mode with optimized caching
+
+**PWA Features Enabled:**
+- Installable on iOS and Android devices
+- Offline caching of app shell (HTML, CSS, JS, fonts)
+- Auto-updates when new version deployed
+- Standalone display mode (no browser UI)
+- Custom theme color and app icons
+- Service worker managed by Workbox
+
+**Configuration:**
+- Manifest: Auto-generated from vite.config.ts
+- Service Worker: Workbox with precaching strategy
+- Icons: 192x192, 512x512 (Android), 180x180 (iOS)
+- No runtime API caching (app uses IndexedDB for data)
+- Dev mode: SW disabled for faster development
+
 ### Backend Technologies
 
 #### Language
@@ -498,16 +521,19 @@ rm server/api/db.sqlite && cd server && php api/migrate.php  # Reset
 
 ## Known Technical Limitations
 
-### Phase 1 Limitations
+### Current Limitations
 1. **Tailwind CSS Size** - Currently using CDN (~3.5MB), needs bundling and purging
-2. **No Service Worker** - No background sync or offline caching
-3. **No PWA Manifest** - Can't be installed as app
-4. **SQLite Only** - No MySQL/PostgreSQL support
-5. **Single Server** - No load balancing or clustering
+2. **SQLite Only** - No MySQL/PostgreSQL support
+3. **Single Server** - No load balancing or clustering
+4. **Icon Quality** - Icons generated from 57x57 source (should create 512x512+ source for production)
+5. **No iOS Splash Screens** - Can be added later for better iOS experience
 
 ### Future Improvements
 - Bundle and optimize dependencies
-- Add service worker for PWA
 - Support multiple database backends
 - Add caching layer (Redis)
 - Implement CDN for static assets
+- Create high-resolution app icons
+- Add iOS splash screens
+- Implement background sync API
+- Add push notifications

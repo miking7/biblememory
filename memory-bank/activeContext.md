@@ -15,31 +15,40 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Phase 2 COMPLETE ✅
+**Status:** PWA Implementation COMPLETE ✅
 
 **Completed This Session:**
-- ✅ Magic button "Reveal" improvement for practice modes
-- ✅ Changed Hints/Flash Cards/First Letters magic button from "Ref" to "Reveal"
-- ✅ Better UX - natural flow from practice to verification
+- ✅ PWA infrastructure implemented (vite-plugin-pwa)
+- ✅ Web app manifest auto-generated with proper configuration
+- ✅ Service worker with Workbox (app shell caching, auto-updates)
+- ✅ App icons generated for all platforms (Android, iOS, favicons)
+- ✅ PWA meta tags added to index.html (theme-color, iOS-specific)
+- ✅ Memory bank updated with PWA architecture patterns
 
 **Current State:**
-- Phase 2 COMPLETE ✅
-- All 5 review modes fully functional with legacy UX parity
-- Complete keyboard shortcut coverage (h, f, c, Space, n, p, Escape)
-- Click-anywhere functionality working across all modes
-- Interactive elements (Flash Cards words, First Letters chunks) properly isolated
-- Magic button behavior optimized for intuitive review flow
-- Visual consistency achieved across app
-- Ready for comprehensive testing and Phase 3 planning
+- App is now a **true Progressive Web App** ✅
+- Installable on iOS, Android, and desktop devices
+- Offline app shell caching (HTML, CSS, JS, fonts)
+- Auto-updates when new version deployed
+- Native browser install prompts enabled
+- Standalone mode (no browser UI when installed)
+- Phase 2 COMPLETE ✅ (all 5 review modes functional)
+- Ready for production testing on real devices
 
 **Next Steps:**
-1. Comprehensive testing across devices and edge cases
-2. Mobile touch target validation
-3. User acceptance testing
-4. Plan Phase 3 (Deep Engagement features - meditation, application prompts)
+1. Build production version and test PWA installation
+2. Test on iOS Safari (Add to Home Screen)
+3. Test on Android Chrome (install prompt)
+4. Test on desktop Chrome/Edge (install icon)
+5. Verify offline functionality (app shell loads without network)
+6. Consider creating high-res icons (512x512+ source) for production
+7. Plan Phase 3 (Deep Engagement features - meditation, application prompts)
 
 **See:**
-- [previous-work/028_magic_button_reveal_improvement.md](previous-work/028_magic_button_reveal_improvement.md) - Latest UX improvement
+- `client/vite.config.ts` - PWA plugin configuration
+- `client/index.html` - PWA meta tags
+- `client/public/icons/` - Generated app icons
+- [systemPatterns.md](systemPatterns.md) - PWA Pattern (section 10)
 
 ## Active Decisions and Considerations
 
@@ -55,6 +64,36 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 - **Filtering**: Removes ONLY standalone spaces (exactly `' '`), keeps all other non-word segments
 - **Result**: Output like `"w, a: t"` instead of cramped `"w,a:t"` - matches legacy perfectly
 - **Location**: `client/src/composables/useReview.ts` lines 195-245
+
+### PWA Implementation Decisions
+- **Plugin Choice**: vite-plugin-pwa (Vite official PWA plugin)
+  - **Why**: Battle-tested, auto-generates manifest + SW, zero-config option, Workbox integration
+  - **Alternative Rejected**: Manual SW implementation (too complex, error-prone)
+
+- **Update Strategy**: Auto-update (registerType: 'autoUpdate')
+  - **Why**: Simpler UX, always latest version, appropriate for personal app
+  - **Trade-off**: No user notification of updates (can add toast later)
+
+- **Caching Strategy**: Precache app shell only, no API caching
+  - **Why**: App already uses IndexedDB for offline data (OpLog pattern)
+  - **Benefit**: Simpler SW, faster, no cache invalidation complexity
+
+- **Icon Generation**: Automated from 57x57 source using Sharp
+  - **Sizes**: 16x16, 32x32, 180x180, 192x192, 512x512
+  - **Known Limitation**: Low-res source (icons acceptable but not ideal)
+  - **Future**: Create 512x512+ source for production quality
+
+- **Install Prompt**: Native browser prompts only (no custom UI)
+  - **Why**: Simpler implementation, standard UX, can add custom later
+  - **Trade-off**: Less control over when/how prompt appears
+
+- **iOS Approach**: No splash screens (deferred)
+  - **Why**: Tedious (15+ device sizes), marginal UX benefit
+  - **Can Add**: Later if user feedback requests it
+
+- **Dev Mode**: Service worker disabled (devOptions.enabled: false)
+  - **Why**: Faster HMR, no SW caching issues during development
+  - **Production**: SW fully enabled with all features
 
 ### Known Issues Requiring Attention
 **Resolved in This Session:**
