@@ -121,7 +121,7 @@ export function bibleMemoryApp() {
         reviewLogic.switchToFlashCards();
         break;
       case 'firstletters':
-        reviewLogic.switchToFirstLetters();
+        reviewLogic.switchToContent(); // Reveal verse instead of reset
         break;
     }
   };
