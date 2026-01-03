@@ -55,7 +55,7 @@ if (php_sapi_name() === 'cli-server') {
 // Serve static assets from dist/ (generic approach)
 // Allow any file in dist/ with safe extensions (PWA-friendly)
 $ext = pathinfo($path, PATHINFO_EXTENSION);
-$allowedExtensions = ['js', 'css', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico',
+$allowedExtensions = ['js', 'css', 'html', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico',
                       'woff', 'woff2', 'ttf', 'webmanifest', 'json'];
 
 if (in_array($ext, $allowedExtensions, true)) {
@@ -73,6 +73,7 @@ if (in_array($ext, $allowedExtensions, true)) {
         $contentTypes = [
             'js' => 'application/javascript',
             'css' => 'text/css',
+            'html' => 'text/html; charset=utf-8',
             'png' => 'image/png',
             'jpg' => 'image/jpeg',
             'jpeg' => 'image/jpeg',
@@ -95,42 +96,11 @@ if (in_array($ext, $allowedExtensions, true)) {
     }
 }
 
-// TEMPORARY: Serve legacy app static files
+// TEMPORARY: Handle directory requests (redirect to index.html)
+// Primarily for legacy app: /legacy/ → /legacy/index.html
 // TODO: Remove this block once legacy app is no longer needed (Phase 2+)
-// The legacy jQuery app is a transitional tool while building new Vue.js features
-if (strpos($path, '/legacy/') === 0 || $path === '/legacy') {
-    $legacyPath = __DIR__ . '/dist' . $path;
-    
-    // Default to index.html if requesting /legacy/ directory
-    if (is_dir($legacyPath)) {
-        $legacyPath .= '/index.html';
-    }
-    
-    if (file_exists($legacyPath) && is_file($legacyPath)) {
-        // Determine content type
-        $ext = pathinfo($legacyPath, PATHINFO_EXTENSION);
-        $contentTypes = [
-            'html' => 'text/html; charset=utf-8',
-            'js' => 'application/javascript',
-            'css' => 'text/css',
-            'png' => 'image/png',
-            'jpg' => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'gif' => 'image/gif',
-            'ico' => 'image/x-icon',
-        ];
-        
-        if (isset($contentTypes[$ext])) {
-            header('Content-Type: ' . $contentTypes[$ext]);
-        }
-        
-        readfile($legacyPath);
-        exit;
-    }
-    
-    // Legacy file not found
-    http_response_code(404);
-    echo '404 - Legacy file not found';
+if ($path === '/legacy' || $path === '/legacy/') {
+    header('Location: /legacy/index.html');
     exit;
 }
 
