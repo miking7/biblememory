@@ -275,7 +275,7 @@
           </div>
 
           <template v-if="currentReviewVerse">
-            <div class="review-card rounded-xl p-6 sm:p-8 min-h-[400px] flex flex-col justify-between bg-white border-2 border-slate-300 relative pb-40 sm:pb-8"
+            <div class="review-card rounded-xl p-6 sm:p-8 min-h-[400px] flex flex-col justify-between bg-white border-2 border-slate-300 relative mb-40 sm:mb-0"
                  @click="handleCardClick">
 
               <!-- Progress Indicator (Top Right Corner) -->
