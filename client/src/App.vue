@@ -334,22 +334,20 @@
                   </p>
                 </div>
 
-                <!-- First Letters Mode: First letter + punctuation with clickable word groups -->
+                <!-- First Letters Mode: First letter + punctuation with clickable groups -->
                 <div v-if="reviewMode === 'firstletters'">
-                  <div class="verse-content text-sm sm:text-base text-slate-800 font-mono tracking-tight leading-relaxed">
-                    <template v-for="(word, index) in getWords(currentReviewVerse.content)" :key="'fl-' + index">
-                      <br v-if="word.str === '\n'">
-                      <span
-                        v-else-if="word.isWord"
-                        @click="revealFirstLetterGroup(index)"
-                        :class="[
-                          firstLettersRevealedGroups.has(index)
-                            ? 'text-red-600'
-                            : 'cursor-pointer hover:text-blue-600 transition-colors'
-                        ]">
-                        {{ firstLettersRevealedGroups.has(index) ? word.str : word.str.charAt(0) }}
-                      </span>
-                      <span v-else-if="word.str !== ' '">{{ word.str }}</span>
+                  <div class="verse-content text-sm sm:text-base text-slate-800 font-mono tracking-tight leading-relaxed whitespace-pre-wrap">
+                    <template v-for="(chunk, index) in getFirstLettersChunks(currentReviewVerse.content)" :key="'fl-chunk-' + index">
+                      <br v-if="chunk.isNewline">
+                      <template v-else>
+                        <span
+                              @click="revealFirstLetterChunk(index)"
+                              :class="[
+                                firstLettersRevealedGroups.has(index)
+                                  ? 'text-red-600 cursor-default'
+                                  : 'cursor-pointer hover:text-blue-600 transition-colors'
+                              ]">{{ firstLettersRevealedGroups.has(index) ? chunk.fullText : chunk.firstLetters }}</span>{{ ' ' }}
+                      </template>
                     </template>
                   </div>
                 </div>
@@ -851,7 +849,8 @@ const {
   decreaseFlashCardDifficulty,
   getHintedContent,
   getFirstLettersContent,
-  revealFirstLetterGroup,
+  getFirstLettersChunks,
+  revealFirstLetterChunk,
   getWords,
   revealWord,
   nextVerse,

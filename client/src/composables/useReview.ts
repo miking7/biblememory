@@ -246,8 +246,121 @@ export function useReview() {
     }).join('\n');
   };
 
-  // Reveal a word group in First Letters mode
-  const revealFirstLetterGroup = (index: number) => {
+  // Get first-letters chunks - each chunk is a space-separated group that can be clicked
+  interface FirstLetterChunk {
+    firstLetters: string;  // The abbreviated version
+    fullText: string;      // The full original text
+    isNewline: boolean;    // Whether this represents a paragraph break
+  }
+
+  const getFirstLettersChunks = (content: string): FirstLetterChunk[] => {
+    // Process line by line to preserve paragraphs
+    const lines = content.split('\n');
+    const chunks: FirstLetterChunk[] = [];
+    
+    lines.forEach((line, lineIndex) => {
+      // First, get the complete first-letters output for this line
+      const segments = wordSplit(line);
+      const firstLettersLine = segments.map(seg => {
+        if (seg.isWord) {
+          return seg.str.charAt(0);
+        } else {
+          return seg.str !== ' ' ? seg.str : '';
+        }
+      }).join('');
+      
+      // Split the first-letters output by spaces to get chunks
+      const firstLetterChunks = firstLettersLine.split(' ').filter(c => c.length > 0);
+      
+      // Now map each first-letter chunk back to its original words
+      let currentWordIndex = 0;
+      const words: string[] = [];
+      
+      // Extract all words from the line (in order)
+      for (const seg of segments) {
+        if (seg.isWord) {
+          words.push(seg.str);
+        }
+      }
+      
+      // For each first-letter chunk, figure out which words it corresponds to
+      for (const firstLetterChunk of firstLetterChunks) {
+        // Count how many letters (not punctuation) are in this chunk
+        let letterCount = 0;
+        for (const char of firstLetterChunk) {
+          if (/[A-Za-z]/.test(char)) {
+            letterCount++;
+          }
+        }
+        
+        // Collect that many words from our word array
+        const wordsForThisChunk: string[] = [];
+        for (let i = 0; i < letterCount && currentWordIndex < words.length; i++) {
+          wordsForThisChunk.push(words[currentWordIndex]);
+          currentWordIndex++;
+        }
+        
+        // Reconstruct the full text by finding these words in the original with punctuation
+        let fullText = '';
+        let tempLine = line;
+        
+        for (let i = 0; i < wordsForThisChunk.length; i++) {
+          const word = wordsForThisChunk[i];
+          const wordIndex = tempLine.indexOf(word);
+          
+          if (wordIndex !== -1) {
+            // Add everything from start up to and including this word
+            const endIndex = wordIndex + word.length;
+            fullText += tempLine.substring(0, endIndex);
+            tempLine = tempLine.substring(endIndex);
+            
+            // If there's more words coming, check for punctuation/spaces after this word
+            if (i < wordsForThisChunk.length - 1) {
+              // Skip spaces
+              while (tempLine.length > 0 && tempLine[0] === ' ') {
+                fullText += tempLine[0];
+                tempLine = tempLine.substring(1);
+              }
+            }
+          }
+        }
+        
+        // Check for trailing punctuation that belongs to this chunk
+        while (tempLine.length > 0 && /[.,;:!?'"()—\-]/.test(tempLine[0])) {
+          fullText += tempLine[0];
+          tempLine = tempLine.substring(1);
+        }
+        
+        // Skip any trailing spaces (they'll be added between chunks in the UI)
+        while (tempLine.length > 0 && tempLine[0] === ' ') {
+          tempLine = tempLine.substring(1);
+        }
+        
+        // Update line to the remainder for next chunk
+        line = tempLine;
+        
+        chunks.push({
+          firstLetters: firstLetterChunk,
+          fullText: fullText.trim(),
+          isNewline: false
+        });
+      }
+      
+      // Add newline marker between lines (except after last line)
+      if (lineIndex < lines.length - 1) {
+        chunks.push({
+          firstLetters: '',
+          fullText: '',
+          isNewline: true
+        });
+      }
+    });
+    
+    return chunks;
+  };
+
+  // Reveal a first-letters chunk by index
+  const revealFirstLetterChunk = (index: number) => {
     firstLettersRevealedGroups.value.add(index);
   };
 
@@ -527,7 +640,8 @@ export function useReview() {
     // Phase 2: Content transformation
     getHintedContent,
     getFirstLettersContent,
-    revealFirstLetterGroup,
+    getFirstLettersChunks,
+    revealFirstLetterChunk,
     getWords,
     revealWord,
     generateHiddenWords,
