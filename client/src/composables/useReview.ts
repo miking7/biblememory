@@ -289,15 +289,16 @@ export function useReview() {
     const chunks: FirstLetterChunk[] = [];
     const isLetter = (char: string) => /[A-Za-z]/.test(char);
     const isSpace = (char: string) => char === ' ';
-    
+    const isApostrophe = (char: string) => char === "'" || char === "'" || char === "'";
+
     let currentWords: string[] = [];
     let currentWord = '';
     let currentSeparators = '';
     let accumulatingWords = false;
-    
+
     for (let i = 0; i < content.length; i++) {
       const char = content[i];
-      
+
       if (isLetter(char)) {
         if (!accumulatingWords) {
           // Starting a new word group - flush previous group if it exists
@@ -330,14 +331,19 @@ export function useReview() {
           currentSeparators += char;
         }
       } else {
-        // Punctuation, newline, number, etc. - ends the group
-        if (currentWord) {
-          currentWords.push(currentWord);
-          currentWord = '';
+        // Check if it's an apostrophe while accumulating words - treat as part of word
+        if (isApostrophe(char) && accumulatingWords) {
+          currentWord += char;
+        } else {
+          // Punctuation, newline, number, etc. - ends the group
+          if (currentWord) {
+            currentWords.push(currentWord);
+            currentWord = '';
+          }
+          // Start accumulating separators for next group
+          accumulatingWords = false;
+          currentSeparators += char;
         }
-        // Start accumulating separators for next group
-        accumulatingWords = false;
-        currentSeparators += char;
       }
     }
     
