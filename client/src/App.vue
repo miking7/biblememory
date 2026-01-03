@@ -326,13 +326,9 @@
                 </div>
 
                 <!-- Hints Mode: Progressive word revelation -->
-                <div v-if="reviewMode === 'hints'">
+                <div v-if="reviewMode === 'hints'" @click="addHint()" class="cursor-pointer">
                   <p class="verse-content text-sm sm:text-base text-slate-800 leading-relaxed font-mono"
                      v-text="getHintedContent(currentReviewVerse.content, hintsShown)"></p>
-                  <p class="text-sm text-slate-500 mt-2">
-                    Showing <span class="font-bold" v-text="hintsShown"></span> of
-                    <span class="font-bold" v-text="getWords(currentReviewVerse.content).filter(w => w.isWord).length"></span> words
-                  </p>
                 </div>
 
                 <!-- First Letters Mode: First letter + punctuation with clickable groups -->

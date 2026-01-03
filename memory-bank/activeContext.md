@@ -271,4 +271,5 @@ This index provides titles and links for reference when needed.
 - **024** - Spacebar Unified Behavior → [previous-work/024_spacebar_unified_behavior.md](previous-work/024_spacebar_unified_behavior.md)
 - **025** - Button Height Fix & Flash Cards Keyboard Shortcut → [previous-work/025_button_height_fix_flashcards_shortcut.md](previous-work/025_button_height_fix_flashcards_shortcut.md)
 - **026** - First Letters Click-to-Reveal Feature → [previous-work/026_first_letters_click_reveal.md](previous-work/026_first_letters_click_reveal.md)
+- **027** - Hints Mode Clean Display → [previous-work/027_hints_mode_clean_display.md](previous-work/027_hints_mode_clean_display.md)
 - **027** - Click-Anywhere Card Functionality → [previous-work/027_click_anywhere_card_functionality.md](previous-work/027_click_anywhere_card_functionality.md)

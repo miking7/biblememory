@@ -177,21 +177,52 @@ export function useReview() {
 
   // Phase 2: Content transformation functions
   const getHintedContent = (content: string, wordsToShow: number): string => {
-    // Split into lines first to preserve paragraph structure
-    const lines = content.split('\n');
-    let wordsSoFar = 0;
+    // Split all words from entire content (across all lines)
+    const allWords = content.split(/\s+/).filter(w => w.length > 0);
+    const totalWordCount = allWords.length;
 
-    return lines.map(line => {
+    // If showing all words, return original content unchanged
+    if (wordsToShow >= totalWordCount) {
+      return content;
+    }
+
+    // Otherwise, reconstruct with only visible words + ellipsis
+    // Preserve paragraph structure by tracking newlines in original content
+    const lines = content.split('\n');
+    let wordsCollected = 0;
+    let result: string[] = [];
+
+    for (const line of lines) {
       const words = line.split(' ').filter(w => w.length > 0);
-      return words.map(word => {
-        if (wordsSoFar < wordsToShow) {
-          wordsSoFar++;
-          return word;
+      const visibleWordsInLine: string[] = [];
+
+      for (const word of words) {
+        if (wordsCollected < wordsToShow) {
+          visibleWordsInLine.push(word);
+          wordsCollected++;
         } else {
-          return '_'.repeat(Math.max(word.length, 1));
+          // We've reached the limit - add what we have plus ellipsis
+          result.push(visibleWordsInLine.join(' ') + '...');
+          return result.join('\n');
         }
-      }).join(' ');
-    }).join('\n');
+      }
+
+      // Add this line to result if it has words
+      if (visibleWordsInLine.length > 0) {
+        result.push(visibleWordsInLine.join(' '));
+      } else {
+        // Empty line (paragraph break)
+        result.push('');
+      }
+    }
+
+    // If we get here, we've shown all requested words
+    // Add ellipsis to the last line (should always happen since wordsToShow < totalWordCount)
+    if (result.length > 0 && wordsCollected < totalWordCount) {
+      result[result.length - 1] += '...';
+    }
+
+    return result.join('\n');
   };
 
   // Helper function to replicate legacy wordSplit behavior
