@@ -275,7 +275,7 @@
           </div>
 
           <template v-if="currentReviewVerse">
-            <div class="review-card rounded-xl p-6 sm:p-8 min-h-[400px] flex flex-col justify-between bg-white border-2 border-slate-300 relative"
+            <div class="review-card rounded-xl p-6 sm:p-8 min-h-[400px] flex flex-col justify-between bg-white border-2 border-slate-300 relative pb-40 sm:pb-8"
                  @click="handleCardClick">
 
               <!-- Progress Indicator (Top Right Corner) -->
@@ -395,8 +395,9 @@
             </div>
 
             <!-- Mode Buttons (Outside/Below Card) -->
+            <!-- Hybrid: Sticky footer on mobile, normal flow on desktop -->
             <!-- Desktop: Single row -->
-            <div class="hidden sm:flex gap-3 justify-center mt-6">
+            <div class="hidden sm:flex gap-3 justify-center sm:mt-6 fixed bottom-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-lg p-4 review-mode-sticky-footer sm:relative sm:bottom-auto sm:shadow-none sm:border-none sm:p-0 sm:bg-transparent">
               <button
                 @click="reviewMode === 'hints' ? addHint() : switchToHints()"
                 :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
@@ -456,7 +457,7 @@
             </div>
 
             <!-- Mobile: Two rows -->
-            <div class="sm:hidden flex flex-col gap-3 mt-6">
+            <div class="sm:hidden flex flex-col gap-3 sm:mt-6 fixed bottom-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-lg p-4 review-mode-sticky-footer">
               <div class="flex gap-3">
                 <button
                   @click="reviewMode === 'hints' ? addHint() : switchToHints()"

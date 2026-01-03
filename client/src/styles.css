@@ -252,3 +252,10 @@ input:focus, textarea:focus {
     line-height: 1;
     margin-bottom: -0.05em;
 }
+
+/* Sticky footer iOS safe-area support (for devices with home indicator) */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .review-mode-sticky-footer {
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+}
