@@ -214,11 +214,28 @@
           </div>
         </div>
 
-        <input
-          type="text"
-          v-model="searchQuery"
-          placeholder="Search verses..."
-          class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl mb-6 transition-all">
+        <div class="flex gap-2 mb-6">
+          <input
+            type="text"
+            v-model="searchQuery"
+            placeholder="Search verses..."
+            class="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
+          <div class="relative">
+            <select
+              :value="sortBy"
+              @change="setSortBy(($event.target as HTMLSelectElement).value as any)"
+              class="appearance-none px-3 py-3 pr-8 border-2 border-slate-200 rounded-xl transition-all bg-white hover:border-blue-400 focus:border-blue-500 cursor-pointer font-medium text-slate-700"
+              title="Sort verses">
+              <option value="newest">↓ Newest</option>
+              <option value="oldest">↑ Oldest</option>
+              <option value="reference">📖 Reference</option>
+              <option value="category">📊 Category</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+              <span class="text-lg">↕</span>
+            </div>
+          </div>
+        </div>
 
         <!-- No verses at all -->
         <div v-show="verses.length === 0" class="text-center py-12 text-slate-500">
@@ -788,6 +805,7 @@ const {
   currentTab,
   verses,
   searchQuery,
+  sortBy,
   newVerse,
   showAddSuccess,
   editingVerse,
@@ -829,6 +847,7 @@ const {
   startEditVerse,
   saveEditVerse,
   deleteVerse,
+  setSortBy,
   loadReviewVerses,
   markReview,
   resetReview,

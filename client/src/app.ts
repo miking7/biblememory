@@ -153,6 +153,7 @@ export function bibleMemoryApp() {
     // Verses (from useVerses)
     verses: versesLogic.verses,
     searchQuery: versesLogic.searchQuery,
+    sortBy: versesLogic.sortBy,
     newVerse: versesLogic.newVerse,
     showAddSuccess: versesLogic.showAddSuccess,
     showEditModal: versesLogic.showEditModal,
@@ -164,6 +165,7 @@ export function bibleMemoryApp() {
     startEditVerse: versesLogic.startEditVerse,
     saveEditVerse: versesLogic.saveEditVerse,
     deleteVerse: versesLogic.deleteVerse,
+    setSortBy: versesLogic.setSortBy,
     exportVerses: versesLogic.exportVerses,
     importVerses: versesLogic.importVerses,
 

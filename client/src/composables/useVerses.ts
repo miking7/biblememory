@@ -16,6 +16,9 @@ export function useVerses() {
   // State
   const verses = ref<Verse[]>([]);
   const searchQuery = ref('');
+  const sortBy = ref<'newest' | 'oldest' | 'reference' | 'category'>(
+    (localStorage.getItem('verseSortPreference') as any) || 'reference'
+  );
 
   // Add verse form
   const newVerse = ref({
@@ -55,17 +58,58 @@ export function useVerses() {
 
   // Computed properties
   const filteredVerses = computed(() => {
-    if (!searchQuery.value) {
-      return verses.value;
+    // First, filter based on search query
+    let filtered = verses.value;
+    if (searchQuery.value) {
+      const query = normalizeForSearch(searchQuery.value);
+      filtered = verses.value.filter(v => {
+        const tagsString = formatTags(v.tags || []);
+        return normalizeForSearch(v.reference).includes(query) ||
+               normalizeForSearch(v.content).includes(query) ||
+               normalizeForSearch(tagsString).includes(query);
+      });
     }
 
-    const query = normalizeForSearch(searchQuery.value);
-    return verses.value.filter(v => {
-      const tagsString = formatTags(v.tags || []);
-      return normalizeForSearch(v.reference).includes(query) ||
-             normalizeForSearch(v.content).includes(query) ||
-             normalizeForSearch(tagsString).includes(query);
+    // Then, sort based on sortBy preference
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy.value) {
+        case 'newest':
+          // Newest first (descending)
+          return (b.startedAt || b.createdAt) - (a.startedAt || a.createdAt);
+
+        case 'oldest':
+          // Oldest first (ascending)
+          return (a.startedAt || a.createdAt) - (b.startedAt || b.createdAt);
+
+        case 'reference':
+          // Biblical order (using refSort)
+          return a.refSort.localeCompare(b.refSort);
+
+        case 'category':
+          // Category order: future, learn, daily, weekly, monthly, auto (auto last)
+          const categoryOrder: Record<string, number> = {
+            future: 0,
+            learn: 1,
+            daily: 2,
+            weekly: 3,
+            monthly: 4,
+            auto: 5
+          };
+          const aOrder = categoryOrder[a.reviewCat] ?? 5;
+          const bOrder = categoryOrder[b.reviewCat] ?? 5;
+
+          if (aOrder !== bOrder) {
+            return aOrder - bOrder;
+          }
+          // If same category, sort by reference
+          return a.refSort.localeCompare(b.refSort);
+
+        default:
+          return 0;
+      }
     });
+
+    return sorted;
   });
 
   const hasVersesButNoSearchResults = computed(() => {
@@ -196,6 +240,11 @@ export function useVerses() {
     return tag.key;
   };
 
+  const setSortBy = (newSort: 'newest' | 'oldest' | 'reference' | 'category') => {
+    sortBy.value = newSort;
+    localStorage.setItem('verseSortPreference', newSort);
+  };
+
   const exportVerses = () => {
     try {
       const dataStr = JSON.stringify(verses.value, null, 2);
@@ -300,6 +349,7 @@ export function useVerses() {
     // State
     verses,
     searchQuery,
+    sortBy,
     newVerse,
     showAddSuccess,
     showEditModal,
@@ -318,6 +368,7 @@ export function useVerses() {
     saveEditVerse,
     deleteVerse,
     formatTagForDisplay,
+    setSortBy,
     exportVerses,
     importVerses
   };
