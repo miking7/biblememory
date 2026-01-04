@@ -224,7 +224,7 @@
             <select
               :value="sortBy"
               @change="setSortBy(($event.target as HTMLSelectElement).value as any)"
-              class="appearance-none px-3 py-3 pr-8 border-2 border-slate-200 rounded-xl transition-all bg-white hover:border-blue-400 focus:border-blue-500 cursor-pointer font-medium text-slate-700"
+              class="appearance-none w-14 sm:w-auto px-2 sm:px-3 py-3 pr-8 border-2 border-slate-200 rounded-xl transition-all bg-white hover:border-blue-400 focus:border-blue-500 cursor-pointer font-medium text-slate-700 text-transparent sm:text-slate-700"
               title="Sort verses">
               <option value="newest">↓ Newest</option>
               <option value="oldest">↑ Oldest</option>
