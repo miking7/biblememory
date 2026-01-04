@@ -452,7 +452,7 @@
         <button
           v-else
           @click="switchToFlashCards()"
-          class="mode-button-inactive flashcard-button-inactive px-5 py-2.5 rounded-lg font-medium transition-all"
+          class="mode-button-inactive px-5 py-2.5 rounded-lg font-medium transition-all"
           title="Flash Cards (c)">
           Flash Cards
         </button>
@@ -480,7 +480,7 @@
           <button
             @click="reviewMode === 'hints' ? addHint() : switchToHints()"
             :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
-            class="flex-1 py-2.5 rounded-lg font-medium transition-all">
+            class="flex-1 py-2.5 rounded-lg font-medium transition-all text-sm">
             Hint
           </button>
 
@@ -509,7 +509,7 @@
           <button
             v-else
             @click="switchToFlashCards()"
-            class="mode-button-inactive flashcard-button-inactive flex-1 py-2.5 rounded-lg font-medium transition-all text-sm">
+            class="mode-button-inactive flex-1 py-2.5 rounded-lg font-medium transition-all text-sm">
             Flash Cards
           </button>
         </div>
@@ -517,13 +517,13 @@
           <button
             @click="switchToFirstLetters()"
             :class="reviewMode === 'firstletters' ? 'mode-button-active' : 'mode-button-inactive'"
-            class="flex-1 py-2.5 rounded-lg font-medium transition-all">
+            class="flex-1 py-2.5 rounded-lg font-medium transition-all text-sm">
             First Letters
           </button>
 
           <button
             @click="smartButtonAction()"
-            class="mode-button-inactive flex-1 py-2.5 rounded-lg font-medium transition-all">
+            class="mode-button-inactive flex-1 py-2.5 rounded-lg font-medium transition-all text-sm">
             {{ smartButtonLabel }}
           </button>
         </div>
