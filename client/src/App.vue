@@ -231,7 +231,7 @@
               <option value="reference">📖 Reference</option>
               <option value="category">📊 Category</option>
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+            <div class="pointer-events-none absolute inset-y-0 left-0 right-0 sm:left-auto sm:right-0 flex items-center justify-center sm:justify-end px-2 text-slate-500">
               <span class="text-lg">↕</span>
             </div>
           </div>
