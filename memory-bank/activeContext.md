@@ -313,3 +313,4 @@ This index provides titles and links for reference when needed.
 - **027** - Hints Mode Clean Display → [previous-work/027_hints_mode_clean_display.md](previous-work/027_hints_mode_clean_display.md)
 - **027** - Click-Anywhere Card Functionality → [previous-work/027_click_anywhere_card_functionality.md](previous-work/027_click_anywhere_card_functionality.md)
 - **028** - Magic Button "Reveal" Improvement → [previous-work/028_magic_button_reveal_improvement.md](previous-work/028_magic_button_reveal_improvement.md)
+- **029** - Swipe Gesture Navigation → [previous-work/029_swipe_gesture_navigation.md](previous-work/029_swipe_gesture_navigation.md)

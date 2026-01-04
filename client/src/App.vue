@@ -292,7 +292,13 @@
           </div>
 
           <template v-if="currentReviewVerse">
-            <div class="review-card rounded-xl p-6 sm:p-8 min-h-[400px] flex flex-col justify-between bg-white border-2 border-slate-300 relative mb-40 sm:mb-0"
+            <div ref="reviewCardElement"
+                 class="review-card rounded-xl p-6 sm:p-8 min-h-[400px] flex flex-col justify-between bg-white border-2 border-slate-300 relative mb-40 sm:mb-0"
+                 :style="{
+                   transform: `translateX(${swipeOffset}px)`,
+                   transition: (isSwiping || isPositioning) ? 'none' : isAnimatingExit ? 'transform 0.3s ease-out' : isAnimatingEnter ? 'transform 0.15s ease-out' : 'transform 0.3s ease-out',
+                   touchAction: 'pan-y'
+                 }"
                  @click="handleCardClick">
 
               <!-- Progress Indicator (Top Right Corner) -->
@@ -795,9 +801,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed, type Ref } from 'vue';
 import { bibleMemoryApp } from './app';
 import VerseCard from './components/VerseCard.vue';
+import { useSwipe } from './composables/useSwipe';
 
 // Destructure everything from bibleMemoryApp
 const {
@@ -894,6 +901,30 @@ const {
   // Card click handler
   handleCardClick,
 } = bibleMemoryApp();
+
+// Review card ref for swipe functionality (cast to proper type for useSwipe)
+const reviewCardElement = ref<HTMLElement | null>(null) as Ref<HTMLElement | null>;
+
+// Check if can navigate to previous/next verse
+const canSwipeRight = computed(() => currentReviewIndex.value > 0);
+const canSwipeLeft = computed(() => currentReviewIndex.value < dueForReview.value.length - 1);
+
+// Set up swipe gestures for review cards
+const { isSwiping, swipeOffset, swipeDirection, isAnimatingExit, isAnimatingEnter, isPositioning } = useSwipe(reviewCardElement, {
+  onSwipeLeft: () => {
+    if (canSwipeLeft.value) {
+      nextVerse();
+    }
+  },
+  onSwipeRight: () => {
+    if (canSwipeRight.value) {
+      previousVerse();
+    }
+  },
+  threshold: 50,
+  canSwipeLeft: () => canSwipeLeft.value,
+  canSwipeRight: () => canSwipeRight.value,
+});
 
 // Set up keyboard shortcuts
 onMounted(() => {
