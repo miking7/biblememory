@@ -7,7 +7,7 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'icons/*.png'],
+      includeAssets: ['icons/*.png'],
       manifest: {
         name: 'Bible Memory App',
         short_name: 'BibleMemory',
