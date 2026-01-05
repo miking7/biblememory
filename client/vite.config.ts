@@ -10,7 +10,7 @@ export default defineConfig({
       includeAssets: ['icons/*.png'],
       manifest: {
         name: 'Bible Memory App',
-        short_name: 'BibleMemory',
+        short_name: 'Bible Memory',
         description: 'Memorize scripture through spaced repetition',
         theme_color: '#4F46E5',
         background_color: '#ffffff',
