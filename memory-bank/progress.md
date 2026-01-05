@@ -40,6 +40,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - **Review System (Basic)**: Spaced repetition algorithm (auto-categorization: 8→56→112 days), simple reveal flow
 - **Offline-First**: Full offline functionality, automatic sync when online
 - **Sync**: OpLog pattern, cursor-based pagination, LWW conflict resolution
+- **Offline Notifications**: Badge + auto-dismissing toast pattern (industry standard UX)
 - **Authentication**: Registration, login, token-based auth, secure storage
 - **Import/Export**: JSON export/import with smart ID handling
 - **Backend**: PHP 8.0+ REST API, SQLite with WAL mode, 5 endpoints

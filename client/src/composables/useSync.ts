@@ -7,6 +7,7 @@ let syncScheduled = false;
 
 export function useSync() {
   // Sync status tracking
+  const isOffline = ref(false);
   const lastSyncSuccess = ref(true);
   const lastSyncError = ref<string | null>(null);
   const lastSyncAttempt = ref(0);
@@ -14,7 +15,7 @@ export function useSync() {
   // Computed
   const hasSyncIssues = computed(() => {
     // Only show sync issues if authenticated (will be checked by caller)
-    return !lastSyncSuccess.value;
+    return isOffline.value || !lastSyncSuccess.value;
   });
 
   // Schedule automatic sync (only called when authenticated)
@@ -33,9 +34,10 @@ export function useSync() {
     // Helper to sync and reload UI
     const syncAndReload = async () => {
       // Skip sync if offline
-      if (!navigator.onLine) {
+      isOffline.value = !navigator.onLine;
+      if (isOffline.value) {
         console.log("Offline - skipping sync");
-        lastSyncSuccess.value = true; // Don't show error when intentionally offline
+        lastSyncSuccess.value = true; // No error when intentionally offline
         lastSyncError.value = null;
         return;
       }
@@ -109,6 +111,7 @@ export function useSync() {
     lastSyncSuccess,
     lastSyncError,
     lastSyncAttempt,
+    isOffline,
 
     // Computed
     hasSyncIssues,

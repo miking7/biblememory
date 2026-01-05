@@ -573,6 +573,90 @@ const syncAndReload = async () => {
 
 **See:** previous-work/031_pwa_offline_blank_screen_fix.md for detailed analysis
 
+### 13. Toast Notification Pattern
+
+**Purpose:** Provide temporary, non-intrusive notifications for status changes and user feedback
+
+**Problem Solved:**
+- Persistent banners take up screen space and distract users
+- Users need awareness of status changes without constant visual noise
+- Notifications should follow modern UX patterns (Google Docs, Slack, Notion)
+- Need reusable infrastructure for various notification types
+
+**How It Works:**
+- Reactive state controls toast visibility (`showOfflineToast`)
+- Watcher triggers toast on state changes
+- Auto-dismiss timeout (5 seconds by default)
+- Slide-in animation for visual polish
+- Can be manually triggered (e.g., badge click)
+
+**Implementation:**
+```typescript
+// State management
+const showOfflineToast = ref(false);
+let toastTimeout: ReturnType<typeof setTimeout> | null = null;
+
+// Auto-dismiss function
+const showToast = () => {
+  if (toastTimeout) clearTimeout(toastTimeout); // Prevent multiple timeouts
+  showOfflineToast.value = true;
+  toastTimeout = setTimeout(() => {
+    showOfflineToast.value = false;
+    toastTimeout = null;
+  }, 5000);
+};
+
+// Watch for state changes
+watch(hasSyncIssuesWithAuth, (newValue, oldValue) => {
+  if (oldValue !== undefined && newValue !== oldValue) {
+    showToast(); // Only on actual changes, not initial load
+  }
+});
+```
+
+**Visual Design:**
+- Fixed position (top-right corner by default)
+- Slide-in animation from top
+- Glass-morphism styling (matches app design language)
+- Auto-dismisses after 5 seconds
+- Can be extended with click-to-dismiss
+
+**Why This Pattern:**
+- ✅ Non-intrusive (temporary, auto-dismissing)
+- ✅ Industry standard (familiar to users)
+- ✅ Reusable infrastructure (can be used for success, error, info messages)
+- ✅ Accessible (can add ARIA live region)
+- ✅ Mobile-friendly (doesn't block important UI)
+
+**Current Use Cases:**
+1. **Offline Notification:** Shows when sync status changes (offline/online)
+   - Message: "⚠️ Sync issues - currently offline. Changes saved locally."
+   - Paired with persistent badge on User Menu for awareness
+
+**Future Use Cases:**
+- Success notifications (e.g., "✅ Verse added successfully")
+- Sync status updates (e.g., "✅ Back online • Syncing changes...")
+- Error messages (e.g., "⚠️ Failed to sync - will retry")
+- Feature announcements (e.g., "✨ New review mode available")
+
+**Companion Pattern: Badge Indicator**
+- Small persistent indicator (10px red dot on User Menu)
+- Shows when toast condition is still active
+- Clickable to re-trigger toast
+- Provides persistent awareness without distraction
+
+**Trade-offs Accepted:**
+- Toast can be missed if user not looking at screen (mitigated by persistent badge)
+- No queue system for multiple toasts (simple single toast is sufficient for now)
+- Auto-dismiss means user can't read at their own pace (can add click-to-dismiss later)
+
+**Implementation Files:**
+- `client/src/app.ts` lines 27-61 - Toast state and watch logic
+- `client/src/App.vue` lines 31-34 - Toast component
+- `client/src/styles.css` lines 228-254 - Toast styling with animations
+
+**See:** previous-work/031_offline_notification_redesign.md for full implementation details
+
 ## Component Relationships
 
 ### Data Flow for Adding a Verse

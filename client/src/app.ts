@@ -24,6 +24,42 @@ export function bibleMemoryApp() {
     return auth.isAuthenticated.value && sync.hasSyncIssues.value;
   });
 
+  // Toast notification state
+  const showOfflineToast = ref(false);
+  let toastTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  // Function to show toast for 5 seconds
+  const showToast = () => {
+    // Clear any existing timeout
+    if (toastTimeout) {
+      clearTimeout(toastTimeout);
+    }
+
+    // Show toast
+    showOfflineToast.value = true;
+
+    // Auto-hide after 5 seconds
+    toastTimeout = setTimeout(() => {
+      showOfflineToast.value = false;
+      toastTimeout = null;
+    }, 5000);
+  };
+
+  // Function to manually trigger toast (when clicking badge)
+  const triggerOfflineToast = () => {
+    if (hasSyncIssuesWithAuth.value) {
+      showToast();
+    }
+  };
+
+  // Watch for connectivity changes and show toast
+  watch(hasSyncIssuesWithAuth, (newValue, oldValue) => {
+    // Only show toast when sync status changes (not on initial load)
+    if (oldValue !== undefined && newValue !== oldValue) {
+      showToast();
+    }
+  });
+
   // Initialization
   const init = async () => {
     console.log("Initializing Bible Memory App...");
@@ -266,6 +302,11 @@ export function bibleMemoryApp() {
     lastSyncError: sync.lastSyncError,
     lastSyncAttempt: sync.lastSyncAttempt,
     hasSyncIssues: hasSyncIssuesWithAuth,
+    isOffline: sync.isOffline,
+
+    // Toast notifications
+    showOfflineToast,
+    triggerOfflineToast,
 
     // Deck-style view mode
     verseViewMode,

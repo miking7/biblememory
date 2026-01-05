@@ -28,8 +28,8 @@
   </div>
 
   <div class="container mx-auto px-4 py-4 sm:py-8 max-w-5xl">
-    <!-- Sync Issues Indicator -->
-    <div v-show="hasSyncIssues" class="offline-indicator">
+    <!-- Offline Toast Notification -->
+    <div v-show="showOfflineToast" class="offline-toast">
       ⚠️ Sync issues - currently offline. Changes saved locally.
     </div>
 
@@ -49,8 +49,16 @@
            v-click-outside="() => showUserMenu = false">
         <button
           @click="showUserMenu = !showUserMenu"
-          class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white hover:shadow-lg transition-all text-xl">
+          class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white hover:shadow-lg transition-all text-xl relative">
           👤
+
+          <!-- Offline Badge -->
+          <span
+            v-show="hasSyncIssues"
+            @click.stop="triggerOfflineToast()"
+            class="offline-badge"
+            title="Click for details">
+          </span>
         </button>
 
         <!-- Dropdown Menu -->
@@ -847,6 +855,11 @@ const {
   lastSyncSuccess,
   lastSyncError,
   lastSyncAttempt,
+  isOffline,
+
+  // Toast notifications
+  showOfflineToast,
+  triggerOfflineToast,
 
   // Phase 2: Review mode state
   reviewMode,

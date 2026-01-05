@@ -58,3 +58,4 @@ This index provides titles and links for reference when needed.
 - **028** - Magic Button "Reveal" Improvement → [previous-work/028_magic_button_reveal_improvement.md](previous-work/028_magic_button_reveal_improvement.md)
 - **029** - Swipe Gesture Navigation → [previous-work/029_swipe_gesture_navigation.md](previous-work/029_swipe_gesture_navigation.md)
 - **030** - Deck-Style Card View → [previous-work/030_deck_style_card_view.md](previous-work/030_deck_style_card_view.md)
+- **031** - Offline Notification Redesign → [previous-work/031_offline_notification_redesign.md](previous-work/031_offline_notification_redesign.md)
