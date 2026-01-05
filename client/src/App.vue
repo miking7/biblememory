@@ -63,7 +63,7 @@
 
         <!-- Dropdown Menu -->
         <div v-show="showUserMenu"
-             class="absolute right-0 mt-2 w-64 glass-card rounded-xl shadow-2xl overflow-hidden z-50">
+             class="absolute right-0 mt-2 glass-card rounded-xl shadow-2xl overflow-hidden z-50">
           <div class="p-4 border-b border-slate-200">
             <p class="text-xs text-slate-500 font-medium mb-1">Signed in as</p>
             <p class="text-sm font-semibold text-slate-800 truncate" v-text="userEmail"></p>
@@ -826,7 +826,7 @@ import { bibleMemoryApp } from './app';
 import VerseCard from './components/VerseCard.vue';
 import { useSwipe } from './composables/useSwipe';
 
-// Destructure everything from bibleMemoryApp
+// Destructure everything from bibleMemoryApp (app.ts)
 const {
   // State
   currentTab,

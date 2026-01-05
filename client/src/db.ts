@@ -35,6 +35,7 @@ export interface Auth {
   id: string;              // "current" - single record
   token: string;           // 64-char hex string from server
   userId: string;          // UUID v4
+  email: string;           // User's email address
   createdAt: number;       // Epoch ms - when token was issued
 }
 

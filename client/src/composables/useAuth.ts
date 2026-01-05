@@ -4,7 +4,7 @@ import {
   login as apiLogin,
   register as apiRegister,
   logout as apiLogout,
-  getCurrentUserId
+  getCurrentUserEmail
 } from '../sync';
 
 export function useAuth() {
@@ -29,7 +29,7 @@ export function useAuth() {
     try {
       isAuthenticated.value = await checkAuthenticated();
       if (isAuthenticated.value) {
-        const userId = await getCurrentUserId();
+        const userId = await getCurrentUserEmail();
         userEmail.value = userId || 'user@example.com';
       }
     } catch (error) {

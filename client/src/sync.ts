@@ -194,6 +194,12 @@ export async function getCurrentUserId(): Promise<string | null> {
   return auth?.userId || null;
 }
 
+// Get current useremail
+export async function getCurrentUserEmail(): Promise<string | null> {
+  const auth = await db.auth.get("current");
+  return auth?.email || null;
+}
+
 // Login
 export async function login(email: string, password: string): Promise<void> {
   const response = await fetch(`${API_BASE}/login`, {
@@ -214,6 +220,7 @@ export async function login(email: string, password: string): Promise<void> {
     id: "current",
     token: result.token,
     userId: result.user_id,
+    email: email,
     createdAt: Date.now()
   });
 
@@ -241,6 +248,7 @@ export async function register(email: string, password: string): Promise<void> {
     id: "current",
     token: result.token,
     userId: result.user_id,
+    email: email,
     createdAt: Date.now()
   });
 
