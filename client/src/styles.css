@@ -90,6 +90,80 @@ body {
     border-color: rgba(59, 130, 246, 0.3);
 }
 
+/* Compact card mode (deck-style) */
+.verse-card-compact {
+    padding: 0.75rem 1rem; /* Tighter padding */
+    cursor: pointer;
+    position: relative;
+    
+    /* Overlapping effect */
+    margin-top: -27px;
+    
+    /* Dual shadows for layering effect */
+    box-shadow: 
+        0 -1px 3px rgba(0, 0, 0, 0.06),  /* Top shadow */
+        0 2px 4px rgba(0, 0, 0, 0.08);   /* Bottom shadow */
+}
+
+/* First compact card has no overlap or top shadow */
+.verse-card-compact:first-child {
+    margin-top: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Only bottom shadow */
+}
+
+/* Hover effect - lift and reveal depth */
+.verse-card-compact:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+        0 -2px 6px rgba(0, 0, 0, 0.1),
+        0 6px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10; /* Bring to front on hover */
+}
+
+/* Compact content with truncation */
+.compact-content {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.5;
+    padding-bottom: 15px;
+    font-size: 0.875rem; /* 14px */
+}
+
+@media (min-width: 640px) {
+    .compact-content {
+        font-size: 1rem; /* 16px on desktop */
+    }
+}
+
+/* Full card mode (normal spacing) */
+.verse-card-full {
+    position: relative;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Full card mode margin adjustments for compact mode */
+.verse-card-full-compact-mode-adjustment {
+    /* Overlapping effect */
+    margin-top: -22px;
+    margin-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+    .verse-card-full {
+        padding: 1.5rem;
+    }
+}
+
+/* When a compact card is expanded, override overlap */
+.verse-card-compact.verse-card-full {
+    margin-top: 1rem !important;
+    margin-bottom: 1rem;
+    cursor: default;
+}
+
 .tab-button {
     position: relative;
     transition: all 0.3s ease;

@@ -1,4 +1,4 @@
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useAuth } from './composables/useAuth';
 import { useVerses } from './composables/useVerses';
 import { useReview } from './composables/useReview';
@@ -8,6 +8,10 @@ import { useSync } from './composables/useSync';
 export function bibleMemoryApp() {
   // Tab state (kept in main app for coordination)
   const currentTab = ref<'add' | 'list' | 'review'>('add');
+
+  // Verse list view mode (deck-style feature)
+  const verseViewMode = ref<'full' | 'compact'>('full');
+  const expandedVerseIds = ref<Set<string>>(new Set());
 
   // Use composables
   const auth = useAuth();
@@ -105,6 +109,25 @@ export function bibleMemoryApp() {
     window.location.href = '/legacy/index.html';
   };
 
+  // Deck-style view functions
+  const toggleViewMode = () => {
+    verseViewMode.value = verseViewMode.value === 'full' ? 'compact' : 'full';
+    // Clear expanded cards when switching modes
+    expandedVerseIds.value.clear();
+  };
+
+  const toggleVerseExpansion = (verseId: string) => {
+    if (verseViewMode.value === 'compact') {
+      if (expandedVerseIds.value.has(verseId)) {
+        expandedVerseIds.value.delete(verseId);
+      } else {
+        expandedVerseIds.value.add(verseId);
+      }
+      // Trigger reactivity by creating new Set
+      expandedVerseIds.value = new Set(expandedVerseIds.value);
+    }
+  };
+
   // Click-anywhere card handler
   const handleCardClick = () => {
     switch (reviewLogic.reviewMode.value) {
@@ -126,9 +149,31 @@ export function bibleMemoryApp() {
     }
   };
 
-  // Lifecycle
+  // Load view mode from localStorage on mount
   onMounted(() => {
+    const savedViewMode = localStorage.getItem('verseViewMode');
+    if (savedViewMode === 'full' || savedViewMode === 'compact') {
+      verseViewMode.value = savedViewMode;
+    }
     init();
+  });
+
+  // Save view mode to localStorage when it changes
+  watch(verseViewMode, (newMode) => {
+    localStorage.setItem('verseViewMode', newMode);
+  });
+
+  // Clear expanded cards when search/sort/tab changes (collapse triggers)
+  watch([versesLogic.searchQuery, versesLogic.sortBy], () => {
+    expandedVerseIds.value.clear();
+    expandedVerseIds.value = new Set(); // Trigger reactivity
+  });
+
+  watch(currentTab, (newTab, oldTab) => {
+    if (oldTab === 'list' && newTab !== 'list') {
+      expandedVerseIds.value.clear();
+      expandedVerseIds.value = new Set(); // Trigger reactivity
+    }
   });
 
   // Return everything for template
@@ -221,6 +266,12 @@ export function bibleMemoryApp() {
     lastSyncError: sync.lastSyncError,
     lastSyncAttempt: sync.lastSyncAttempt,
     hasSyncIssues: hasSyncIssuesWithAuth,
+
+    // Deck-style view mode
+    verseViewMode,
+    expandedVerseIds,
+    toggleViewMode,
+    toggleVerseExpansion,
 
     // Legacy app export
     exportToLegacyAndOpen,

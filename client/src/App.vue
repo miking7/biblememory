@@ -220,6 +220,15 @@
             v-model="searchQuery"
             placeholder="Search verses..."
             class="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
+          
+          <!-- View Mode Toggle Button -->
+          <button
+            @click="toggleViewMode()"
+            :title="verseViewMode === 'full' ? 'Switch to compact view' : 'Switch to full view'"
+            class="p-3 border-2 border-slate-200 rounded-xl hover:border-blue-400 focus:border-blue-500 transition-all bg-white flex items-center justify-center">
+            <i :class="verseViewMode === 'full' ? 'mdi mdi-view-agenda' : 'mdi mdi-view-headline'" class="text-xl text-slate-700"></i>
+          </button>
+          
           <div class="relative">
             <select
               :value="sortBy"
@@ -231,7 +240,7 @@
               <option value="reference">📖 Reference</option>
               <option value="category">📊 Category</option>
             </select>
-            <div class="pointer-events-none absolute inset-y-0 left-0 right-0 sm:left-auto sm:right-0 flex items-center justify-center sm:justify-end px-2 text-slate-500">
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
               <span class="text-lg">↕</span>
             </div>
           </div>
@@ -250,13 +259,16 @@
           <p class="text-sm">Try a different search term or clear the search to see all verses.</p>
         </div>
 
-        <div class="space-y-4">
+        <div :class="verseViewMode === 'compact' ? '' : 'space-y-4'">
           <VerseCard
             v-for="verse in filteredVerses"
             :key="verse.id"
             :verse="verse"
+            :view-mode="verseViewMode"
+            :is-expanded="expandedVerseIds.has(verse.id)"
             @edit="startEditVerse"
             @delete="deleteVerse"
+            @toggle-expand="toggleVerseExpansion"
           />
         </div>
       </div>
@@ -897,6 +909,12 @@ const {
 
   // Phase 2: Keyboard shortcuts
   handleKeyPress,
+
+  // Deck-style view mode
+  verseViewMode,
+  expandedVerseIds,
+  toggleViewMode,
+  toggleVerseExpansion,
 
   // Card click handler
   handleCardClick,
