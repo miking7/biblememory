@@ -39,7 +39,7 @@
         <h1 class="text-3xl sm:text-5xl font-bold text-white mb-3 tracking-tight">
           📖 <span class="gradient-text">Bible Memory</span>
         </h1>
-        <p class="text-blue-200 text-lg font-light">Memorize Scripture, one verse at a time</p>
+        <p class="text-blue-200 text-lg font-light text-[clamp(0.6rem,4.7vw,1.125rem)]">Memorize Scripture, one verse at a time</p>
       </div>
 
       <!-- User Menu (Authenticated) -->
