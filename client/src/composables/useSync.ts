@@ -32,9 +32,23 @@ export function useSync() {
 
     // Helper to sync and reload UI
     const syncAndReload = async () => {
+      // Skip sync if offline
+      if (!navigator.onLine) {
+        console.log("Offline - skipping sync");
+        lastSyncSuccess.value = true; // Don't show error when intentionally offline
+        lastSyncError.value = null;
+        return;
+      }
+
       lastSyncAttempt.value = Date.now();
       try {
-        await syncNow();
+        // Add 5-second timeout to prevent long waits
+        await Promise.race([
+          syncNow(),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Sync timeout')), 5000)
+          )
+        ]);
 
         // Call reload callback if provided
         if (onSyncComplete) {

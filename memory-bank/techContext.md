@@ -82,8 +82,49 @@ KEY QUESTION THIS FILE ANSWERS: "What technologies do we use and how?"
 - Manifest: Auto-generated from vite.config.ts
 - Service Worker: Workbox with precaching strategy
 - Icons: 192x192, 512x512 (Android), 180x180 (iOS)
+- Runtime caching for external resources (Google Fonts, Material Design Icons)
 - No runtime API caching (app uses IndexedDB for data)
 - Dev mode: SW disabled for faster development
+
+**Runtime Caching Strategy:**
+```typescript
+// vite.config.ts - Workbox runtimeCaching configuration
+runtimeCaching: [
+  // Google Fonts CSS
+  {
+    urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+    handler: 'CacheFirst',
+    options: {
+      cacheName: 'google-fonts-cache',
+      expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 }
+    }
+  },
+  // Google Font Files
+  {
+    urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+    handler: 'CacheFirst',
+    options: {
+      cacheName: 'gstatic-fonts-cache',
+      expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 }
+    }
+  },
+  // Material Design Icons
+  {
+    urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/npm\/@mdi\/font@.*/i,
+    handler: 'CacheFirst',
+    options: {
+      cacheName: 'mdi-icons-cache',
+      expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 }
+    }
+  }
+]
+```
+
+**Async External Resource Loading:**
+- External stylesheets use `rel="preload"` pattern to prevent render blocking
+- JavaScript onload handler converts preload to stylesheet when loaded
+- Prevents 30-60 second timeout when offline (graceful degradation to system fonts)
+- See systemPatterns.md #11 for detailed pattern documentation
 
 ### Backend Technologies
 

@@ -467,6 +467,112 @@ iOS (Safari):
 
 **See:** techContext.md for PWA technology details and configuration examples
 
+### 11. Async External Resource Loading Pattern
+
+**Purpose:** Prevent external stylesheet CDNs from blocking page rendering when offline
+
+**Problem Solved:**
+- External CSS files in `<head>` block page rendering until loaded or timeout
+- When offline, DNS + connection timeouts = 30-60 second blank screen
+- Service worker runtime caching can't intercept fast enough to prevent timeout
+
+**How It Works:**
+- Use `rel="preload"` instead of `rel="stylesheet"` for external CSS
+- JavaScript onload handler converts preload to stylesheet when loaded
+- If fetch fails (offline), page renders immediately with system fonts
+- `<noscript>` fallback ensures accessibility for no-JavaScript browsers
+
+**Implementation Example:**
+```html
+<!-- Non-blocking with preload pattern -->
+<link rel="preload" as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter..."
+      onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/..."></noscript>
+```
+
+**Why This Pattern:**
+- ✅ Page renders IMMEDIATELY, even if external resources fail
+- ✅ No 30-60 second timeout blocking render when offline
+- ✅ Progressive enhancement (fonts load when available)
+- ✅ Graceful degradation (system fonts used when offline)
+- ✅ Works with existing service worker runtime caching
+- ✅ Maintains accessibility with `<noscript>` fallback
+
+**Trade-offs Accepted:**
+- Brief flash of unstyled content (FOUC) when fonts load
+- Requires JavaScript (fallback provided via `<noscript>`)
+- External resources still fetched (but don't block render)
+
+**Applied To:**
+- Google Fonts (Inter font family)
+- Material Design Icons CDN
+
+**Implementation Files:**
+- `client/index.html` lines 23-33 - Async stylesheet loading
+
+**See:** previous-work/031_pwa_offline_blank_screen_fix.md for detailed analysis
+
+### 12. Offline-First Sync Detection Pattern
+
+**Purpose:** Prevent unnecessary network timeout attempts when user is offline
+
+**Problem Solved:**
+- Sync attempts when offline cause 30+ second timeouts
+- Failed syncs show error messages even when intentionally offline
+- Multiple sync triggers (startup, visibility change, periodic) compound delays
+- User perception: "App is broken" when actually working fine offline
+
+**How It Works:**
+- Check `navigator.onLine` before attempting sync
+- Skip sync entirely when offline (don't queue timeout)
+- Set `lastSyncSuccess = true` when offline (no false errors)
+- Add 5-second timeout for actual sync attempts (prevent long waits)
+- Gracefully handle offline state without user-visible errors
+
+**Implementation:**
+```typescript
+const syncAndReload = async () => {
+  // Skip sync if offline
+  if (!navigator.onLine) {
+    console.log("Offline - skipping sync");
+    lastSyncSuccess.value = true; // No error when intentionally offline
+    return;
+  }
+
+  // Add timeout for actual sync attempts
+  await Promise.race([
+    syncNow(),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Sync timeout')), 5000)
+    )
+  ]);
+};
+```
+
+**Why This Pattern:**
+- ✅ No unnecessary network timeouts when offline
+- ✅ Faster app startup when offline (immediate render)
+- ✅ No false error messages for intentional offline use
+- ✅ 5-second timeout prevents long freezes even with poor connectivity
+- ✅ Works with existing OpLog sync architecture
+
+**Trade-offs Accepted:**
+- Relies on `navigator.onLine` (not 100% reliable but good enough)
+- Doesn't distinguish between "no network" and "server down"
+- Could miss sync opportunities if `navigator.onLine` is wrong
+
+**Sync Triggers Affected:**
+- Initial sync on app startup
+- Periodic sync every 30 seconds
+- Visibility change sync when tab becomes visible
+- Outbox-triggered sync when pending operations exist
+
+**Implementation Files:**
+- `client/src/composables/useSync.ts` lines 34-68 - Offline detection and timeout
+
+**See:** previous-work/031_pwa_offline_blank_screen_fix.md for detailed analysis
+
 ## Component Relationships
 
 ### Data Flow for Adding a Verse
