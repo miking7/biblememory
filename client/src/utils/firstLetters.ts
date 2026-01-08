@@ -22,7 +22,7 @@ export interface FirstLetterChunk {
  */
 export function getFirstLettersChunks(content: string): FirstLetterChunk[] {
   const chunks: FirstLetterChunk[] = [];
-  const isLetter = (char: string) => /[A-Za-z]/.test(char);
+  const isLetter = (char: string) => /\p{L}/u.test(char);
   const isSpace = (char: string) => char === ' ';
   const isApostrophe = (char: string) => char === "'" || char === "'" || char === "'";
 

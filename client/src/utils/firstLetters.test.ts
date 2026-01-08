@@ -41,6 +41,18 @@ const tests: TestCase[] = [
     expected: "26 MswftL",
     expectedGroups: 1,
   },
+  {
+    name: "Test 4 (Spanish accented letters)",
+    input: "Jesús dijo: a el árbol",
+    expected: "Jd: aeá",
+    expectedGroups: 2,
+  },
+  {
+    name: "Test 5 (German umlauts)",
+    input: "Für Gott ist nichts unmöglich",
+    expected: "FGinu",
+    expectedGroups: 1,
+  },
 ]
 
 console.log("Testing First Letters Utility\n" + "=".repeat(50))
