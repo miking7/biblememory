@@ -60,3 +60,4 @@ This index provides titles and links for reference when needed.
 - **030** - Deck-Style Card View → [previous-work/030_deck_style_card_view.md](previous-work/030_deck_style_card_view.md)
 - **031** - Offline Notification Redesign → [previous-work/031_offline_notification_redesign.md](previous-work/031_offline_notification_redesign.md)
 - **032** - Immersive Review Mode → [previous-work/032_immersive_review_mode.md](previous-work/032_immersive_review_mode.md)
+- **033** - First Letters Hyphen Handling Fix (Major Rewrite) → [previous-work/033_first_letters_hyphen_handling.md](previous-work/033_first_letters_hyphen_handling.md)

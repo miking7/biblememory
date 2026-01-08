@@ -142,6 +142,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - ✅ Flash Cards rendering handles multi-paragraph verses
 - ✅ Flash Cards hides reference parts (not shortens) - matches legacy exactly
 - ✅ Flash Cards spacing and punctuation handling (WordItem refactor) - matches legacy exactly
+- ✅ First Letters hyphen handling (major rewrite using state-machine) - context-dependent behavior
 
 **Testing Needed:**
 - [ ] Mobile touch targets and responsive design

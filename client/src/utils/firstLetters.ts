@@ -4,97 +4,132 @@
  */
 
 export interface FirstLetterChunk {
-  fullText: string;       // "My soul waiteth" or empty for separator-only groups
-  firstLetters: string;   // "Msw" or empty
-  separators: string;     // ": " or ".\n27 " - includes punctuation, spaces, newlines, numbers
+  fullText: string       // "My soul waiteth" or empty for separator-only chunks
+  firstLetters: string   // "Msw" or empty
+  separators: string     // ": " or ".\n27 " - includes punctuation, spaces, newlines, numbers
+}
+
+interface Word {
+  characters: string
+  separators: string
+  endOfChunk: boolean
 }
 
 /**
  * Converts content into clickable chunks for first-letters review mode.
  *
+ * Uses a state-machine approach with two modes: 'word' and 'separator'
+ * 
  * Features:
  * - Unicode-aware letter detection (supports accented letters, all languages)
- * - Smart hyphen handling: regular hyphens keep words together, em-dashes split
+ * - Smart hyphen handling: regular hyphens and en-dashes keep words together, em-dashes split chunks
  * - Preserves punctuation, numbers, and newlines as separators
+ * - Handles multiple consecutive whitespace correctly
  *
  * @param content - The verse content to process
  * @returns Array of chunks with full text, first letters, and separators
  */
 export function getFirstLettersChunks(content: string): FirstLetterChunk[] {
-  const chunks: FirstLetterChunk[] = [];
-  const isLetter = (char: string) => /\p{L}/u.test(char);
-  const isSpace = (char: string) => char === ' ';
-  const isApostrophe = (char: string) => char === "'" || char === "'" || char === "'";
+  // Character classification helpers
+  const isLetter = (char: string) => /\p{L}/u.test(char)
+  const isWhitespace = (char: string) => /\s/u.test(char)
+  const isApostrophe = (char: string) => char === "'" || char === "'" || char === "'"
+  const isHyphen = (char: string) => char === '-' || char === '–' // hyphen and en-dash (not em-dash)
 
-  let currentWords: string[] = [];
-  let currentWord = '';
-  let currentSeparators = '';
-  let accumulatingWords = false;
+  // Determines if a character should break chunks
+  // Chunk breakers: punctuation, numbers, newlines, em-dash, and other non-word characters
+  // NOT chunk breakers: letters, apostrophes, hyphens, whitespace
+  const isChunkBreaker = (char: string) => {
+    return !isLetter(char) && !isApostrophe(char) && !isWhitespace(char) && !isHyphen(char)
+  }
+
+  // Phase 1: Build words array using state machine
+  const words: Word[] = []
+  let currentWord: Word = {
+    characters: '',
+    separators: '',
+    endOfChunk: false,
+  }
+  let mode: 'word' | 'separator' = 'separator' // Start in separator mode
 
   for (let i = 0; i < content.length; i++) {
-    const char = content[i];
+    const char = content[i]
 
-    if (isLetter(char)) {
-      if (!accumulatingWords) {
-        // Starting a new word group - flush previous group if it exists
-        if (currentWords.length > 0 || currentSeparators.length > 0) {
-          const fullText = currentWords.join(' ');
-          const firstLetters = currentWords.map(w => w.charAt(0)).join('');
-        chunks.push({
-            fullText,
-            firstLetters,
-            separators: currentSeparators
-          });
-          currentWords = [];
-          currentSeparators = '';
-        }
-        accumulatingWords = true;
+    // Determine new mode based on current character
+    let newMode: 'word' | 'separator'
+    if (mode === 'separator') {
+      newMode = isLetter(char) ? 'word' : 'separator'
+    } else { // mode === 'word'
+      newMode = (isLetter(char) || isApostrophe(char)) ? 'word' : 'separator'
+    }
+
+    // Handle mode transition from 'separator' to 'word'
+    if (mode === 'separator' && newMode === 'word') {
+      // Flush current word (if not completely empty)
+      if (currentWord.characters || currentWord.separators) {
+        words.push(currentWord)
       }
-      // Accumulate current word
-      currentWord += char;
-    } else if (isSpace(char)) {
-      if (accumulatingWords) {
-        // Space during word accumulation - stays within the group, just finishes current word
-        if (currentWord) {
-          currentWords.push(currentWord);
-          currentWord = '';
-        }
-        // STAY in word-accumulating mode (don't switch to separators)
-        // Spaces keep words together in the same group
-      } else {
-        // Space during separator accumulation - add to separators
-        currentSeparators += char;
+      // Reset for new word
+      currentWord = {
+        characters: '',
+        separators: '',
+        endOfChunk: false,
+      }
+    }
+
+    // Accumulate character based on new mode
+    if (newMode === 'word') {
+      currentWord.characters += char
+    } else {
+      currentWord.separators += char
+    }
+
+    // Check if current character should end the chunk
+    if (isChunkBreaker(char)
+      || ((mode === 'separator') && isHyphen(char))) {      // Note: when already in separator mode, hyphens break chunks
+      currentWord.endOfChunk = true
+    }
+
+    mode = newMode
+  }
+
+  // Flush final word
+  if (currentWord.characters || currentWord.separators) {
+    words.push(currentWord)
+  }
+
+  // Phase 2: Build chunks from words array
+  const chunks: FirstLetterChunk[] = []
+  let currentChunk: FirstLetterChunk = {
+    fullText: '',
+    firstLetters: '',
+    separators: '',
+  }
+
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i]
+    const isLastWord = i === words.length - 1
+
+    // Add word characters to chunk (using nullish coalescing for empty strings)
+    currentChunk.fullText += word.characters
+    currentChunk.firstLetters += word.characters[0] ?? ''
+
+    // Decide whether to finish current chunk
+    if (isLastWord || word.endOfChunk) {
+      // Finish chunk: add separators and push to chunks array
+      currentChunk.separators += word.separators
+      chunks.push(currentChunk)
+      // Reset for new chunk
+      currentChunk = {
+        fullText: '',
+        firstLetters: '',
+        separators: '',
       }
     } else {
-      // Check if it's an apostrophe while accumulating words - treat as part of word
-      if (isApostrophe(char) && accumulatingWords) {
-        currentWord += char;
-      } else {
-        // Punctuation, newline, number, etc. - ends the group
-        if (currentWord) {
-          currentWords.push(currentWord);
-          currentWord = '';
-        }
-        // Start accumulating separators for next group
-        accumulatingWords = false;
-        currentSeparators += char;
-      }
+      // Continue chunk: add separators to fullText (to preserve spaces between words)
+      currentChunk.fullText += word.separators
     }
   }
 
-  // Flush final group
-  if (currentWord) {
-    currentWords.push(currentWord);
-  }
-  if (currentWords.length > 0 || currentSeparators.length > 0) {
-    const fullText = currentWords.join(' ');
-    const firstLetters = currentWords.map(w => w.charAt(0)).join('');
-    chunks.push({
-      fullText,
-      firstLetters,
-      separators: currentSeparators
-    });
-  }
-
-  return chunks;
+  return chunks
 }
