@@ -297,6 +297,11 @@ export function bibleMemoryApp() {
     smartButtonAction: reviewLogic.smartButtonAction,
     handleKeyPress: reviewLogic.handleKeyPress,
 
+    // Immersive mode
+    isImmersiveModeActive: reviewLogic.isImmersiveModeActive,
+    toggleImmersiveMode: reviewLogic.toggleImmersiveMode,
+    exitImmersiveMode: reviewLogic.exitImmersiveMode,
+
     // Sync (from useSync)
     lastSyncSuccess: sync.lastSyncSuccess,
     lastSyncError: sync.lastSyncError,

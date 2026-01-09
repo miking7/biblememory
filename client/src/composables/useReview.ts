@@ -30,6 +30,9 @@ export function useReview() {
   const flashcardRevealedWords = ref<Set<number>>(new Set());
   const firstLettersRevealedGroups = ref<Set<number>>(new Set());
 
+  // Immersive mode state
+  const isImmersiveModeActive = ref(false);
+
   // Stats
   const reviewedToday = ref(0);
   const currentStreak = ref(0);
@@ -489,14 +492,17 @@ export function useReview() {
   // Phase 2: Keyboard shortcut handler
   const handleKeyPress = (event: KeyboardEvent): boolean => {
     // Ignore if typing in input field
-    if (event.target instanceof HTMLInputElement || 
+    if (event.target instanceof HTMLInputElement ||
         event.target instanceof HTMLTextAreaElement) {
       return false;
     }
-    
+
     const key = event.key.toLowerCase();
-    
+
     switch (key) {
+      case 'i':
+        toggleImmersiveMode();
+        return true;
       case 'n':
         if (reviewMode.value === 'content') {
           nextVerse();
@@ -523,10 +529,16 @@ export function useReview() {
         switchToFlashCards();
         return true;
       case 'escape':
-        switchToReference();
+        // If immersive mode is active, exit it first
+        if (isImmersiveModeActive.value) {
+          exitImmersiveMode();
+        } else {
+          // Otherwise, switch back to reference mode
+          switchToReference();
+        }
         return true;
     }
-    
+
     return false;
   };
 
@@ -602,6 +614,15 @@ export function useReview() {
     }
   };
 
+  // Immersive mode functions
+  const toggleImmersiveMode = () => {
+    isImmersiveModeActive.value = !isImmersiveModeActive.value;
+  };
+
+  const exitImmersiveMode = () => {
+    isImmersiveModeActive.value = false;
+  };
+
   return {
     // State
     currentReviewIndex,
@@ -618,6 +639,9 @@ export function useReview() {
     flashcardHiddenWords,
     flashcardRevealedWords,
     firstLettersRevealedGroups,
+
+    // Immersive mode state
+    isImmersiveModeActive,
 
     // Computed
     currentReviewVerse,
@@ -664,6 +688,10 @@ export function useReview() {
     formatTagForDisplay,
     getReferenceWords,
     getContentWordsStartIndex,
-    smartButtonAction
+    smartButtonAction,
+
+    // Immersive mode
+    toggleImmersiveMode,
+    exitImmersiveMode
   };
 }

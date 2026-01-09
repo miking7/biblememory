@@ -378,3 +378,28 @@ input:focus, textarea:focus {
         padding-bottom: calc(1rem + env(safe-area-inset-bottom));
     }
 }
+
+/* Immersive Mode Styles */
+.immersive-hideable {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.immersive-mode {
+    /* Remove padding for full immersion */
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Subtle gradient background for immersive mode (less saturated) */
+.immersive-mode::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #1e3a8a 0%, #312e81 50%, #1e293b 100%);
+    opacity: 0.95;
+    z-index: -1;
+    animation: fadeIn 0.3s ease-in;
+}

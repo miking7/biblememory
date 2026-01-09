@@ -1,8 +1,8 @@
 <template>
   <div>
-    <!-- Anonymous Auth Banner (Full Width) -->
-    <div v-show="!isAuthenticated"
-         class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200 shadow-sm">
+    <!-- Anonymous Auth Banner (Full Width) - Hidden in immersive mode -->
+    <div v-show="!isAuthenticated && !isImmersiveModeActive"
+         class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200 shadow-sm immersive-hideable">
     <div class="container mx-auto px-4 max-w-5xl">
       <div class="flex items-center justify-between py-3">
         <div class="flex items-center gap-3">
@@ -33,8 +33,8 @@
       ⚠️ Sync issues - currently offline. Changes saved locally.
     </div>
 
-    <!-- Header -->
-    <header class="mb-6 sm:mb-10 fade-in relative">
+    <!-- Header - Hidden in immersive mode -->
+    <header v-show="!isImmersiveModeActive" class="mb-6 sm:mb-10 fade-in relative immersive-hideable">
       <div class="text-center">
         <h1 class="text-3xl sm:text-5xl font-bold text-white mb-3 tracking-tight">
           📖 <span class="gradient-text">Bible Memory</span>
@@ -78,8 +78,8 @@
       </div>
     </header>
 
-    <!-- Stats Bar -->
-    <div class="glass-card rounded-2xl shadow-2xl p-3 sm:p-6 mb-4 sm:mb-8 fade-in">
+    <!-- Stats Bar - Hidden in immersive mode -->
+    <div v-show="!isImmersiveModeActive" class="glass-card rounded-2xl shadow-2xl p-3 sm:p-6 mb-4 sm:mb-8 fade-in immersive-hideable">
       <div class="grid grid-cols-3 gap-2 sm:gap-6">
         <div class="stat-card rounded-xl p-3 sm:p-5 flex flex-col items-center justify-center h-full">
           <div class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-1" v-text="verses.length"></div>
@@ -96,9 +96,9 @@
       </div>
     </div>
 
-    <!-- Tab Navigation -->
+    <!-- Tab Navigation - Hidden in immersive mode -->
     <div class="-mx-4 sm:mx-0 glass-card rounded-none sm:rounded-2xl shadow-2xl overflow-hidden fade-in">
-      <div class="flex border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50">
+      <div v-show="!isImmersiveModeActive" class="flex border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 immersive-hideable">
         <button
           @click="currentTab = 'add'"
           :class="currentTab === 'add' ? 'active text-blue-700 font-semibold' : 'text-slate-600'"
@@ -291,40 +291,62 @@
         </div>
 
         <div v-show="dueForReview.length > 0 && !reviewComplete">
-          <!-- Header: Title, Progress, Prev/Next -->
-          <div class="flex justify-between items-center mb-6">
+          <!-- Header: Title + Immersive Toggle (only shown when not in immersive mode) -->
+          <div v-show="!isImmersiveModeActive" class="flex justify-between items-center mb-6">
             <h2 class="text-2xl sm:text-3xl font-bold text-slate-800">Daily Review</h2>
 
-            <div class="flex items-center gap-3">
-              <button
-                @click="previousVerse()"
-                :disabled="currentReviewIndex === 0"
-                class="px-4 py-2 bg-white text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-all border border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                Prev
-              </button>
-              <button
-                @click="nextVerse()"
-                :disabled="currentReviewIndex >= dueForReview.length - 1"
-                class="px-4 py-2 bg-white text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-all border border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                Next
-              </button>
-            </div>
+            <button
+              @click="toggleImmersiveMode()"
+              title="Immersive mode (i)"
+              class="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+              <i class="mdi mdi-fullscreen text-2xl"></i>
+            </button>
           </div>
 
           <template v-if="currentReviewVerse">
-            <div ref="reviewCardElement"
-                 class="review-card rounded-xl p-6 sm:p-8 min-h-[400px] flex flex-col justify-between bg-white border-2 border-slate-300 relative mb-40 sm:mb-0"
-                 :style="{
-                   transform: `translateX(${swipeOffset}px)`,
-                   transition: (isSwiping || isPositioning) ? 'none' : isAnimatingExit ? 'transform 0.3s ease-out' : isAnimatingEnter ? 'transform 0.15s ease-out' : 'transform 0.3s ease-out',
-                   touchAction: 'pan-y'
-                 }"
-                 @click="handleCardClick">
+            <!-- Card Container with Navigation Arrows -->
+            <div class="relative">
+              <!-- Left Arrow (Previous) -->
+              <button
+                @click="previousVerse()"
+                :disabled="currentReviewIndex === 0"
+                class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 sm:-translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
+                title="Previous verse (p)">
+                <i class="mdi mdi-chevron-left text-2xl"></i>
+              </button>
 
-              <!-- Progress Indicator (Top Right Corner) -->
-              <div class="absolute top-4 right-4 text-slate-600 text-sm sm:text-base">
-                <span v-text="currentReviewIndex + 1"></span>/<span v-text="dueForReview.length"></span>
-              </div>
+              <!-- Right Arrow (Next) -->
+              <button
+                @click="nextVerse()"
+                :disabled="currentReviewIndex >= dueForReview.length - 1"
+                class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
+                title="Next verse (n)">
+                <i class="mdi mdi-chevron-right text-2xl"></i>
+              </button>
+
+              <!-- Exit Button (X) - Only visible in immersive mode -->
+              <button
+                v-show="isImmersiveModeActive"
+                @click.stop="exitImmersiveMode()"
+                class="absolute top-0 left-0 -translate-y-2.5 -translate-x-2.5 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg hover:bg-slate-200 text-slate-600 hover:text-slate-800 flex items-center justify-center transition-all z-10"
+                title="Exit immersive mode (Esc)">
+                <i class="mdi mdi-close text-xl"></i>
+              </button>
+
+              <!-- Review Card -->
+              <div ref="reviewCardElement"
+                   class="review-card rounded-xl p-6 sm:p-8 min-h-[400px] flex flex-col justify-between bg-white border-2 border-slate-300 relative mb-200 sm:mb-0"
+                   :style="{
+                     transform: `translateX(${swipeOffset}px)`,
+                     transition: (isSwiping || isPositioning) ? 'none' : isAnimatingExit ? 'transform 0.3s ease-out' : isAnimatingEnter ? 'transform 0.15s ease-out' : 'transform 0.3s ease-out',
+                     touchAction: 'pan-y'
+                   }"
+                   @click="handleCardClick">
+
+                <!-- Progress Indicator (Top Right Corner) -->
+                <div class="absolute top-4 right-4 text-slate-600 text-sm sm:text-base">
+                  <span v-text="currentReviewIndex + 1"></span>/<span v-text="dueForReview.length"></span>
+                </div>
 
               <!-- Header: Reference and Translation -->
               <div class="mb-3">
@@ -435,7 +457,9 @@
                 </div>
               </div>
 
-            </div>
+              </div><!-- End review card -->
+
+            </div><!-- End card container with arrows -->
 
           </template>
         </div>
@@ -922,6 +946,11 @@ const {
 
   // Phase 2: Keyboard shortcuts
   handleKeyPress,
+
+  // Immersive mode
+  isImmersiveModeActive,
+  toggleImmersiveMode,
+  exitImmersiveMode,
 
   // Deck-style view mode
   verseViewMode,

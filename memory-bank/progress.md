@@ -108,7 +108,8 @@ MAINTENANCE PRINCIPLES (from .clinerules):
   - [x] Space - Reveal verse OR advance to next
   - [x] 'h' - Activate hints mode / add hint
   - [x] 'f' - Activate first letters mode
-  - [x] Escape - Return to reference mode
+  - [x] 'i' - Toggle immersive mode
+  - [x] Escape - Return to reference mode (or exit immersive mode if active)
 - [x] Mode switching UI
   - [x] Buttons positioned outside/below card (matches legacy)
   - [x] Simple, clean button styling (no emojis)
@@ -117,6 +118,13 @@ MAINTENANCE PRINCIPLES (from .clinerules):
   - [x] Back button | Title | Progress (1/9) | Prev/Next buttons
 - [x] Human-readable time display ("3 weeks" vs "21 days")
 - [x] Tag value formatting in UI ("fast.sk (3)")
+- [x] Immersive review mode (distraction-free focus)
+  - [x] Toggle button with fullscreen icon
+  - [x] Hides all chrome (banner, header, stats, tabs)
+  - [x] Circular arrow navigation on card edges
+  - [x] Exit button in card corner
+  - [x] Smooth fade transitions (300ms)
+  - [x] Deepened gradient background for focus
 
 **UI/UX Enhancements (ALL COMPLETE ✅):**
 - [x] 3-column metadata footer (review category | tags | time)

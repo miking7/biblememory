@@ -59,3 +59,4 @@ This index provides titles and links for reference when needed.
 - **029** - Swipe Gesture Navigation → [previous-work/029_swipe_gesture_navigation.md](previous-work/029_swipe_gesture_navigation.md)
 - **030** - Deck-Style Card View → [previous-work/030_deck_style_card_view.md](previous-work/030_deck_style_card_view.md)
 - **031** - Offline Notification Redesign → [previous-work/031_offline_notification_redesign.md](previous-work/031_offline_notification_redesign.md)
+- **032** - Immersive Review Mode → [previous-work/032_immersive_review_mode.md](previous-work/032_immersive_review_mode.md)
