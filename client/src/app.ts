@@ -7,7 +7,7 @@ import { useSync } from './composables/useSync';
 // Vue.js app function using Composition API with composables
 export function bibleMemoryApp() {
   // Tab state (kept in main app for coordination)
-  const currentTab = ref<'add' | 'list' | 'review'>('add');
+  const currentTab = ref<'add' | 'list' | 'review'>('list');
 
   // Verse list view mode (deck-style feature)
   const verseViewMode = ref<'full' | 'compact'>('full');

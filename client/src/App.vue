@@ -69,6 +69,12 @@
             <p class="text-sm font-semibold text-slate-800 truncate" v-text="userEmail"></p>
           </div>
           <button
+            @click="exportToLegacyAndOpen(); showUserMenu = false"
+            class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
+            <span>⏪</span>
+            <span>Legacy Mode</span>
+          </button>
+          <button
             @click="handleLogout(); showUserMenu = false"
             class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2">
             <span>🚪</span>
@@ -100,13 +106,6 @@
     <div class="-mx-4 sm:mx-0 glass-card rounded-none sm:rounded-2xl shadow-2xl overflow-hidden fade-in">
       <div v-show="!isImmersiveModeActive" class="flex border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 immersive-hideable">
         <button
-          @click="currentTab = 'add'"
-          :class="currentTab === 'add' ? 'active text-blue-700 font-semibold' : 'text-slate-600'"
-          class="tab-button flex-1 py-3 px-2 sm:py-5 sm:px-6 font-medium hover:bg-white/50 transition-all flex flex-col sm:flex-row items-center justify-center">
-          <span class="text-3xl sm:text-xl sm:mr-2">📝</span>
-          <span class="text-xs sm:text-base mt-1 sm:mt-0">Add Verse</span>
-        </button>
-        <button
           @click="currentTab = 'list'"
           :class="currentTab === 'list' ? 'active text-blue-700 font-semibold' : 'text-slate-600'"
           class="tab-button flex-1 py-3 px-2 sm:py-5 sm:px-6 font-medium hover:bg-white/50 transition-all flex flex-col sm:flex-row items-center justify-center">
@@ -124,10 +123,11 @@
                 v-text="dueForReview.length"></span>
         </button>
         <button
-          @click="exportToLegacyAndOpen()"
-          class="tab-button flex-1 py-3 px-2 sm:py-5 sm:px-6 font-medium hover:bg-white/50 transition-all text-slate-600 flex flex-col sm:flex-row items-center justify-center">
-          <span class="text-3xl sm:text-xl sm:mr-2">⏪</span>
-          <span class="text-xs sm:text-base mt-1 sm:mt-0">Legacy...</span>
+          @click="currentTab = 'add'"
+          :class="currentTab === 'add' ? 'active text-blue-700 font-semibold' : 'text-slate-600'"
+          class="tab-button flex-1 py-3 px-2 sm:py-5 sm:px-6 font-medium hover:bg-white/50 transition-all flex flex-col sm:flex-row items-center justify-center">
+          <span class="text-3xl sm:text-xl sm:mr-2">📝</span>
+          <span class="text-xs sm:text-base mt-1 sm:mt-0">Add Verse</span>
         </button>
       </div>
 
