@@ -383,13 +383,24 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - [ ] Migration validation
 - [ ] Rollback capabilities
 
-#### Reference Auto-Parsing
-- [ ] Book name lookup table (66 books)
-- [ ] Reference → refSort conversion
-- [ ] Validation and error handling
-- [ ] Support for verse ranges
-- [ ] Support for chapter references
-- [ ] Auto-complete for book names
+#### Reference Auto-Parsing ✅ (AI-Powered - Complete)
+- [x] Book name lookup table (66 books) - via AI
+- [x] Reference → refSort conversion - via AI
+- [x] Validation and error handling - implemented
+- [x] Support for verse ranges - via AI
+- [x] Support for chapter references - via AI
+- [x] Translation/version detection - via AI
+- [x] Footnote removal and text cleanup - via AI
+- [x] Integration test suite for AI consistency
+- [x] DRY architecture (shared parsing logic)
+
+**Implementation:** Anthropic Claude Haiku AI integration with "Smart Fill" two-step wizard
+**Cost:** ~$0.00005 per verse (~$0.05 per 1000 verses)
+**Speed:** ~1-2 seconds per verse
+**Testing:** Live integration tests with interactive expected file creation
+
+**See:** `memory-bank/previous-work/035_ai_assisted_verse_parsing.md` (Frontend)  
+**See:** `memory-bank/previous-work/036_ai_integration_complete_with_testing.md` (Complete AI + Testing)
 
 ## Current Status
 
