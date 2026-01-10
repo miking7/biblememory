@@ -210,6 +210,12 @@ export function bibleMemoryApp() {
       expandedVerseIds.value.clear();
       expandedVerseIds.value = new Set(); // Trigger reactivity
     }
+    
+    // Reset Add Verse wizard when switching to Add tab
+    if (newTab === 'add') {
+      versesLogic.resetAddVerseWizard();
+      versesLogic.initializeForm();
+    }
   });
 
   // Return everything for template
@@ -249,6 +255,16 @@ export function bibleMemoryApp() {
     setSortBy: versesLogic.setSortBy,
     exportVerses: versesLogic.exportVerses,
     importVerses: versesLogic.importVerses,
+
+    // Add verse wizard (from useVerses)
+    addVerseStep: versesLogic.addVerseStep,
+    pastedText: versesLogic.pastedText,
+    parsingState: versesLogic.parsingState,
+    parsingError: versesLogic.parsingError,
+    resetAddVerseWizard: versesLogic.resetAddVerseWizard,
+    parseVerseWithAI: versesLogic.parseVerseWithAI,
+    skipAIParsing: versesLogic.skipAIParsing,
+    goBackToPaste: versesLogic.goBackToPaste,
 
     // Review (from useReview)
     currentReviewIndex: reviewLogic.currentReviewIndex,

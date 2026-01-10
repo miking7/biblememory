@@ -133,8 +133,84 @@
 
       <!-- Add Verse Tab -->
       <div v-if="currentTab === 'add'" class="p-3 sm:p-8">
-        <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-slate-800">Add New Verse</h2>
-        <form @submit.prevent="addVerse()" class="space-y-5">
+        
+        <!-- Step 1: Paste Verse with AI Parsing -->
+        <div v-if="addVerseStep === 'paste'">
+          <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-slate-800">Add New Verse</h2>
+          
+          <!-- Paste Textarea -->
+          <div class="mb-5">
+            <textarea
+              v-model="pastedText"
+              placeholder="Paste your verse here...&#10;(We'll use AI to infer reference/version info, and to cleanup any cross-references / formatting.)"
+              rows="8"
+              class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all focus:border-blue-500"
+              :disabled="parsingState === 'loading'"
+              @keydown.enter.prevent="parseVerseWithAI()"></textarea>
+          </div>
+
+          <!-- Loading State -->
+          <div v-if="parsingState === 'loading'" class="text-center py-6">
+            <div class="inline-flex items-center gap-3 text-blue-600">
+              <svg class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span class="text-lg font-medium">✨ Parsing your verse...</span>
+            </div>
+          </div>
+
+          <!-- Error State -->
+          <div v-if="parsingState === 'error'" class="mb-5 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+            <p class="text-red-700 font-medium mb-3">⚠️ Unable to parse verse</p>
+            <p class="text-red-600 text-sm mb-4" v-text="parsingError"></p>
+            <div class="flex gap-3">
+              <button
+                type="button"
+                @click="parseVerseWithAI()"
+                class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all font-medium text-sm">
+                Retry
+              </button>
+              <button
+                type="button"
+                @click="skipAIParsing()"
+                class="px-5 py-2.5 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-all font-medium text-sm">
+                Enter Manually
+              </button>
+            </div>
+          </div>
+
+          <!-- Action Buttons (when not loading or error) -->
+          <div v-if="parsingState === 'idle'" class="flex gap-3 items-center">
+            <button
+              type="button"
+              @click="parseVerseWithAI()"
+              class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg flex-shrink-0">
+              Smart Fill ✨
+            </button>
+            <button
+              type="button"
+              @click="skipAIParsing()"
+              class="px-5 py-2.5 text-slate-600 hover:text-slate-800 font-medium transition-all">
+              Skip AI
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: Form with Pre-filled Data -->
+        <div v-if="addVerseStep === 'form'">
+          <!-- Back Button -->
+          <button
+            type="button"
+            @click="goBackToPaste()"
+            class="mb-4 flex items-center gap-2 text-slate-600 hover:text-slate-800 font-medium transition-all">
+            <span>←</span>
+            <span>Back</span>
+          </button>
+
+          <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-slate-800">Add New Verse</h2>
+          
+          <form @submit.prevent="addVerse()" class="space-y-5">
           <div>
             <label class="block text-sm font-semibold text-slate-700 mb-2">Reference</label>
             <input
@@ -190,17 +266,18 @@
               class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
             <p class="text-xs text-slate-500 mt-1">Comma-separated, use key=value for values</p>
           </div>
-          <button
-            type="submit"
-            class="btn-premium w-full text-white py-4 rounded-xl font-semibold text-lg">
-            Add Verse
-          </button>
-        </form>
-        <div v-show="showAddSuccess"
-
-             class="mt-5 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 text-green-700 rounded-xl font-medium">
-          ✓ Verse added successfully!
+            <button
+              type="submit"
+              class="btn-premium w-full text-white py-4 rounded-xl font-semibold text-lg">
+              Add Verse
+            </button>
+          </form>
+          <div v-show="showAddSuccess"
+               class="mt-5 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 text-green-700 rounded-xl font-medium">
+            ✓ Verse added successfully!
+          </div>
         </div>
+
       </div>
 
       <!-- My Verses Tab -->
@@ -960,6 +1037,15 @@ const {
 
   // Card click handler
   handleCardClick,
+
+  // Add verse wizard (from useVerses via app.ts)
+  addVerseStep,
+  pastedText,
+  parsingState,
+  parsingError,
+  parseVerseWithAI,
+  skipAIParsing,
+  goBackToPaste,
 } = bibleMemoryApp();
 
 // Review card ref for swipe functionality (cast to proper type for useSwipe)

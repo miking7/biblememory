@@ -20,6 +20,12 @@ export function useVerses() {
     (localStorage.getItem('verseSortPreference') as any) || 'reference'
   );
 
+  // Add verse wizard state
+  const addVerseStep = ref<'paste' | 'form'>('paste');
+  const pastedText = ref('');
+  const parsingState = ref<'idle' | 'loading' | 'error' | 'success'>('idle');
+  const parsingError = ref('');
+
   // Add verse form
   const newVerse = ref({
     reference: '',
@@ -129,6 +135,101 @@ export function useVerses() {
 
   const initializeForm = () => {
     newVerse.value.startedAtInput = epochToDateString(getTodayMidnight());
+  };
+
+  const resetAddVerseWizard = () => {
+    addVerseStep.value = 'paste';
+    pastedText.value = '';
+    parsingState.value = 'idle';
+    parsingError.value = '';
+  };
+
+  const parseVerseWithAI = async () => {
+    if (!pastedText.value.trim()) {
+      parsingError.value = 'Please paste a verse above';
+      parsingState.value = 'error';
+      return;
+    }
+
+    parsingState.value = 'loading';
+    parsingError.value = '';
+
+    try {
+      // Get auth token
+      const authStore = await import('../db').then(m => m.db.auth.toArray());
+      const token = authStore[0]?.token;
+
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      // Call parse API with 15 second timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      const response = await fetch('/api/parse-verse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': token
+        },
+        body: JSON.stringify({ text: pastedText.value }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Server error');
+      }
+
+      const parsed = await response.json();
+
+      // Pre-fill form with parsed data
+      newVerse.value.reference = parsed.reference || '';
+      newVerse.value.refSort = parsed.refSort || '';
+      newVerse.value.content = parsed.content || pastedText.value;
+      newVerse.value.translation = parsed.translation || '';
+      newVerse.value.tagsInput = Array.isArray(parsed.tags) 
+        ? formatTags(parsed.tags) 
+        : '';
+
+      // Move to form step
+      parsingState.value = 'success';
+      addVerseStep.value = 'form';
+
+    } catch (error: any) {
+      console.error('Parse error:', error);
+      
+      if (error.name === 'AbortError') {
+        parsingError.value = 'Request timed out - please try again or enter manually';
+      } else if (error.message === 'Authentication required') {
+        parsingError.value = 'Please log in to use AI parsing';
+      } else {
+        parsingError.value = error.message || 'Unable to parse verse - please try again or enter manually';
+      }
+      
+      parsingState.value = 'error';
+    }
+  };
+
+  const skipAIParsing = () => {
+    // Pre-fill content with pasted text, leave other fields empty
+    newVerse.value.reference = '';
+    newVerse.value.refSort = '';
+    newVerse.value.content = pastedText.value;
+    newVerse.value.translation = '';
+    newVerse.value.tagsInput = '';
+
+    // Move to form step
+    addVerseStep.value = 'form';
+  };
+
+  const goBackToPaste = () => {
+    addVerseStep.value = 'paste';
+    parsingState.value = 'idle';
+    parsingError.value = '';
   };
 
   const addVerse = async () => {
@@ -356,6 +457,12 @@ export function useVerses() {
     editingVerse,
     importFileRef,
 
+    // Add verse wizard state
+    addVerseStep,
+    pastedText,
+    parsingState,
+    parsingError,
+
     // Computed
     filteredVerses,
     hasVersesButNoSearchResults,
@@ -370,6 +477,12 @@ export function useVerses() {
     formatTagForDisplay,
     setSortBy,
     exportVerses,
-    importVerses
+    importVerses,
+
+    // Add verse wizard methods
+    resetAddVerseWizard,
+    parseVerseWithAI,
+    skipAIParsing,
+    goBackToPaste
   };
 }
