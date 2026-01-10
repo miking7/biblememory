@@ -310,7 +310,7 @@
               <button
                 @click="previousVerse()"
                 :disabled="currentReviewIndex === 0"
-                class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 sm:-translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
+                class="no-zoom absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 sm:-translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
                 title="Previous verse (p)">
                 <i class="mdi mdi-chevron-left text-2xl"></i>
               </button>
@@ -319,7 +319,7 @@
               <button
                 @click="nextVerse()"
                 :disabled="currentReviewIndex >= dueForReview.length - 1"
-                class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
+                class="no-zoom absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
                 title="Next verse (n)">
                 <i class="mdi mdi-chevron-right text-2xl"></i>
               </button>
@@ -328,7 +328,7 @@
               <button
                 v-show="isImmersiveModeActive"
                 @click.stop="exitImmersiveMode()"
-                class="absolute top-0 left-0 -translate-y-2.5 -translate-x-2.5 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg hover:bg-slate-200 text-slate-600 hover:text-slate-800 flex items-center justify-center transition-all z-10"
+                class="no-zoom absolute top-0 left-0 -translate-y-2.5 -translate-x-2.5 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg hover:bg-slate-200 text-slate-600 hover:text-slate-800 flex items-center justify-center transition-all z-10"
                 title="Exit immersive mode (Esc)">
                 <i class="mdi mdi-close text-xl"></i>
               </button>

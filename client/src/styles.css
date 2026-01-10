@@ -379,6 +379,11 @@ input:focus, textarea:focus {
     }
 }
 
+/* Prevent double-tap zoom on mobile Safari */
+.no-zoom {
+    touch-action: manipulation !important;
+}
+
 /* Immersive Mode Styles */
 .immersive-hideable {
     transition: opacity 0.3s ease, transform 0.3s ease;
