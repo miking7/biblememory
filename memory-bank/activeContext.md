@@ -17,7 +17,9 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 **Status:** Ready for new work
 
-**Recently Completed:** Review Source Selection & Actions Menu
+**Recently Completed:** Review Tracking Buttons (Got it! / Again)
+
+The stats display (Reviewed Today, Day Streak) is now connected to explicit user actions via "Got it!" and "Again" buttons that appear after verse reveal.
 
 Next steps: Continue with planned features (Phase 3: Deep Engagement, or other Phase 2 enhancements)
 
@@ -68,3 +70,4 @@ This index provides titles and links for reference when needed.
 - **036** - Complete AI Integration with Testing Suite → [previous-work/036_ai_integration_complete_with_testing.md](previous-work/036_ai_integration_complete_with_testing.md)
 - **037** - Review Source Selection Specification → [previous-work/037_review_source_selection_spec.md](previous-work/037_review_source_selection_spec.md)
 - **038** - Review Source Selection Implementation → [previous-work/038_review_source_selection_implementation.md](previous-work/038_review_source_selection_implementation.md)
+- **039** - Review Tracking Buttons (Got it! / Again) → [previous-work/039_review_tracking_buttons.md](previous-work/039_review_tracking_buttons.md)

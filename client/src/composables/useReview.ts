@@ -97,7 +97,12 @@ export function useReview() {
       currentReviewIndex.value++;
       showVerseText.value = false;
 
-      if (currentReviewIndex.value >= dueForReview.value.length) {
+      // Check completion based on current review source
+      const maxIndex = reviewSource.value === 'daily'
+        ? dueForReview.value.length
+        : filteredReviewVerses.value.length;
+
+      if (currentReviewIndex.value >= maxIndex) {
         reviewComplete.value = true;
       }
 

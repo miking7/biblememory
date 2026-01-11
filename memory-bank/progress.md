@@ -30,7 +30,9 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - Keyboard shortcuts fully integrated (space, n, p, h, f, escape, i)
 - Paragraph/newline preservation working in all modes
 - Flash Cards with horizontal difficulty links (matches legacy)
-- "Got it!" / "Need Practice" properly reset to reference mode
+- **NEW:** Review tracking buttons (Got it! / Again) with stats integration
+- **NEW:** Mode buttons with icons (mobile: icons only for space efficiency)
+- **NEW:** Progressive disclosure (action buttons appear after reveal)
 - **NEW:** Dual review sources (daily queue + filtered lists)
 - **NEW:** Overflow menus for cleaner UI
 - **NEW:** Direct review/edit actions from both tabs
@@ -134,7 +136,13 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - [x] Progress indicator integrated with header
 - [x] Navigation in header (Back, Prev, Next)
 - [x] Card layout matches legacy (left-aligned, clean white background)
-- [x] "Got it!" / "Need Practice" reset to reference mode properly
+- [x] "Got it!" / "Again" buttons with explicit review tracking
+  - [x] Progressive disclosure (appear only after verse fully revealed)
+  - [x] Stats integration (updates Reviewed Today, Day Streak)
+  - [x] Auto-advance to next verse after marking
+  - [x] Green styling for "Got it!", amber for "Again"
+- [x] Mode buttons with icons (mobile: icons only, desktop: icons + text)
+- [x] Smart button dynamic icon (eye for Reveal, chevron for Next)
 - [x] All content left-aligned (not centered)
 
 **Critical Fixes Completed:**

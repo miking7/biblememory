@@ -592,96 +592,41 @@
     </div>
 
     <!-- Review Mode Buttons (Outside overflow-hidden for sticky positioning) -->
-    <div v-if="currentTab === 'review' && dueForReview.length > 0 && !reviewComplete" class="container mx-auto px-4 max-w-5xl">
-      <!-- Mode Buttons -->
-      <!-- Hybrid: Sticky footer on mobile, normal flow on desktop -->
-      <!-- Desktop: Single row -->
-      <div class="hidden sm:flex gap-3 justify-center sm:mt-6 fixed bottom-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-lg p-4 review-mode-sticky-footer sm:relative sm:bottom-auto sm:shadow-none sm:border-none sm:p-0 sm:bg-transparent">
-        <button
-          @click="reviewMode === 'hints' ? addHint() : switchToHints()"
-          :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
-          class="px-5 py-2.5 rounded-lg font-medium transition-all"
-          title="Hint (h)">
-          Hint
-        </button>
-
-        <!-- Flash Cards with +/- buttons (fused when active) -->
-        <div v-if="reviewMode === 'flashcards'" class="flashcard-group-active flex gap-0 rounded-lg">
-          <button
-            @click="decreaseFlashCardDifficulty()"
-            :disabled="!canDecreaseFlashCardDifficulty"
-            :title="canDecreaseFlashCardDifficulty ? 'Decrease difficulty' : 'Already at easiest'"
-            class="flashcard-sub-button-in-group rounded-l-lg"
-            :class="canDecreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'">
-            −
-          </button>
-          <button
-            @click="switchToFlashCards()"
-            :title="getFlashCardLevelName"
-            class="flashcard-main-active px-2 py-2.5 font-medium transition-all">
-            Flash Cards
-          </button>
-          <button
-            @click="increaseFlashCardDifficulty()"
-            :disabled="!canIncreaseFlashCardDifficulty"
-            :title="canIncreaseFlashCardDifficulty ? 'Increase difficulty' : 'Already at hardest'"
-            class="flashcard-sub-button-in-group rounded-r-lg"
-            :class="canIncreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'">
-            +
-          </button>
-        </div>
-        <button
-          v-else
-          @click="switchToFlashCards()"
-          class="mode-button-inactive px-5 py-2.5 rounded-lg font-medium transition-all"
-          title="Flash Cards (c)">
-          Flash Cards
-        </button>
-
-        <button
-          @click="switchToFirstLetters()"
-          :class="reviewMode === 'firstletters' ? 'mode-button-active' : 'mode-button-inactive'"
-          class="px-5 py-2.5 rounded-lg font-medium transition-all"
-          title="First Letters (f)">
-          First Letters
-        </button>
-
-        <button
-          @click="smartButtonAction()"
-          class="mode-button-inactive px-6 py-2.5 rounded-lg font-medium transition-all"
-          style="min-width: 6.5rem;"
-          :title="smartButtonLabel + ' (Space)'">
-          {{ smartButtonLabel }}
-        </button>
-      </div>
-
-      <!-- Mobile: Two rows -->
-      <div class="sm:hidden flex flex-col gap-3 sm:mt-6 fixed bottom-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-lg px-3 py-4 review-mode-sticky-footer">
-        <div class="flex gap-3">
+    <div v-if="currentTab === 'review' && totalReviewCount > 0 && !reviewComplete" class="container mx-auto px-4 max-w-5xl">
+      <!-- Desktop: Mode buttons row + Action buttons row below -->
+      <div class="hidden sm:flex flex-col gap-3 sm:mt-6">
+        <!-- Mode Buttons Row -->
+        <div class="flex gap-3 justify-center">
           <button
             @click="reviewMode === 'hints' ? addHint() : switchToHints()"
             :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
-            class="flex-1 py-2.5 rounded-lg font-medium transition-all text-sm">
-            Hint
+            class="px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
+            title="Hint (h)">
+            <i class="mdi mdi-tooltip-question-outline text-lg"></i>
+            <span>Hint</span>
           </button>
 
           <!-- Flash Cards with +/- buttons (fused when active) -->
-          <div v-if="reviewMode === 'flashcards'" class="flashcard-group-active flex-1 flex gap-0 rounded-lg">
+          <div v-if="reviewMode === 'flashcards'" class="flashcard-group-active flex gap-0 rounded-lg">
             <button
               @click="decreaseFlashCardDifficulty()"
               :disabled="!canDecreaseFlashCardDifficulty"
+              :title="canDecreaseFlashCardDifficulty ? 'Decrease difficulty' : 'Already at easiest'"
               class="flashcard-sub-button-in-group rounded-l-lg"
               :class="canDecreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'">
               −
             </button>
             <button
               @click="switchToFlashCards()"
-              class="flashcard-main-active flex-1 py-2.5 font-medium transition-all text-sm">
-              Flash Cards
+              :title="getFlashCardLevelName"
+              class="flashcard-main-active px-2 py-2.5 font-medium transition-all flex items-center gap-2">
+              <i class="mdi mdi-cards-outline text-lg"></i>
+              <span>Flash Cards</span>
             </button>
             <button
               @click="increaseFlashCardDifficulty()"
               :disabled="!canIncreaseFlashCardDifficulty"
+              :title="canIncreaseFlashCardDifficulty ? 'Increase difficulty' : 'Already at hardest'"
               class="flashcard-sub-button-in-group rounded-r-lg"
               :class="canIncreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'">
               +
@@ -690,22 +635,130 @@
           <button
             v-else
             @click="switchToFlashCards()"
-            class="mode-button-inactive flex-1 py-2.5 rounded-lg font-medium transition-all text-sm">
-            Flash Cards
+            class="mode-button-inactive px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
+            title="Flash Cards (c)">
+            <i class="mdi mdi-cards-outline text-lg"></i>
+            <span>Flash Cards</span>
           </button>
-        </div>
-        <div class="flex gap-3">
+
           <button
             @click="switchToFirstLetters()"
             :class="reviewMode === 'firstletters' ? 'mode-button-active' : 'mode-button-inactive'"
-            class="flex-1 py-2.5 rounded-lg font-medium transition-all text-sm">
-            First Letters
+            class="px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
+            title="First Letters (f)">
+            <i class="mdi mdi-alphabet-latin text-lg"></i>
+            <span>First Letters</span>
           </button>
 
           <button
             @click="smartButtonAction()"
-            class="mode-button-inactive flex-1 py-2.5 rounded-lg font-medium transition-all text-sm">
-            {{ smartButtonLabel }}
+            class="mode-button-inactive px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
+            style="min-width: 6.5rem;"
+            :title="smartButtonLabel + ' (Space)'">
+            <i :class="reviewMode === 'content' ? 'mdi mdi-chevron-right' : 'mdi mdi-eye-outline'" class="text-lg"></i>
+            <span>{{ smartButtonLabel }}</span>
+          </button>
+        </div>
+
+        <!-- Action Buttons Row (Desktop) - Only visible when verse fully revealed -->
+        <div v-show="reviewMode === 'content'" class="flex gap-3 justify-center">
+          <button
+            @click="markReview(false)"
+            class="action-button-again px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
+            title="Need more practice">
+            <i class="mdi mdi-refresh text-lg"></i>
+            <span>Again</span>
+          </button>
+          <button
+            @click="markReview(true)"
+            class="action-button-gotit px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
+            title="I remembered it!">
+            <i class="mdi mdi-check text-lg"></i>
+            <span>Got it!</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile: Sticky footer with action buttons above mode buttons -->
+      <div class="sm:hidden flex flex-col gap-3 fixed bottom-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-lg px-3 py-4 review-mode-sticky-footer">
+        <!-- Action Buttons Row (Mobile) - Only visible when verse fully revealed -->
+        <div v-show="reviewMode === 'content'" class="flex gap-3">
+          <button
+            @click="markReview(false)"
+            class="action-button-again flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
+            title="Need more practice">
+            <i class="mdi mdi-refresh text-lg"></i>
+            <span>Again</span>
+          </button>
+          <button
+            @click="markReview(true)"
+            class="action-button-gotit flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
+            title="I remembered it!">
+            <i class="mdi mdi-check text-lg"></i>
+            <span>Got it!</span>
+          </button>
+        </div>
+
+        <!-- Mode Buttons Row (Mobile) - Icons only, all 4 on one row -->
+        <div class="flex gap-2">
+          <button
+            @click="reviewMode === 'hints' ? addHint() : switchToHints()"
+            :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
+            class="flex-1 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
+            title="Hint (h)"
+            aria-label="Hint">
+            <i class="mdi mdi-tooltip-question-outline text-xl"></i>
+          </button>
+
+          <!-- Flash Cards with +/- buttons (fused when active) -->
+          <div v-if="reviewMode === 'flashcards'" class="flashcard-group-active flex-1 flex gap-0 rounded-lg">
+            <button
+              @click="decreaseFlashCardDifficulty()"
+              :disabled="!canDecreaseFlashCardDifficulty"
+              class="flashcard-sub-button-in-group rounded-l-lg px-2"
+              :class="canDecreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'"
+              aria-label="Decrease difficulty">
+              −
+            </button>
+            <button
+              @click="switchToFlashCards()"
+              class="flashcard-main-active flex-1 py-2.5 font-medium transition-all flex items-center justify-center"
+              aria-label="Flash Cards">
+              <i class="mdi mdi-cards-outline text-xl"></i>
+            </button>
+            <button
+              @click="increaseFlashCardDifficulty()"
+              :disabled="!canIncreaseFlashCardDifficulty"
+              class="flashcard-sub-button-in-group rounded-r-lg px-2"
+              :class="canIncreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'"
+              aria-label="Increase difficulty">
+              +
+            </button>
+          </div>
+          <button
+            v-else
+            @click="switchToFlashCards()"
+            class="mode-button-inactive flex-1 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
+            title="Flash Cards (c)"
+            aria-label="Flash Cards">
+            <i class="mdi mdi-cards-outline text-xl"></i>
+          </button>
+
+          <button
+            @click="switchToFirstLetters()"
+            :class="reviewMode === 'firstletters' ? 'mode-button-active' : 'mode-button-inactive'"
+            class="flex-1 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
+            title="First Letters (f)"
+            aria-label="First Letters">
+            <i class="mdi mdi-alphabet-latin text-xl"></i>
+          </button>
+
+          <button
+            @click="smartButtonAction()"
+            class="mode-button-inactive flex-1 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
+            :title="smartButtonLabel + ' (Space)'"
+            :aria-label="smartButtonLabel">
+            <i :class="reviewMode === 'content' ? 'mdi mdi-chevron-right' : 'mdi mdi-eye-outline'" class="text-xl"></i>
           </button>
         </div>
       </div>
