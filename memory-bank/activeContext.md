@@ -17,15 +17,9 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 **Status:** Ready for new work
 
-**Recently Completed:** Complete AI Integration with Testing Suite
+**Recently Completed:** Review Source Selection & Actions Menu
 
-The AI-assisted verse parsing feature is now fully functional with:
-- Live Anthropic API integration (Claude Haiku model)
-- DRY-compliant architecture (shared parsing logic)
-- Integration test suite for validating AI consistency
-- Interactive expected file creation workflow
-
-Next steps: Continue with other features.
+Next steps: Continue with planned features (Phase 3: Deep Engagement, or other Phase 2 enhancements)
 
 ## Previous Work Index (Complete Archive)
 
@@ -72,3 +66,5 @@ This index provides titles and links for reference when needed.
 - **034** - Legacy Mode UI Relocation → [previous-work/034_legacy_mode_ui_relocation.md](previous-work/034_legacy_mode_ui_relocation.md)
 - **035** - AI-Assisted Verse Parsing (Frontend Only) → [previous-work/035_ai_assisted_verse_parsing.md](previous-work/035_ai_assisted_verse_parsing.md)
 - **036** - Complete AI Integration with Testing Suite → [previous-work/036_ai_integration_complete_with_testing.md](previous-work/036_ai_integration_complete_with_testing.md)
+- **037** - Review Source Selection Specification → [previous-work/037_review_source_selection_spec.md](previous-work/037_review_source_selection_spec.md)
+- **038** - Review Source Selection Implementation → [previous-work/038_review_source_selection_implementation.md](previous-work/038_review_source_selection_implementation.md)

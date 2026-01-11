@@ -72,6 +72,7 @@ export function bibleMemoryApp() {
 
     // Load data
     await versesLogic.loadVerses();
+    await reviewLogic.loadReviewVerses(); // Load review verses on init
     await reviewLogic.updateStats();
 
     // Start sync if authenticated
@@ -185,6 +186,50 @@ export function bibleMemoryApp() {
     }
   };
 
+  // Review source selection handlers
+  const startReviewFromFiltered = () => {
+    // Capture current filtered verses and switch to Review tab
+    const currentFiltered = versesLogic.filteredVerses.value;
+    if (currentFiltered.length === 0) {
+      alert('No verses to review in current filter!');
+      return;
+    }
+    
+    reviewLogic.startFilteredReview(currentFiltered);
+    currentTab.value = 'review';
+  };
+
+  const startReviewAtVerse = (verseId: string) => {
+    // Find verse in current filtered list
+    const currentFiltered = versesLogic.filteredVerses.value;
+    const verseIndex = currentFiltered.findIndex(v => v.id === verseId);
+    
+    if (verseIndex === -1) {
+      alert('Verse not found in current filter!');
+      return;
+    }
+    
+    reviewLogic.startFilteredReview(currentFiltered, verseIndex);
+    currentTab.value = 'review';
+  };
+
+  // Wrapper for saveEditVerse that also refreshes the review card
+  const saveEditVerseAndRefresh = async () => {
+    const editingId = versesLogic.editingVerse.value?.id;
+    
+    // Call the original save function
+    await versesLogic.saveEditVerse();
+    
+    // After save, refresh the review card if we're in review mode
+    if (editingId && currentTab.value === 'review') {
+      // Find the updated verse in the main verses array
+      const updatedVerse = versesLogic.verses.value.find(v => v.id === editingId);
+      if (updatedVerse) {
+        reviewLogic.refreshCurrentVerse(updatedVerse);
+      }
+    }
+  };
+
   // Load view mode from localStorage on mount
   onMounted(() => {
     const savedViewMode = localStorage.getItem('verseViewMode');
@@ -250,7 +295,7 @@ export function bibleMemoryApp() {
     hasVersesButNoSearchResults: versesLogic.hasVersesButNoSearchResults,
     addVerse: versesLogic.addVerse,
     startEditVerse: versesLogic.startEditVerse,
-    saveEditVerse: versesLogic.saveEditVerse,
+    saveEditVerse: saveEditVerseAndRefresh,
     deleteVerse: versesLogic.deleteVerse,
     setSortBy: versesLogic.setSortBy,
     exportVerses: versesLogic.exportVerses,
@@ -274,9 +319,15 @@ export function bibleMemoryApp() {
     reviewedToday: reviewLogic.reviewedToday,
     currentStreak: reviewLogic.currentStreak,
     currentReviewVerse: reviewLogic.currentReviewVerse,
+    totalReviewCount: reviewLogic.totalReviewCount,
+    reviewSource: reviewLogic.reviewSource,
+    filteredReviewVerses: reviewLogic.filteredReviewVerses,
     loadReviewVerses: reviewLogic.loadReviewVerses,
     markReview: reviewLogic.markReview,
     resetReview: reviewLogic.resetReview,
+    startFilteredReview: reviewLogic.startFilteredReview,
+    returnToDailyReview: reviewLogic.returnToDailyReview,
+    refreshCurrentVerse: reviewLogic.refreshCurrentVerse,
 
     // Phase 2: Review modes
     reviewMode: reviewLogic.reviewMode,
@@ -306,6 +357,7 @@ export function bibleMemoryApp() {
     nextVerse: reviewLogic.nextVerse,
     previousVerse: reviewLogic.previousVerse,
     getHumanReadableTime: reviewLogic.getHumanReadableTime,
+    getAbbreviatedAge: reviewLogic.getAbbreviatedAge,
     getReviewCategory: reviewLogic.getReviewCategory,
     formatTagForDisplay: reviewLogic.formatTagForDisplay,
     getReferenceWords: reviewLogic.getReferenceWords,
@@ -339,6 +391,10 @@ export function bibleMemoryApp() {
     exportToLegacyAndOpen,
 
     // Card click handler
-    handleCardClick
+    handleCardClick,
+
+    // Review source selection handlers
+    startReviewFromFiltered,
+    startReviewAtVerse
   };
 }

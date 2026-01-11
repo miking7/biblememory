@@ -23,6 +23,10 @@ export function useReview() {
   const reviewComplete = ref(false);
   const dueForReview = ref<Verse[]>([]);
 
+  // Review source selection state
+  const reviewSource = ref<'daily' | 'filtered'>('daily');
+  const filteredReviewVerses = ref<Verse[]>([]);
+
   // Phase 2: Review mode state
   const reviewMode = ref<ReviewMode>('reference');
   const hintsShown = ref(0);
@@ -40,16 +44,30 @@ export function useReview() {
 
   // Computed
   const currentReviewVerse = computed(() => {
-    if (currentReviewIndex.value < dueForReview.value.length) {
-      return dueForReview.value[currentReviewIndex.value];
+    const verses = reviewSource.value === 'daily' 
+      ? dueForReview.value 
+      : filteredReviewVerses.value;
+    
+    if (currentReviewIndex.value < verses.length) {
+      return verses[currentReviewIndex.value];
     }
     return null;
   });
 
+  const totalReviewCount = computed(() => {
+    return reviewSource.value === 'daily'
+      ? dueForReview.value.length
+      : filteredReviewVerses.value.length;
+  });
+
   // Methods
-  const loadReviewVerses = async () => {
+  const loadReviewVerses = async (forceRegenerate: boolean = false) => {
     try {
-      dueForReview.value = await getVersesForReview();
+      // Only regenerate if forced OR if no daily review exists yet
+      if (forceRegenerate || dueForReview.value.length === 0) {
+        dueForReview.value = await getVersesForReview();
+      }
+      // Otherwise, keep existing daily review list (maintain progress)
     } catch (error) {
       console.error("Failed to load review verses:", error);
     }
@@ -94,7 +112,12 @@ export function useReview() {
     showVerseText.value = false;
     reviewComplete.value = false;
     switchToReference();
-    loadReviewVerses();
+    
+    // Only regenerate daily review if in daily mode
+    if (reviewSource.value === 'daily') {
+      loadReviewVerses(true); // Force regenerate
+    }
+    // For filtered mode, just restart same list (no regeneration)
   };
 
   // Phase 2: Mode switching functions
@@ -393,7 +416,11 @@ export function useReview() {
   const nextVerse = () => {
     currentReviewIndex.value++;
     switchToReference();
-    if (currentReviewIndex.value >= dueForReview.value.length) {
+    const maxIndex = reviewSource.value === 'daily'
+      ? dueForReview.value.length
+      : filteredReviewVerses.value.length;
+    
+    if (currentReviewIndex.value >= maxIndex) {
       reviewComplete.value = true;
     }
   };
@@ -478,6 +505,26 @@ export function useReview() {
     return `${years} year${years > 1 ? 's' : ''}`;
   };
 
+  // Phase 2: Helper for abbreviated age (for review tab footer)
+  const getAbbreviatedAge = (startedAt: number | undefined): string => {
+    if (!startedAt) return '';
+    
+    const now = Date.now();
+    const days = Math.floor((now - startedAt) / (1000 * 60 * 60 * 24));
+    
+    if (days < 14) return `${days}d`;
+    if (days < 56) {
+      const weeks = Math.floor(days / 7);
+      return `${weeks}w`;
+    }
+    if (days < 336) { // < 11 months
+      const months = Math.floor(days / 30.4);
+      return `${months}m`;
+    }
+    const years = Math.floor(days / 365.25);
+    return `${years}y`;
+  };
+
   // Phase 2: Helper for review category display
   const getReviewCategory = (verse: Verse | null): string => {
     if (!verse || !verse.reviewCat) return '';
@@ -539,6 +586,42 @@ export function useReview() {
     isImmersiveModeActive.value = false;
   };
 
+  // Review source selection methods
+  const startFilteredReview = (verses: Verse[], startIndex: number = 0) => {
+    reviewSource.value = 'filtered';
+    filteredReviewVerses.value = [...verses]; // Snapshot (frozen array)
+    currentReviewIndex.value = startIndex;
+    reviewComplete.value = false;
+    switchToReference();
+  };
+
+  const returnToDailyReview = () => {
+    reviewSource.value = 'daily';
+    filteredReviewVerses.value = [];
+    currentReviewIndex.value = 0;
+    reviewComplete.value = false;
+    switchToReference();
+    // Maintain existing daily review progress (don't regenerate)
+  };
+
+  // Method to refresh current verse after edit
+  const refreshCurrentVerse = (updatedVerse: Verse) => {
+    // Update in daily review if that's the current source
+    if (reviewSource.value === 'daily') {
+      const index = dueForReview.value.findIndex(v => v.id === updatedVerse.id);
+      if (index !== -1) {
+        dueForReview.value[index] = updatedVerse;
+      }
+    } 
+    // Update in filtered review if that's the current source
+    else {
+      const index = filteredReviewVerses.value.findIndex(v => v.id === updatedVerse.id);
+      if (index !== -1) {
+        filteredReviewVerses.value[index] = updatedVerse;
+      }
+    }
+  };
+
   return {
     // State
     currentReviewIndex,
@@ -547,6 +630,10 @@ export function useReview() {
     dueForReview,
     reviewedToday,
     currentStreak,
+
+    // Review source selection state
+    reviewSource,
+    filteredReviewVerses,
 
     // Phase 2: Review mode state
     reviewMode,
@@ -561,6 +648,7 @@ export function useReview() {
 
     // Computed
     currentReviewVerse,
+    totalReviewCount,
     canIncreaseFlashCardDifficulty,
     canDecreaseFlashCardDifficulty,
     getFlashCardLevelName,
@@ -600,6 +688,7 @@ export function useReview() {
 
     // Phase 2: UI helpers
     getHumanReadableTime,
+    getAbbreviatedAge,
     getReviewCategory,
     formatTagForDisplay,
     getReferenceWords,
@@ -608,6 +697,11 @@ export function useReview() {
 
     // Immersive mode
     toggleImmersiveMode,
-    exitImmersiveMode
+    exitImmersiveMode,
+
+    // Review source selection
+    startFilteredReview,
+    returnToDailyReview,
+    refreshCurrentVerse
   };
 }

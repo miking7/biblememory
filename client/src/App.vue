@@ -113,12 +113,12 @@
           <span class="text-xs sm:text-base mt-1 sm:mt-0">My Verses</span>
         </button>
         <button
-          @click="currentTab = 'review'; loadReviewVerses()"
+          @click="currentTab = 'review'; returnToDailyReview(); loadReviewVerses()"
           :class="currentTab === 'review' ? 'active text-blue-700 font-semibold' : 'text-slate-600'"
           class="tab-button flex-1 py-3 px-2 sm:py-5 sm:px-6 font-medium hover:bg-white/50 transition-all relative flex flex-col sm:flex-row items-center justify-center">
           <span class="text-3xl sm:text-xl sm:mr-2">🎯</span>
           <span class="text-xs sm:text-base mt-1 sm:mt-0">Review</span>
-          <span v-show="dueForReview.length > 0"
+          <span v-show="reviewSource === 'daily' && dueForReview.length > 0"
                 class="badge-notification absolute top-3 right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-lg"
                 v-text="dueForReview.length"></span>
         </button>
@@ -282,22 +282,45 @@
 
       <!-- My Verses Tab -->
       <div v-if="currentTab === 'list'" class="p-3 sm:p-8">
-        <div class="flex justify-between items-center mb-6">
+        <div class="mb-6 relative">
           <h2 class="text-2xl sm:text-3xl font-bold text-slate-800">My Verses</h2>
-          <div class="space-x-3">
+          
+          <!-- Settings Menu (cog icon) -->
+          <div class="absolute top-0 right-0"
+               v-click-outside="() => showMyVersesMenu = false">
             <button
-              @click="exportVerses()"
-              class="px-5 py-2.5 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg hover:shadow-lg transition-all font-medium text-sm">
-              Export
+              @click="showMyVersesMenu = !showMyVersesMenu"
+              class="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+              title="Options">
+              <i class="mdi mdi-cog text-2xl"></i>
             </button>
-            <button
-              @click="importFileRef?.click()"
-              class="px-5 py-2.5 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg hover:shadow-lg transition-all font-medium text-sm">
-              Import
-            </button>
+
+            <!-- Dropdown Menu -->
+            <div v-show="showMyVersesMenu"
+                 class="absolute right-0 mt-2 glass-card rounded-xl shadow-2xl overflow-hidden z-50 min-w-[180px]">
+              <button
+                @click="startReviewFromFiltered(); showMyVersesMenu = false"
+                class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
+                <span>🎯</span>
+                <span>Review These</span>
+              </button>
+              <button
+                @click="exportVerses(); showMyVersesMenu = false"
+                class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
+                <span>📥</span>
+                <span>Export</span>
+              </button>
+              <button
+                @click="importFileRef?.click(); showMyVersesMenu = false"
+                class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2">
+                <span>📤</span>
+                <span>Import</span>
+              </button>
+            </div>
             <input type="file" ref="importFileRef" @change="importVerses($event)" accept=".json" class="hidden">
           </div>
         </div>
+
 
         <div class="flex gap-2 mb-6">
           <input
@@ -354,6 +377,7 @@
             @edit="startEditVerse"
             @delete="deleteVerse"
             @toggle-expand="toggleVerseExpansion"
+            @review-this="startReviewAtVerse"
           />
         </div>
       </div>
@@ -361,16 +385,27 @@
       <!-- Review Tab -->
       <div v-if="currentTab === 'review'" class="p-3 sm:p-8">
 
-        <div v-show="dueForReview.length === 0" class="text-center py-16">
+        <div v-show="totalReviewCount === 0" class="text-center py-16">
           <div class="text-5xl sm:text-7xl mb-4">🎉</div>
           <p class="text-xl sm:text-2xl text-slate-700 mb-2 font-semibold">All caught up!</p>
           <p class="text-slate-500 text-lg">No verses due for review today.</p>
         </div>
 
-        <div v-show="dueForReview.length > 0 && !reviewComplete">
-          <!-- Header: Title + Immersive Toggle (only shown when not in immersive mode) -->
+        <div v-show="totalReviewCount > 0 && !reviewComplete">
+          <!-- Header: Title + Back Button (filtered mode) + Immersive Toggle -->
           <div v-show="!isImmersiveModeActive" class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl sm:text-3xl font-bold text-slate-800">Daily Review</h2>
+            <div class="flex items-center gap-3">
+              <h2 class="text-2xl sm:text-3xl font-bold text-slate-800">
+                {{ reviewSource === 'filtered' ? 'Filtered Review' : 'Daily Review' }}
+              </h2>
+              <button
+                v-if="reviewSource === 'filtered'"
+                @click="returnToDailyReview()"
+                class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:bg-blue-50 px-3 py-1 rounded transition-all flex items-center gap-1">
+                <i class="mdi mdi-arrow-left"></i>
+                <span>back</span>
+              </button>
+            </div>
 
             <button
               @click="toggleImmersiveMode()"
@@ -395,7 +430,7 @@
               <!-- Right Arrow (Next) -->
               <button
                 @click="nextVerse()"
-                :disabled="currentReviewIndex >= dueForReview.length - 1"
+                :disabled="currentReviewIndex >= totalReviewCount - 1"
                 class="no-zoom absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
                 title="Next verse (n)">
                 <i class="mdi mdi-chevron-right text-2xl"></i>
@@ -420,16 +455,12 @@
                    }"
                    @click="handleCardClick">
 
-                <!-- Progress Indicator (Top Right Corner) -->
-                <div class="absolute top-4 right-4 text-slate-600 text-sm sm:text-base">
-                  <span v-text="currentReviewIndex + 1"></span>/<span v-text="dueForReview.length"></span>
-                </div>
-
-              <!-- Header: Reference and Translation -->
+              <!-- Header: Reference, Translation, and Edit Icon -->
               <div class="mb-3">
-                <div class="flex flex-wrap items-center gap-2">
-                  <!-- Flash Cards Mode: Reference with potential hiding -->
-                  <h3 v-if="reviewMode === 'flashcards'" class="font-bold text-lg sm:text-xl text-slate-800">
+                <div class="flex justify-between items-start">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <!-- Flash Cards Mode: Reference with potential hiding -->
+                    <h3 v-if="reviewMode === 'flashcards'" class="font-bold text-lg sm:text-xl text-slate-800">
                     <template v-for="(word, index) in getReferenceWords()" :key="'ref-' + index">
                       <br v-if="word.str === '\n'">
                       <span
@@ -445,12 +476,21 @@
                       <span v-else>{{ word.str }}</span>
                     </template>
                   </h3>
-                  <!-- All Other Modes: Normal reference display -->
-                  <h3 v-else class="font-bold text-lg sm:text-xl text-slate-800" v-text="currentReviewVerse.reference"></h3>
+                    <!-- All Other Modes: Normal reference display -->
+                    <h3 v-else class="font-bold text-lg sm:text-xl text-slate-800" v-text="currentReviewVerse.reference"></h3>
 
-                  <span v-show="currentReviewVerse.translation"
-                        class="text-xs text-slate-500 font-medium px-2 py-1 bg-slate-100 rounded"
-                        v-text="currentReviewVerse.translation"></span>
+                    <span v-show="currentReviewVerse.translation"
+                          class="text-xs text-slate-500 font-medium px-2 py-1 bg-slate-100 rounded"
+                          v-text="currentReviewVerse.translation"></span>
+                  </div>
+
+                  <!-- Edit Icon (Top Right) -->
+                  <button
+                    @click.stop="startEditVerse(currentReviewVerse)"
+                    class="px-2 py-1 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                    title="Edit verse">
+                    <i class="mdi mdi-pencil text-xl"></i>
+                  </button>
                 </div>
               </div>
 
@@ -516,21 +556,18 @@
 
               </div>
 
-              <!-- 3-Column Metadata Footer -->
-              <div class="grid grid-cols-3 gap-4 text-sm text-slate-500 mt-2">
-                <div class="text-left">
-                  <span class="capitalize" v-text="getReviewCategory(currentReviewVerse)"></span>
-                </div>
-                <div class="text-center">
-                  <template v-if="currentReviewVerse.tags && currentReviewVerse.tags.length > 0">
-                    <span v-for="(tag, idx) in currentReviewVerse.tags" :key="tag.key">
-                      <span class="text-purple-700">{{ formatTagForDisplay(tag) }}</span>
-                      <span v-if="idx < currentReviewVerse.tags.length - 1">, </span>
-                    </span>
+              <!-- Metadata Footer (styled like My Verses cards) -->
+              <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-medium mt-2">
+                <span v-text="getAbbreviatedAge(currentReviewVerse.startedAt || undefined)"></span>
+                <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded" v-text="getReviewCategory(currentReviewVerse)"></span>
+                <template v-if="currentReviewVerse.tags && currentReviewVerse.tags.length > 0">
+                  <template v-for="tag in currentReviewVerse.tags" :key="tag.key">
+                    <span class="px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs font-medium"
+                          v-text="formatTagForDisplay(tag)"></span>
                   </template>
-                </div>
-                <div class="text-right">
-                  <span v-text="getHumanReadableTime(currentReviewVerse.startedAt || undefined)"></span>
+                </template>
+                <div class="ml-auto text-slate-600 font-medium">
+                  <span v-text="currentReviewIndex + 1"></span>/<span v-text="totalReviewCount"></span>
                 </div>
               </div>
 
@@ -970,10 +1007,15 @@ const {
   flashcardRevealedWords,
   firstLettersRevealedGroups,
 
+  // Review source selection state
+  reviewSource,
+  filteredReviewVerses,
+
   // Computed
   filteredVerses,
   hasVersesButNoSearchResults,
   hasSyncIssues,
+  totalReviewCount,
 
   // Methods
   addVerse,
@@ -1016,10 +1058,12 @@ const {
   nextVerse,
   previousVerse,
   getHumanReadableTime,
+  getAbbreviatedAge,
   getReviewCategory,
   getReferenceWords,
   getContentWordsStartIndex,
   smartButtonAction,
+  returnToDailyReview,
 
   // Phase 2: Keyboard shortcuts
   handleKeyPress,
@@ -1046,7 +1090,14 @@ const {
   parseVerseWithAI,
   skipAIParsing,
   goBackToPaste,
+
+  // Review source selection handlers
+  startReviewFromFiltered,
+  startReviewAtVerse,
 } = bibleMemoryApp();
+
+// Local state for My Verses menu
+const showMyVersesMenu = ref(false);
 
 // Review card ref for swipe functionality (cast to proper type for useSwipe)
 const reviewCardElement = ref<HTMLElement | null>(null) as Ref<HTMLElement | null>;

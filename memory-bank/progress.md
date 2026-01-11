@@ -10,7 +10,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - This file should answer "where are we in the project?"
 -->
 
-## Current Status: Phase 2 Refinements Complete ✅ (Enhanced Review - Polished Implementation)
+## Current Status: Phase 2+ Complete ✅ (Enhanced Review + Flexible Review Workflows)
 
 ## What Works
 
@@ -22,15 +22,18 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - CRUD operations for verses working
 - Ready for daily use with basic memorization workflow
 
-### ✅ Phase 2 Refinements Complete (Enhanced Review - Polished Implementation)
+### ✅ Phase 2+ Complete (Enhanced Review + Flexible Review Workflows)
 
 **What This Means:**
 - All 5 review modes fully functional with legacy UX matching
 - Layout refined to match legacy app (left-aligned, clean design)
-- Keyboard shortcuts fully integrated (space, n, p, h, f, escape)
+- Keyboard shortcuts fully integrated (space, n, p, h, f, escape, i)
 - Paragraph/newline preservation working in all modes
 - Flash Cards with horizontal difficulty links (matches legacy)
 - "Got it!" / "Need Practice" properly reset to reference mode
+- **NEW:** Dual review sources (daily queue + filtered lists)
+- **NEW:** Overflow menus for cleaner UI
+- **NEW:** Direct review/edit actions from both tabs
 - Ready for comprehensive testing and daily use
 
 #### Implemented Features
@@ -143,12 +146,33 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - ✅ Flash Cards hides reference parts (not shortens) - matches legacy exactly
 - ✅ Flash Cards spacing and punctuation handling (WordItem refactor) - matches legacy exactly
 - ✅ First Letters hyphen handling (major rewrite using state-machine) - context-dependent behavior
+- ✅ Review source selection (dual sources with clean state management)
+- ✅ Card footer styling unified across tabs
+- ✅ Dropdown z-index issues resolved (card elevation pattern)
+
+**Review Source Selection Features (NEW ✅):**
+- [x] Settings cog menu in My Verses header
+- [x] Three-dot overflow menu on verse cards
+- [x] "Review These" action (review filtered list from start)
+- [x] "Review This" action (review filtered list from selected verse)
+- [x] Dynamic review header (Daily Review vs Filtered Review)
+- [x] Back button in filtered mode
+- [x] Badge visibility by mode (daily only)
+- [x] Pencil icon for editing during review
+- [x] Edit refresh (changes appear immediately)
+- [x] Unified footer styling (flattened layout, proper wrapping)
+- [x] Abbreviated age display (2d, 3w, 5m, 15y)
+- [x] Progress indicator in footer (right-aligned)
+- [x] Z-index handling (card elevation pattern)
+- [x] Review initialization on app load
 
 **Testing Needed:**
 - [ ] Mobile touch targets and responsive design
 - [ ] Multi-paragraph verses in all modes
 - [ ] Keyboard shortcuts in various scenarios
 - [ ] Edge cases (long verses, special characters)
+- [ ] Review source switching edge cases
+- [ ] Dropdown menu behavior on mobile
 
 ### ⏳ Planned - Phase 3: Deep Engagement (2-3 weeks)
 **Goal:** Integrate reflection and application tools
