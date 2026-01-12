@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { updateReviewCache } from "./actions";
 
 const API_BASE = "/api";
 
@@ -125,12 +126,20 @@ export async function pullOps(): Promise<void> {
             }
           } else if (op.entity === "review" && op.action === "add") {
             // Reviews are append-only
+            const reviewTimestamp = op.data.createdAt || op.ts_server || op.ts_client;
             await db.reviews.put({
               id: op.data.id || op.op_id,
               verseId: op.data.verseId,
               reviewType: op.data.reviewType,
-              createdAt: op.data.createdAt || op.ts_server || op.ts_client
+              createdAt: reviewTimestamp
             });
+
+            // Update review cache for visual feedback (if review is from today)
+            updateReviewCache(
+              op.data.verseId,
+              op.data.reviewType as 'recall' | 'practice',
+              reviewTimestamp
+            );
           } else if (op.entity === "setting" && op.action === "set") {
             // Settings use LWW
             const existing = await db.settings.get(op.data.key);

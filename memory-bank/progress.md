@@ -30,7 +30,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - Keyboard shortcuts fully integrated (space, n, p, h, f, escape, i)
 - Paragraph/newline preservation working in all modes
 - Flash Cards with horizontal difficulty links (matches legacy)
-- **NEW:** Review tracking buttons (Got it! / Again) with stats integration
+- **NEW:** Review tracking buttons (Got it! / Again) with stats integration and visual feedback
 - **NEW:** Mode buttons with icons (mobile: icons only for space efficiency)
 - **NEW:** Progressive disclosure (action buttons appear after reveal)
 - **NEW:** Dual review sources (daily queue + filtered lists)
@@ -141,6 +141,10 @@ MAINTENANCE PRINCIPLES (from .clinerules):
   - [x] Stats integration (updates Reviewed Today, Day Streak)
   - [x] Auto-advance to next verse after marking
   - [x] Green styling for "Got it!", amber for "Again"
+  - [x] **Visual feedback**: Green/amber card tint shows today's review status
+  - [x] 400ms delay on button press for visual confirmation before advancing
+  - [x] Review status persists across navigation and page refresh
+  - [x] Visual feedback extended to My Verses tab (at-a-glance review progress)
 - [x] Mode buttons with icons (mobile: icons only, desktop: icons + text)
 - [x] Smart button dynamic icon (eye for Reveal, chevron for Next)
 - [x] All content left-aligned (not centered)

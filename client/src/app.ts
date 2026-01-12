@@ -73,7 +73,9 @@ export function bibleMemoryApp() {
     // Load data
     await versesLogic.loadVerses();
     await reviewLogic.loadReviewVerses(); // Load review verses on init
+    await reviewLogic.initReviewCache(); // Load today's reviews into cache
     await reviewLogic.updateStats();
+    await reviewLogic.updateCurrentVerseReviewStatus(); // Set initial status
 
     // Start sync if authenticated
     if (auth.isAuthenticated.value) {
@@ -318,6 +320,7 @@ export function bibleMemoryApp() {
     dueForReview: reviewLogic.dueForReview,
     reviewedToday: reviewLogic.reviewedToday,
     currentStreak: reviewLogic.currentStreak,
+    currentVerseReviewStatus: reviewLogic.currentVerseReviewStatus,
     currentReviewVerse: reviewLogic.currentReviewVerse,
     totalReviewCount: reviewLogic.totalReviewCount,
     reviewSource: reviewLogic.reviewSource,

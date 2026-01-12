@@ -1,10 +1,12 @@
 <template>
-  <div 
+  <div
     :class="[
       'verse-card bg-gradient-to-br from-white to-slate-50 shadow-md transition-all',
       isCompact ? 'verse-card-compact rounded-t-xl' : 'verse-card-full rounded-xl',
       isExpanded ? 'verse-card-full-compact-mode-adjustment' : '',
-      showMenu ? 'relative z-50' : 'relative'
+      showMenu ? 'relative z-50' : 'relative',
+      reviewStatus === 'recall' ? 'review-card-gotit' : '',
+      reviewStatus === 'practice' ? 'review-card-again' : ''
     ]"
     @click="handleCardClick">
     
@@ -83,6 +85,7 @@ const props = defineProps<{
   verse: Verse;
   viewMode?: 'full' | 'compact';
   isExpanded?: boolean;
+  reviewStatus?: 'recall' | 'practice' | null;
 }>();
 
 const isCompact = computed(() => props.viewMode === 'compact' && !props.isExpanded);

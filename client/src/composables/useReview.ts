@@ -1,10 +1,15 @@
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Verse } from '../db';
 import {
   recordReview as recordReviewAction,
   getVersesForReview,
   getTodayReviewCount,
-  getCurrentStreak
+  getCurrentStreak,
+  loadTodaysReviewsIntoCache,
+  updateReviewCache,
+  getCachedReviewStatus,
+  getRecentReviewStatus,
+  RecentReviewEntry
 } from '../actions';
 import { getFirstLettersChunks } from '../utils/firstLetters';
 
@@ -41,6 +46,9 @@ export function useReview() {
   // Stats
   const reviewedToday = ref(0);
   const currentStreak = ref(0);
+
+  // Review status visual feedback (for "reviewed today" indicator)
+  const currentVerseReviewStatus = ref<RecentReviewEntry | null>(null);
 
   // Computed
   const currentReviewVerse = computed(() => {
@@ -82,14 +90,60 @@ export function useReview() {
     }
   };
 
+  // Update review status for current verse (checks cache then DB)
+  const updateCurrentVerseReviewStatus = async () => {
+    const verse = currentReviewVerse.value;
+    if (!verse) {
+      currentVerseReviewStatus.value = null;
+      return;
+    }
+
+    // Try cache first (synchronous)
+    const cached = getCachedReviewStatus(verse.id);
+    if (cached) {
+      currentVerseReviewStatus.value = cached;
+      return;
+    }
+
+    // Fall back to DB query
+    currentVerseReviewStatus.value = await getRecentReviewStatus(verse.id);
+  };
+
+  // Watch for verse changes and update review status automatically
+  watch(currentReviewVerse, async (newVerse) => {
+    if (newVerse) {
+      await updateCurrentVerseReviewStatus();
+    } else {
+      currentVerseReviewStatus.value = null;
+    }
+  }, { immediate: true });
+
+  // Initialize review cache (call on session start)
+  const initReviewCache = async () => {
+    await loadTodaysReviewsIntoCache();
+  };
+
   const markReview = async (success: boolean) => {
     const verse = currentReviewVerse.value;
     if (!verse) return;
 
     try {
-      await recordReviewAction(verse.id, success ? 'recall' : 'practice');
+      const reviewType = success ? 'recall' : 'practice';
+      const now = Date.now();
+
+      await recordReviewAction(verse.id, reviewType);
+
+      // Update cache immediately for visual feedback
+      updateReviewCache(verse.id, reviewType, now);
+      currentVerseReviewStatus.value = {
+        lastReviewedAt: now,
+        lastReviewType: reviewType
+      };
 
       await updateStats();
+
+      // Brief delay for visual feedback (card shows color before advancing)
+      await new Promise(resolve => setTimeout(resolve, 400));
 
       // Reset to reference mode before advancing
       switchToReference();
@@ -104,6 +158,9 @@ export function useReview() {
 
       if (currentReviewIndex.value >= maxIndex) {
         reviewComplete.value = true;
+      } else {
+        // Update status for the new current verse
+        await updateCurrentVerseReviewStatus();
       }
 
     } catch (error) {
@@ -418,22 +475,27 @@ export function useReview() {
   };
 
   // Phase 2: Navigation that resets to reference mode
-  const nextVerse = () => {
+  const nextVerse = async () => {
     currentReviewIndex.value++;
     switchToReference();
     const maxIndex = reviewSource.value === 'daily'
       ? dueForReview.value.length
       : filteredReviewVerses.value.length;
-    
+
     if (currentReviewIndex.value >= maxIndex) {
       reviewComplete.value = true;
+    } else {
+      // Update review status for new verse
+      await updateCurrentVerseReviewStatus();
     }
   };
 
-  const previousVerse = () => {
+  const previousVerse = async () => {
     if (currentReviewIndex.value > 0) {
       currentReviewIndex.value--;
       switchToReference();
+      // Update review status for new verse
+      await updateCurrentVerseReviewStatus();
     }
   };
 
@@ -636,6 +698,9 @@ export function useReview() {
     reviewedToday,
     currentStreak,
 
+    // Review status visual feedback
+    currentVerseReviewStatus,
+
     // Review source selection state
     reviewSource,
     filteredReviewVerses,
@@ -662,6 +727,8 @@ export function useReview() {
     // Methods
     loadReviewVerses,
     updateStats,
+    initReviewCache,
+    updateCurrentVerseReviewStatus,
     markReview,
     resetReview,
 

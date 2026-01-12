@@ -17,9 +17,14 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 **Status:** Ready for new work
 
-**Recently Completed:** Review Tracking Buttons (Got it! / Again)
+**Recently Completed:** Review Tracking with Visual Feedback (Both Tabs)
 
-The stats display (Reviewed Today, Day Streak) is now connected to explicit user actions via "Got it!" and "Again" buttons that appear after verse reveal.
+The stats display (Reviewed Today, Day Streak) is now connected to explicit user actions via "Got it!" and "Again" buttons. Visual feedback added to both Review and My Verses tabs:
+- **Green card tint** when verse marked "Got it" today
+- **Amber card tint** when verse marked "Again" today
+- 400ms delay shows color before advancing to next verse (Review tab)
+- Status visible in My Verses tab for at-a-glance review progress
+- Status persists across navigation and page refresh
 
 Next steps: Continue with planned features (Phase 3: Deep Engagement, or other Phase 2 enhancements)
 

@@ -388,6 +388,21 @@ input:focus, textarea:focus {
     transform: translateY(-1px);
 }
 
+/* Review Card Status Backgrounds - Visual feedback for "reviewed today" */
+.review-card {
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.review-card-gotit {
+    background: linear-gradient(to bottom, rgb(236, 249, 245), white) !important;
+    border-color: rgb(183, 234, 217) !important;
+}
+
+.review-card-again {
+    background: linear-gradient(to bottom, rgb(254, 247, 235), white) !important;
+    border-color: rgb(252, 226, 182) !important;
+}
+
 /* Flash Cards underline alignment - sit at text baseline */
 .flashcard-underline {
     display: inline-block;

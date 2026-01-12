@@ -374,6 +374,7 @@
             :verse="verse"
             :view-mode="verseViewMode"
             :is-expanded="expandedVerseIds.has(verse.id)"
+            :review-status="getCachedReviewStatus(verse.id)?.lastReviewType || null"
             @edit="startEditVerse"
             @delete="deleteVerse"
             @toggle-expand="toggleVerseExpansion"
@@ -448,6 +449,10 @@
               <!-- Review Card -->
               <div ref="reviewCardElement"
                    class="review-card rounded-xl p-6 sm:p-8 min-h-[400px] flex flex-col justify-between bg-white border-2 border-slate-300 relative mb-200 sm:mb-0"
+                   :class="{
+                     'review-card-gotit': currentVerseReviewStatus?.lastReviewType === 'recall',
+                     'review-card-again': currentVerseReviewStatus?.lastReviewType === 'practice'
+                   }"
                    :style="{
                      transform: `translateX(${swipeOffset}px)`,
                      transition: (isSwiping || isPositioning) ? 'none' : isAnimatingExit ? 'transform 0.3s ease-out' : isAnimatingEnter ? 'transform 0.15s ease-out' : 'transform 0.3s ease-out',
@@ -1014,6 +1019,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, type Ref } from 'vue';
 import { bibleMemoryApp } from './app';
+import { getCachedReviewStatus } from './actions';
 import VerseCard from './components/VerseCard.vue';
 import { useSwipe } from './composables/useSwipe';
 
@@ -1035,6 +1041,7 @@ const {
   reviewComplete,
   reviewedToday,
   currentStreak,
+  currentVerseReviewStatus,
   importFileRef,
   isAuthenticated,
   userEmail,

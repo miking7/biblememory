@@ -296,18 +296,18 @@ export async function getTodayReviewCount(): Promise<number> {
 // Get current streak (consecutive days with reviews)
 export async function getCurrentStreak(): Promise<number> {
   const allReviews = await db.reviews.orderBy('createdAt').reverse().toArray();
-  
+
   if (allReviews.length === 0) return 0;
-  
+
   let streak = 0;
   let currentDate = new Date().setHours(0, 0, 0, 0);
-  
+
   for (let i = 0; i < 365; i++) { // Check up to 365 days back
     const dayStart = currentDate - (i * 24 * 60 * 60 * 1000);
     const dayEnd = dayStart + (24 * 60 * 60 * 1000);
-    
+
     const hasReview = allReviews.some(r => r.createdAt >= dayStart && r.createdAt < dayEnd);
-    
+
     if (hasReview) {
       streak++;
     } else if (i > 0) {
@@ -315,6 +315,95 @@ export async function getCurrentStreak(): Promise<number> {
       break;
     }
   }
-  
+
   return streak;
+}
+
+// ============================================================================
+// Review Status Cache - Tracks recent reviews for visual feedback on cards
+// ============================================================================
+
+export interface RecentReviewEntry {
+  lastReviewedAt: number;
+  lastReviewType: 'recall' | 'practice';
+}
+
+// In-memory cache: Map<verseId, RecentReviewEntry>
+const recentReviewsCache = new Map<string, RecentReviewEntry>();
+
+// Load today's reviews into cache (call on session start)
+export async function loadTodaysReviewsIntoCache(): Promise<void> {
+  const todayMidnight = getTodayMidnight();
+  const todaysReviews = await db.reviews
+    .where('createdAt')
+    .above(todayMidnight)
+    .toArray();
+
+  // Clear existing cache and populate with today's reviews
+  recentReviewsCache.clear();
+
+  for (const review of todaysReviews) {
+    const existing = recentReviewsCache.get(review.verseId);
+    // Only update if this review is more recent
+    if (!existing || review.createdAt > existing.lastReviewedAt) {
+      recentReviewsCache.set(review.verseId, {
+        lastReviewedAt: review.createdAt,
+        lastReviewType: review.reviewType as 'recall' | 'practice'
+      });
+    }
+  }
+}
+
+// Update cache entry (call after recording a review or on sync pull)
+export function updateReviewCache(verseId: string, reviewType: 'recall' | 'practice', timestamp: number): void {
+  const todayMidnight = getTodayMidnight();
+
+  // Only cache if the review is from today
+  if (timestamp >= todayMidnight) {
+    const existing = recentReviewsCache.get(verseId);
+    // Only update if this review is more recent
+    if (!existing || timestamp > existing.lastReviewedAt) {
+      recentReviewsCache.set(verseId, {
+        lastReviewedAt: timestamp,
+        lastReviewType: reviewType
+      });
+    }
+  }
+}
+
+// Get review status for a verse (returns null if not reviewed today)
+export async function getRecentReviewStatus(verseId: string): Promise<RecentReviewEntry | null> {
+  // Check cache first
+  const cached = recentReviewsCache.get(verseId);
+  if (cached) {
+    return cached;
+  }
+
+  // Cache miss - query database
+  const todayMidnight = getTodayMidnight();
+  const reviews = await db.reviews
+    .where('verseId')
+    .equals(verseId)
+    .and(r => r.createdAt >= todayMidnight)
+    .reverse()
+    .sortBy('createdAt');
+
+  if (reviews.length > 0) {
+    const mostRecent = reviews[0];
+    const entry: RecentReviewEntry = {
+      lastReviewedAt: mostRecent.createdAt,
+      lastReviewType: mostRecent.reviewType as 'recall' | 'practice'
+    };
+    // Populate cache for next lookup
+    recentReviewsCache.set(verseId, entry);
+    return entry;
+  }
+
+  return null;
+}
+
+// Get cached review status synchronously (for computed properties)
+// Returns null if not in cache - use getRecentReviewStatus for DB fallback
+export function getCachedReviewStatus(verseId: string): RecentReviewEntry | null {
+  return recentReviewsCache.get(verseId) || null;
 }
