@@ -41,21 +41,33 @@
           <div v-show="showMenu"
                class="absolute right-0 mt-2 glass-card rounded-xl shadow-2xl overflow-hidden z-50 min-w-[160px]">
             <button
+              @click.stop="$emit('copy', verse); showMenu = false"
+              class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
+              <i class="mdi mdi-content-copy text-lg"></i>
+              <span>Copy</span>
+            </button>
+            <button
               @click.stop="$emit('review-this', verse.id); showMenu = false"
               class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
-              <span>🎯</span>
+              <i class="mdi mdi-target text-lg"></i>
               <span>Review This</span>
+            </button>
+            <button
+              @click.stop="$emit('view-online', verse); showMenu = false"
+              class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
+              <i class="mdi mdi-open-in-new text-lg"></i>
+              <span>View online</span>
             </button>
             <button
               @click.stop="$emit('edit', verse); showMenu = false"
               class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
-              <span>✏️</span>
+              <i class="mdi mdi-pencil text-lg"></i>
               <span>Edit</span>
             </button>
             <button
               @click.stop="$emit('delete', verse.id); showMenu = false"
               class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2">
-              <span>🗑️</span>
+              <i class="mdi mdi-delete text-lg"></i>
               <span>Delete</span>
             </button>
           </div>
@@ -63,7 +75,7 @@
       </div>
       <p class="verse-content text-sm sm:text-base text-slate-700 mb-3 leading-relaxed" v-text="verse.content"></p>
       <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-medium">
-        <span><span class="hidden sm:inline">Added: </span><span v-text="new Date(verse.createdAt).toLocaleDateString()"></span></span>
+        <span><span class="hidden sm:inline">Started: </span><span v-text="verse.startedAt ? new Date(verse.startedAt).toLocaleDateString() : 'Not started'"></span></span>
         <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded" v-text="verse.reviewCat"></span>
         <template v-if="verse.tags && verse.tags.length > 0">
           <template v-for="tag in verse.tags" :key="tag.key">
@@ -95,6 +107,8 @@ const showMenu = ref(false);
 
 // Emits
 const emit = defineEmits<{
+  copy: [verse: Verse];
+  'view-online': [verse: Verse];
   edit: [verse: Verse];
   delete: [id: string];
   toggleExpand: [id: string];

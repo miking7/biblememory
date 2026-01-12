@@ -17,14 +17,15 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 **Status:** Ready for new work
 
-**Recently Completed:** Review Tracking with Visual Feedback (Both Tabs)
+**Recently Completed:** Overflow Menu Enhancements with Copy & View Online
 
-The stats display (Reviewed Today, Day Streak) is now connected to explicit user actions via "Got it!" and "Again" buttons. Visual feedback added to both Review and My Verses tabs:
-- **Green card tint** when verse marked "Got it" today
-- **Amber card tint** when verse marked "Again" today
-- 400ms delay shows color before advancing to next verse (Review tab)
-- Status visible in My Verses tab for at-a-glance review progress
-- Status persists across navigation and page refresh
+Enhanced all overflow menus with copy to clipboard and view online (BibleGateway) functionality:
+- **Review tab cards:** Replaced pencil icon with overflow menu (Copy, Edit, View online)
+- **My Verses cards:** Added Copy and View online to existing overflow menu
+- **Icon consistency:** Replaced all emoji icons with Material Design Icons across all menus
+- **Date fix:** My Verses cards now show "Started" date instead of "Created" date
+- **Copy format:** Reference (Version)\nContent
+- **BibleGateway integration:** Opens verse in new tab with correct translation (defaults to NKJV)
 
 Next steps: Continue with planned features (Phase 3: Deep Engagement, or other Phase 2 enhancements)
 
@@ -76,3 +77,4 @@ This index provides titles and links for reference when needed.
 - **037** - Review Source Selection Specification → [previous-work/037_review_source_selection_spec.md](previous-work/037_review_source_selection_spec.md)
 - **038** - Review Source Selection Implementation → [previous-work/038_review_source_selection_implementation.md](previous-work/038_review_source_selection_implementation.md)
 - **039** - Review Tracking Buttons (Got it! / Again) → [previous-work/039_review_tracking_buttons.md](previous-work/039_review_tracking_buttons.md)
+- **040** - Overflow Menu Enhancements (Copy & View Online) → [previous-work/040_overflow_menu_enhancements.md](previous-work/040_overflow_menu_enhancements.md)

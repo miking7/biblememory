@@ -301,19 +301,19 @@
               <button
                 @click="startReviewFromFiltered(); showMyVersesMenu = false"
                 class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
-                <span>🎯</span>
+                <i class="mdi mdi-target text-lg"></i>
                 <span>Review These</span>
               </button>
               <button
                 @click="exportVerses(); showMyVersesMenu = false"
                 class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
-                <span>📥</span>
+                <i class="mdi mdi-download text-lg"></i>
                 <span>Export</span>
               </button>
               <button
                 @click="importFileRef?.click(); showMyVersesMenu = false"
                 class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2">
-                <span>📤</span>
+                <i class="mdi mdi-upload text-lg"></i>
                 <span>Import</span>
               </button>
             </div>
@@ -375,6 +375,8 @@
             :view-mode="verseViewMode"
             :is-expanded="expandedVerseIds.has(verse.id)"
             :review-status="getCachedReviewStatus(verse.id)?.lastReviewType || null"
+            @copy="copyVerseToClipboard"
+            @view-online="viewVerseOnline"
             @edit="startEditVerse"
             @delete="deleteVerse"
             @toggle-expand="toggleVerseExpansion"
@@ -489,13 +491,38 @@
                           v-text="currentReviewVerse.translation"></span>
                   </div>
 
-                  <!-- Edit Icon (Top Right) -->
-                  <button
-                    @click.stop="startEditVerse(currentReviewVerse)"
-                    class="px-2 py-1 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                    title="Edit verse">
-                    <i class="mdi mdi-pencil text-xl"></i>
-                  </button>
+                  <!-- Overflow Menu (Top Right) -->
+                  <div class="relative" v-click-outside="() => showReviewCardMenu = false">
+                    <button
+                      @click.stop="showReviewCardMenu = !showReviewCardMenu"
+                      class="px-2 py-1 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                      title="Options">
+                      <i class="mdi mdi-dots-vertical text-xl"></i>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div v-show="showReviewCardMenu"
+                         class="absolute right-0 mt-2 glass-card rounded-xl shadow-2xl overflow-hidden z-50 min-w-[160px]">
+                      <button
+                        @click.stop="copyVerseToClipboard(currentReviewVerse); showReviewCardMenu = false"
+                        class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
+                        <i class="mdi mdi-content-copy text-lg"></i>
+                        <span>Copy</span>
+                      </button>
+                      <button
+                        @click.stop="viewVerseOnline(currentReviewVerse); showReviewCardMenu = false"
+                        class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2">
+                        <i class="mdi mdi-open-in-new text-lg"></i>
+                        <span>View online</span>
+                      </button>
+                      <button
+                        @click.stop="startEditVerse(currentReviewVerse); showReviewCardMenu = false"
+                        class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
+                        <i class="mdi mdi-pencil text-lg"></i>
+                        <span>Edit</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1159,8 +1186,36 @@ const {
 // Local state for My Verses menu
 const showMyVersesMenu = ref(false);
 
+// Local state for Review card menu
+const showReviewCardMenu = ref(false);
+
 // Review card ref for swipe functionality (cast to proper type for useSwipe)
 const reviewCardElement = ref<HTMLElement | null>(null) as Ref<HTMLElement | null>;
+
+// Copy verse to clipboard
+const copyVerseToClipboard = (verse: any) => {
+  // Format: Reference (Version)\nContent
+  let text = verse.reference;
+  if (verse.translation) {
+    text += ` (${verse.translation})`;
+  }
+  text += '\n' + verse.content;
+  
+  navigator.clipboard.writeText(text).then(() => {
+    console.log('Verse copied to clipboard');
+  }).catch(err => {
+    console.error('Failed to copy verse:', err);
+  });
+};
+
+// View verse online (BibleGateway)
+const viewVerseOnline = (verse: any) => {
+  // Format reference for URL: "John 3:16-18" becomes "John%203%3A16-18"
+  const reference = encodeURIComponent(verse.reference);
+  const version = verse.translation || 'NKJV'; // Default to NKJV if no version specified
+  const url = `https://www.biblegateway.com/passage/?search=${reference}&version=${version}`;
+  window.open(url, '_blank');
+};
 
 // Check if can navigate to previous/next verse
 const canSwipeRight = computed(() => currentReviewIndex.value > 0);
