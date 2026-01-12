@@ -35,7 +35,7 @@
 
     <!-- Header - Hidden in immersive mode -->
     <header v-show="!isImmersiveModeActive" class="mb-6 sm:mb-10 fade-in relative immersive-hideable">
-      <div class="text-center">
+      <div class="text-left sm:text-center">
         <h1 class="text-3xl sm:text-5xl font-bold text-white mb-3 tracking-tight">
           📖 <span class="gradient-text">Bible Memory</span>
         </h1>
@@ -282,76 +282,106 @@
 
       <!-- My Verses Tab -->
       <div v-if="currentTab === 'list'" class="p-3 sm:p-8">
-        <div class="mb-6 relative">
-          <h2 class="text-2xl sm:text-3xl font-bold text-slate-800">My Verses</h2>
-          
-          <!-- Settings Menu (cog icon) -->
-          <div class="absolute top-0 right-0"
-               v-click-outside="() => showMyVersesMenu = false">
-            <button
-              @click="showMyVersesMenu = !showMyVersesMenu"
-              class="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-              title="Options">
-              <i class="mdi mdi-cog text-2xl"></i>
-            </button>
+        <!-- Header with Title and Controls Row -->
+        <div class="mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl sm:text-3xl font-bold text-slate-800">My Verses</h2>
+            
+            <!-- Control Buttons Row -->
+            <div class="flex items-center gap-2">
+              <!-- View Mode Toggle Button -->
+              <button
+                @click="toggleViewMode()"
+                :title="verseViewMode === 'full' ? 'Switch to compact view' : 'Switch to full view'"
+                class="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                <i :class="verseViewMode === 'full' ? 'mdi mdi-view-agenda' : 'mdi mdi-view-headline'" class="text-2xl"></i>
+              </button>
 
-            <!-- Dropdown Menu -->
-            <div v-show="showMyVersesMenu"
-                 class="absolute right-0 mt-2 glass-card rounded-xl shadow-2xl overflow-hidden z-50 min-w-[180px]">
-              <button
-                @click="startReviewFromFiltered(); showMyVersesMenu = false"
-                class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
-                <i class="mdi mdi-target text-lg"></i>
-                <span>Review These</span>
-              </button>
-              <button
-                @click="exportVerses(); showMyVersesMenu = false"
-                class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
-                <i class="mdi mdi-download text-lg"></i>
-                <span>Export</span>
-              </button>
-              <button
-                @click="importFileRef?.click(); showMyVersesMenu = false"
-                class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2">
-                <i class="mdi mdi-upload text-lg"></i>
-                <span>Import</span>
-              </button>
+              <!-- Sort By Menu -->
+              <div class="relative" v-click-outside="() => showSortMenu = false">
+                <button
+                  @click="showSortMenu = !showSortMenu"
+                  title="Sort verses"
+                  class="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                  <i class="mdi mdi-sort text-2xl"></i>
+                </button>
+
+                <!-- Sort Dropdown -->
+                <div v-show="showSortMenu"
+                     class="absolute right-0 mt-2 glass-card rounded-xl shadow-2xl overflow-hidden z-50 min-w-[180px]">
+                  <button
+                    @click="setSortBy('newest'); showSortMenu = false"
+                    class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
+                    <i class="mdi mdi-arrow-down text-lg"></i>
+                    <span>Newest</span>
+                    <i v-show="sortBy === 'newest'" class="mdi mdi-check text-lg ml-auto text-blue-600"></i>
+                  </button>
+                  <button
+                    @click="setSortBy('oldest'); showSortMenu = false"
+                    class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
+                    <i class="mdi mdi-arrow-up text-lg"></i>
+                    <span>Oldest</span>
+                    <i v-show="sortBy === 'oldest'" class="mdi mdi-check text-lg ml-auto text-blue-600"></i>
+                  </button>
+                  <button
+                    @click="setSortBy('reference'); showSortMenu = false"
+                    class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
+                    <i class="mdi mdi-book-open-page-variant text-lg"></i>
+                    <span>Reference</span>
+                    <i v-show="sortBy === 'reference'" class="mdi mdi-check text-lg ml-auto text-blue-600"></i>
+                  </button>
+                  <button
+                    @click="setSortBy('category'); showSortMenu = false"
+                    class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2">
+                    <i class="mdi mdi-shape text-lg"></i>
+                    <span>Category</span>
+                    <i v-show="sortBy === 'category'" class="mdi mdi-check text-lg ml-auto text-blue-600"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Settings Menu (cog icon) -->
+              <div class="relative" v-click-outside="() => showMyVersesMenu = false">
+                <button
+                  @click="showMyVersesMenu = !showMyVersesMenu"
+                  class="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                  title="Options">
+                  <i class="mdi mdi-cog text-2xl"></i>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div v-show="showMyVersesMenu"
+                     class="absolute right-0 mt-2 glass-card rounded-xl shadow-2xl overflow-hidden z-50 min-w-[180px]">
+                  <button
+                    @click="startReviewFromFiltered(); showMyVersesMenu = false"
+                    class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
+                    <i class="mdi mdi-target text-lg"></i>
+                    <span>Review These</span>
+                  </button>
+                  <button
+                    @click="exportVerses(); showMyVersesMenu = false"
+                    class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
+                    <i class="mdi mdi-download text-lg"></i>
+                    <span>Export</span>
+                  </button>
+                  <button
+                    @click="importFileRef?.click(); showMyVersesMenu = false"
+                    class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2">
+                    <i class="mdi mdi-upload text-lg"></i>
+                    <span>Import</span>
+                  </button>
+                </div>
+                <input type="file" ref="importFileRef" @change="importVerses($event)" accept=".json" class="hidden">
+              </div>
             </div>
-            <input type="file" ref="importFileRef" @change="importVerses($event)" accept=".json" class="hidden">
           </div>
-        </div>
-
-
-        <div class="flex gap-2 mb-6">
+          
+          <!-- Search Box -->
           <input
             type="text"
             v-model="searchQuery"
             placeholder="Search verses..."
-            class="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
-          
-          <!-- View Mode Toggle Button -->
-          <button
-            @click="toggleViewMode()"
-            :title="verseViewMode === 'full' ? 'Switch to compact view' : 'Switch to full view'"
-            class="p-3 border-2 border-slate-200 rounded-xl hover:border-blue-400 focus:border-blue-500 transition-all bg-white flex items-center justify-center">
-            <i :class="verseViewMode === 'full' ? 'mdi mdi-view-agenda' : 'mdi mdi-view-headline'" class="text-xl text-slate-700"></i>
-          </button>
-          
-          <div class="relative">
-            <select
-              :value="sortBy"
-              @change="setSortBy(($event.target as HTMLSelectElement).value as any)"
-              class="appearance-none w-14 sm:w-auto px-2 sm:px-3 py-3 pr-8 border-2 border-slate-200 rounded-xl transition-all bg-white hover:border-blue-400 focus:border-blue-500 cursor-pointer font-medium text-slate-700 text-transparent sm:text-slate-700"
-              title="Sort verses">
-              <option value="newest">↓ Newest</option>
-              <option value="oldest">↑ Oldest</option>
-              <option value="reference">📖 Reference</option>
-              <option value="category">📊 Category</option>
-            </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-              <span class="text-lg">↕</span>
-            </div>
-          </div>
+            class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
         </div>
 
         <!-- No verses at all -->
@@ -1185,6 +1215,9 @@ const {
 
 // Local state for My Verses menu
 const showMyVersesMenu = ref(false);
+
+// Local state for Sort menu
+const showSortMenu = ref(false);
 
 // Local state for Review card menu
 const showReviewCardMenu = ref(false);

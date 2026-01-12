@@ -17,15 +17,15 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 **Status:** Ready for new work
 
-**Recently Completed:** Overflow Menu Enhancements with Copy & View Online
+**Recently Completed:** My Verses UI Reorganization
 
-Enhanced all overflow menus with copy to clipboard and view online (BibleGateway) functionality:
-- **Review tab cards:** Replaced pencil icon with overflow menu (Copy, Edit, View online)
-- **My Verses cards:** Added Copy and View online to existing overflow menu
-- **Icon consistency:** Replaced all emoji icons with Material Design Icons across all menus
-- **Date fix:** My Verses cards now show "Started" date instead of "Created" date
-- **Copy format:** Reference (Version)\nContent
-- **BibleGateway integration:** Opens verse in new tab with correct translation (defaults to NKJV)
+Reorganized the My Verses tab controls for better mobile layout and consistency:
+- **Title alignment:** Left-aligned on mobile, centered on desktop
+- **Control buttons:** View mode, Sort, and Settings icons now on same row
+- **View mode:** Simple toggle button (agenda/headline icons)
+- **Sort menu:** Converted from select box to overflow menu with checkmarks
+- **MDI icons:** arrow-down, arrow-up, book-open-page-variant, shape
+- **Search box:** Moved to its own row below controls for full width
 
 Next steps: Continue with planned features (Phase 3: Deep Engagement, or other Phase 2 enhancements)
 
@@ -78,3 +78,4 @@ This index provides titles and links for reference when needed.
 - **038** - Review Source Selection Implementation → [previous-work/038_review_source_selection_implementation.md](previous-work/038_review_source_selection_implementation.md)
 - **039** - Review Tracking Buttons (Got it! / Again) → [previous-work/039_review_tracking_buttons.md](previous-work/039_review_tracking_buttons.md)
 - **040** - Overflow Menu Enhancements (Copy & View Online) → [previous-work/040_overflow_menu_enhancements.md](previous-work/040_overflow_menu_enhancements.md)
+- **041** - My Verses UI Reorganization → [previous-work/041_my_verses_ui_reorganization.md](previous-work/041_my_verses_ui_reorganization.md)
