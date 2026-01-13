@@ -94,3 +94,6 @@ yarn-error.log*
 # Misc
 .htaccess.backup
 error_log
+
+# Auto Claude data directory
+.auto-claude/
