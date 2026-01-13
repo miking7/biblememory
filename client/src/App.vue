@@ -647,7 +647,7 @@
           <button
             @click="resetReview()"
             class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
-            Review Again
+            Review More
           </button>
         </div>
       </div>
