@@ -123,7 +123,7 @@ export function useReview() {
     await loadTodaysReviewsIntoCache();
   };
 
-  const markReview = async (success: boolean) => {
+  const markReview = async (success: boolean, onNavigate?: () => void) => {
     const verse = currentReviewVerse.value;
     if (!verse) return;
 
@@ -145,22 +145,11 @@ export function useReview() {
       // Brief delay for visual feedback (card shows color before advancing)
       await new Promise(resolve => setTimeout(resolve, 400));
 
-      // Reset to reference mode before advancing
-      switchToReference();
-
-      currentReviewIndex.value++;
-      showVerseText.value = false;
-
-      // Check completion based on current review source
-      const maxIndex = reviewSource.value === 'daily'
-        ? dueForReview.value.length
-        : filteredReviewVerses.value.length;
-
-      if (currentReviewIndex.value >= maxIndex) {
-        reviewComplete.value = true;
+      // Navigate to next verse - use callback if provided, otherwise call nextVerse directly
+      if (onNavigate) {
+        onNavigate();
       } else {
-        // Update status for the new current verse
-        await updateCurrentVerseReviewStatus();
+        await nextVerse();
       }
 
     } catch (error) {

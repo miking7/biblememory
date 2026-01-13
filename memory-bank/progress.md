@@ -36,6 +36,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - **NEW:** Dual review sources (daily queue + filtered lists)
 - **NEW:** Overflow menus for cleaner UI
 - **NEW:** Direct review/edit actions from both tabs
+- **NEW:** Card slide animations for all navigation (buttons, reviews, swipes) with accessibility support
 - Ready for comprehensive testing and daily use
 
 #### Implemented Features
@@ -107,6 +108,12 @@ MAINTENANCE PRINCIPLES (from .clinerules):
   - [x] Paragraph/newline preservation working
 
 **Navigation & UX (ALL COMPLETE ✅):**
+- [x] Card slide animations for all navigation
+  - [x] Navigation buttons (Prev/Next) trigger smooth slides
+  - [x] Review buttons (Got it!/Again) animate after visual feedback
+  - [x] Reuses existing swipe gesture infrastructure
+  - [x] Full reduced-motion accessibility support (CSS + JS)
+  - [x] Direction-aware: left for next, right for previous
 - [x] Keyboard shortcuts fully integrated
   - [x] 'n' - Next verse
   - [x] 'p' - Previous verse
@@ -396,12 +403,12 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - [ ] Performance budgets
 
 #### Accessibility
+- [x] Reduced motion support (prefers-reduced-motion respected)
 - [ ] ARIA labels throughout
 - [ ] Keyboard navigation improvements
 - [ ] Screen reader testing
 - [ ] Focus management
 - [ ] Color contrast compliance
-- [ ] Reduced motion support
 
 #### Developer Experience
 - [ ] Comprehensive API documentation

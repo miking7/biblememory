@@ -473,3 +473,36 @@ input:focus, textarea:focus {
     z-index: -1;
     animation: fadeIn 0.3s ease-in;
 }
+
+/* Reduced Motion Support - Accessibility */
+/* Respects user's preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    /* Disable all transitions and animations */
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    /* Specifically disable review card slide animations */
+    .review-card {
+        transform: none !important;
+        transition: none !important;
+    }
+
+    /* Disable fade animations in immersive mode */
+    .immersive-hideable {
+        transition: none !important;
+    }
+
+    .immersive-mode::before {
+        animation: none !important;
+    }
+
+    /* Disable button hover transforms */
+    .btn-premium:hover,
+    .btn-gold:hover {
+        transform: none !important;
+    }
+}

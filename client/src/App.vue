@@ -453,7 +453,7 @@
             <div class="relative">
               <!-- Left Arrow (Previous) -->
               <button
-                @click="previousVerse()"
+                @click="navigateWithAnimation('right')"
                 :disabled="currentReviewIndex === 0"
                 class="no-zoom absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 sm:-translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
                 title="Previous verse (p)">
@@ -462,7 +462,7 @@
 
               <!-- Right Arrow (Next) -->
               <button
-                @click="nextVerse()"
+                @click="navigateWithAnimation('left')"
                 :disabled="currentReviewIndex >= totalReviewCount - 1"
                 class="no-zoom absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
                 title="Next verse (n)">
@@ -725,14 +725,14 @@
         <!-- Action Buttons Row (Desktop) - Only visible when verse fully revealed -->
         <div v-show="reviewMode === 'content'" class="flex gap-3 justify-center">
           <button
-            @click="markReview(false)"
+            @click="markReviewWithAnimation(false)"
             class="action-button-again px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
             title="Need more practice">
             <i class="mdi mdi-refresh text-lg"></i>
             <span>Again</span>
           </button>
           <button
-            @click="markReview(true)"
+            @click="markReviewWithAnimation(true)"
             class="action-button-gotit px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
             title="I remembered it!">
             <i class="mdi mdi-check text-lg"></i>
@@ -746,14 +746,14 @@
         <!-- Action Buttons Row (Mobile) - Only visible when verse fully revealed -->
         <div v-show="reviewMode === 'content'" class="flex gap-3">
           <button
-            @click="markReview(false)"
+            @click="markReviewWithAnimation(false)"
             class="action-button-again flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
             title="Need more practice">
             <i class="mdi mdi-refresh text-lg"></i>
             <span>Again</span>
           </button>
           <button
-            @click="markReview(true)"
+            @click="markReviewWithAnimation(true)"
             class="action-button-gotit flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
             title="I remembered it!">
             <i class="mdi mdi-check text-lg"></i>
@@ -1255,7 +1255,7 @@ const canSwipeRight = computed(() => currentReviewIndex.value > 0);
 const canSwipeLeft = computed(() => currentReviewIndex.value < dueForReview.value.length - 1);
 
 // Set up swipe gestures for review cards
-const { isSwiping, swipeOffset, swipeDirection, isAnimatingExit, isAnimatingEnter, isPositioning } = useSwipe(reviewCardElement, {
+const { isSwiping, swipeOffset, swipeDirection, isAnimatingExit, isAnimatingEnter, isPositioning, triggerAnimatedNavigation } = useSwipe(reviewCardElement, {
   onSwipeLeft: () => {
     if (canSwipeLeft.value) {
       nextVerse();
@@ -1270,6 +1270,21 @@ const { isSwiping, swipeOffset, swipeDirection, isAnimatingExit, isAnimatingEnte
   canSwipeLeft: () => canSwipeLeft.value,
   canSwipeRight: () => canSwipeRight.value,
 });
+
+// Animated navigation for button clicks (Prev/Next buttons)
+const navigateWithAnimation = (direction: 'left' | 'right') => {
+  triggerAnimatedNavigation(direction);
+};
+
+// Animated navigation for review marking (Got it! / Again buttons)
+const markReviewWithAnimation = (success: boolean) => {
+  // Mark the review with animation callback
+  // After 400ms visual feedback, triggers slide animation instead of direct navigation
+  markReview(success, () => {
+    // Trigger animation to next verse (left = next)
+    triggerAnimatedNavigation('left');
+  });
+};
 
 // Set up keyboard shortcuts
 onMounted(() => {

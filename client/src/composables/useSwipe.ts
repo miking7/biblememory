@@ -173,6 +173,71 @@ export function useSwipe(
     isAnimatingExit.value = false;
   };
 
+  /**
+   * Programmatically trigger animated navigation (for button clicks)
+   * @param direction - 'left' for next, 'right' for previous
+   */
+  const triggerAnimatedNavigation = (direction: 'left' | 'right') => {
+    // Check if navigation is allowed
+    if (direction === 'left' && !canSwipeLeft()) return;
+    if (direction === 'right' && !canSwipeRight()) return;
+
+    // Check for reduced-motion preference (accessibility)
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReducedMotion) {
+      // Skip animation and directly trigger callback for instant navigation
+      if (direction === 'left' && onSwipeLeft) {
+        onSwipeLeft();
+      } else if (direction === 'right' && onSwipeRight) {
+        onSwipeRight();
+      }
+      return;
+    }
+
+    // Trigger the same animation as swipe
+    swipeDirection.value = direction;
+    isAnimatingExit.value = true;
+
+    // Set exit position based on direction
+    swipeOffset.value = direction === 'left'
+      ? -window.innerWidth * 1.5  // Exit left for "next"
+      : window.innerWidth * 1.5;   // Exit right for "previous"
+
+    // After exit animation completes, trigger callback and animate entrance
+    setTimeout(() => {
+      // Trigger appropriate callback
+      if (direction === 'left' && onSwipeLeft) {
+        onSwipeLeft();
+      } else if (direction === 'right' && onSwipeRight) {
+        onSwipeRight();
+      }
+
+      // Wait for Vue to render new verse
+      nextTick(() => {
+        // Disable transitions and position card off-screen (opposite side)
+        isPositioning.value = true;
+        isAnimatingExit.value = false;
+        swipeOffset.value = direction === 'left'
+          ? window.innerWidth * 1.5   // Enter from right for "next"
+          : -window.innerWidth * 1.5;  // Enter from left for "previous"
+
+        // Re-enable transitions and animate to center
+        setTimeout(() => {
+          isPositioning.value = false;
+          isAnimatingEnter.value = true;
+          setTimeout(() => swipeOffset.value = 0, 10);
+        }, 20);
+
+        // Clean up after animation
+        setTimeout(() => {
+          isAnimatingEnter.value = false;
+          swipeDirection.value = null;
+        }, 340);
+      });
+    }, 300);
+  };
+
   // Watch for element to become available, then attach listeners
   let cleanupListeners: (() => void) | null = null;
 
@@ -218,5 +283,6 @@ export function useSwipe(
     isAnimatingExit,
     isAnimatingEnter,
     isPositioning,
+    triggerAnimatedNavigation,
   };
 }
