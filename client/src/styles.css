@@ -10,6 +10,17 @@ body {
     min-height: 100vh;
     touch-action: manipulation;
 }
+/* Status-bar background color for fullscreen/standalone PWA modes doesn't work with gradient */
+@media (display-mode: fullscreen) {
+    body {
+        background: #1e3a8a !important;
+    }
+}
+@media (display-mode: standalone) {    /* iOS PWA */
+    body {
+        background: #1e3a8a !important;
+    }
+}
 
 .glass-card {
     background: rgba(255, 255, 255, 0.95);
@@ -415,7 +426,21 @@ input:focus, textarea:focus {
 /* Sticky footer iOS safe-area support (for devices with home indicator) */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
     .review-mode-sticky-footer {
-        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom) * 0.3);
+    }
+}
+
+/* Extra horizontal padding fullscreen/standalone PWA modes */
+@media (display-mode: fullscreen) {
+    .review-mode-sticky-footer {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
+@media (display-mode: standalone) {    /* iOS PWA */
+    .review-mode-sticky-footer {
+        padding-left: 2rem;
+        padding-right: 2rem;
     }
 }
 
