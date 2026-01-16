@@ -317,7 +317,6 @@ export function bibleMemoryApp() {
     getFlashCardLevelName: reviewLogic.getFlashCardLevelName,
     switchToReference: reviewLogic.switchToReference,
     switchToContent: reviewLogic.switchToContent,
-    revealContent: reviewLogic.revealContent,
     switchToHints: reviewLogic.switchToHints,
     addHint: reviewLogic.addHint,
     switchToFirstLetters: reviewLogic.switchToFirstLetters,

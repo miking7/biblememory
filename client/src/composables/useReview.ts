@@ -185,11 +185,6 @@ export function useReview() {
     showVerseText.value = true;
   };
 
-  const revealContent = () => {
-    // Reveal button action - always switches to content mode
-    switchToContent();
-  };
-
   const switchToHints = () => {
     reviewMode.value = 'hints';
     hintsShown.value = 3; // Start with 3 words visible
@@ -523,7 +518,7 @@ export function useReview() {
         return true;
       case ' ':
         event.preventDefault(); // Prevent page scroll
-        revealContent(); // Reveal the verse content
+        switchToContent(); // Switch to content mode (reveal verse)
         return true;
       case 'g':
         // Got It! - mark as successful recall
@@ -724,7 +719,6 @@ export function useReview() {
     // Phase 2: Mode switching
     switchToReference,
     switchToContent,
-    revealContent,
     switchToHints,
     addHint,
     switchToFirstLetters,

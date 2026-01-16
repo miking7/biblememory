@@ -729,6 +729,15 @@
             <i class="mdi mdi-alphabet-latin text-lg"></i>
             <span>First Letters</span>
           </button>
+
+          <button
+            @click="switchToContent()"
+            :class="reviewMode === 'content' ? 'mode-button-active' : 'mode-button-inactive'"
+            class="px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
+            title="Reveal verse (Space)">
+            <i class="mdi mdi-eye-outline text-lg"></i>
+            <span>Reveal</span>
+          </button>
         </div>
 
         <!-- Action Buttons Row (Desktop) - Always visible, disabled until verse revealed -->
@@ -740,15 +749,6 @@
             :title="reviewMode === 'content' ? 'Need more practice (a)' : 'Available after revealing verse'">
             <i class="mdi mdi-refresh text-lg"></i>
             <span>Again</span>
-          </button>
-          <button
-            @click="revealContent()"
-            :disabled="reviewMode === 'content'"
-            :class="reviewMode === 'content' ? 'mode-button-inactive' : 'mode-button-active'"
-            class="px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
-            :title="reviewMode === 'content' ? 'Already revealed' : 'Reveal verse (Space)'">
-            <i class="mdi mdi-eye-outline text-lg"></i>
-            <span>Reveal</span>
           </button>
           <button
             @click="markReviewWithAnimation(true)"
@@ -774,11 +774,10 @@
             <span>Again</span>
           </button>
           <button
-            @click="revealContent()"
-            :disabled="reviewMode === 'content'"
-            :class="reviewMode === 'content' ? 'mode-button-inactive' : 'mode-button-active'"
+            @click="switchToContent()"
+            :class="reviewMode === 'content' ? 'mode-button-active' : 'mode-button-inactive'"
             class="flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
-            :title="reviewMode === 'content' ? 'Already revealed' : 'Reveal verse (Space)'">
+            title="Reveal verse (Space)">
             <i class="mdi mdi-eye-outline text-lg"></i>
             <span>Reveal</span>
           </button>
@@ -1230,7 +1229,6 @@ const {
   getFlashCardLevelName,
   switchToReference,
   switchToContent,
-  revealContent,
   switchToHints,
   addHint,
   switchToFirstLetters,
