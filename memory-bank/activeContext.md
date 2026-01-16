@@ -17,9 +17,9 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 **Status:** Ready for new work
 
-**Recently Completed:** Legacy Codebase Removal (#043)
+**Recently Completed:** About Page with GitHub Link (#044)
 
-Removed the legacy jQuery-based app and all integration code now that feature parity has been achieved. See [previous-work/043_legacy_codebase_removal.md](previous-work/043_legacy_codebase_removal.md) for details.
+Added About menu item to user dropdown with modal displaying GitHub repository link. See [previous-work/044_about_page_github_link.md](previous-work/044_about_page_github_link.md) for details.
 
 Next steps: Continue with Phase 3 (Deep Engagement) or Phase 4 (Modern Enhancements)
 
@@ -75,3 +75,4 @@ This index provides titles and links for reference when needed.
 - **041** - My Verses UI Reorganization → [previous-work/041_my_verses_ui_reorganization.md](previous-work/041_my_verses_ui_reorganization.md)
 - **042** - Card Slide Animations for All Navigation → [previous-work/042_card_slide_animations.md](previous-work/042_card_slide_animations.md)
 - **043** - Legacy Codebase Removal → [previous-work/043_legacy_codebase_removal.md](previous-work/043_legacy_codebase_removal.md)
+- **044** - About Page with GitHub Link → [previous-work/044_about_page_github_link.md](previous-work/044_about_page_github_link.md)
