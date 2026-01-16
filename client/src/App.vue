@@ -616,6 +616,15 @@
                   </div>
                 </div>
 
+                <!-- Type It Mode: Coming Soon -->
+                <div v-if="reviewMode === 'typeit'" class="flex flex-col items-center justify-center py-8 sm:py-12">
+                  <i class="mdi mdi-keyboard-outline text-6xl text-blue-500 mb-4"></i>
+                  <h3 class="text-xl sm:text-2xl font-bold text-slate-800 mb-2">Type It Mode</h3>
+                  <p class="text-sm sm:text-base text-slate-600 text-center max-w-md">
+                    Practice typing verses from memory. Coming soon!
+                  </p>
+                </div>
+
               </div>
 
               <!-- Metadata Footer (styled like My Verses cards) -->
@@ -660,12 +669,12 @@
         <!-- Mode Buttons Row -->
         <div class="flex gap-3 justify-center">
           <button
-            @click="reviewMode === 'hints' ? addHint() : switchToHints()"
-            :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
+            @click="switchToTypeIt()"
+            :class="reviewMode === 'typeit' ? 'mode-button-active' : 'mode-button-inactive'"
             class="px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
-            title="Hint (h)">
-            <i class="mdi mdi-tooltip-question-outline text-lg"></i>
-            <span>Hint</span>
+            title="Type It (t) - Coming Soon">
+            <i class="mdi mdi-keyboard-outline text-lg"></i>
+            <span>Type It</span>
           </button>
 
           <!-- Flash Cards with +/- buttons (fused when active) -->
@@ -704,6 +713,15 @@
           </button>
 
           <button
+            @click="reviewMode === 'hints' ? addHint() : switchToHints()"
+            :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
+            class="px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
+            title="Hint (h)">
+            <i class="mdi mdi-tooltip-question-outline text-lg"></i>
+            <span>Hint</span>
+          </button>
+
+          <button
             @click="switchToFirstLetters()"
             :class="reviewMode === 'firstletters' ? 'mode-button-active' : 'mode-button-inactive'"
             class="px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
@@ -711,30 +729,32 @@
             <i class="mdi mdi-alphabet-latin text-lg"></i>
             <span>First Letters</span>
           </button>
-
-          <button
-            @click="smartButtonAction()"
-            class="mode-button-inactive px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
-            style="min-width: 6.5rem;"
-            :title="smartButtonLabel + ' (Space)'">
-            <i :class="reviewMode === 'content' ? 'mdi mdi-chevron-right' : 'mdi mdi-eye-outline'" class="text-lg"></i>
-            <span>{{ smartButtonLabel }}</span>
-          </button>
         </div>
 
-        <!-- Action Buttons Row (Desktop) - Only visible when verse fully revealed -->
-        <div v-show="reviewMode === 'content'" class="flex gap-3 justify-center">
+        <!-- Action Buttons Row (Desktop) - Always visible, disabled until verse revealed -->
+        <div class="flex gap-3 justify-center">
           <button
             @click="markReviewWithAnimation(false)"
+            :disabled="reviewMode !== 'content'"
             class="action-button-again px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
-            title="Need more practice">
+            :title="reviewMode === 'content' ? 'Need more practice (a)' : 'Available after revealing verse'">
             <i class="mdi mdi-refresh text-lg"></i>
             <span>Again</span>
           </button>
           <button
+            @click="revealContent()"
+            :disabled="reviewMode === 'content'"
+            :class="reviewMode === 'content' ? 'mode-button-inactive' : 'mode-button-active'"
+            class="px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
+            :title="reviewMode === 'content' ? 'Already revealed' : 'Reveal verse (Space)'">
+            <i class="mdi mdi-eye-outline text-lg"></i>
+            <span>Reveal</span>
+          </button>
+          <button
             @click="markReviewWithAnimation(true)"
+            :disabled="reviewMode !== 'content'"
             class="action-button-gotit px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
-            title="I remembered it!">
+            :title="reviewMode === 'content' ? 'I remembered it! (g)' : 'Available after revealing verse'">
             <i class="mdi mdi-check text-lg"></i>
             <span>Got it!</span>
           </button>
@@ -743,19 +763,30 @@
 
       <!-- Mobile: Sticky footer with action buttons above mode buttons -->
       <div class="sm:hidden flex flex-col gap-3 fixed bottom-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-lg px-3 py-4 review-mode-sticky-footer">
-        <!-- Action Buttons Row (Mobile) - Only visible when verse fully revealed -->
-        <div v-show="reviewMode === 'content'" class="flex gap-3">
+        <!-- Action Buttons Row (Mobile) - Always visible, disabled until verse revealed -->
+        <div class="flex gap-3">
           <button
             @click="markReviewWithAnimation(false)"
+            :disabled="reviewMode !== 'content'"
             class="action-button-again flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
-            title="Need more practice">
+            :title="reviewMode === 'content' ? 'Need more practice (a)' : 'Available after revealing verse'">
             <i class="mdi mdi-refresh text-lg"></i>
             <span>Again</span>
           </button>
           <button
+            @click="revealContent()"
+            :disabled="reviewMode === 'content'"
+            :class="reviewMode === 'content' ? 'mode-button-inactive' : 'mode-button-active'"
+            class="flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
+            :title="reviewMode === 'content' ? 'Already revealed' : 'Reveal verse (Space)'">
+            <i class="mdi mdi-eye-outline text-lg"></i>
+            <span>Reveal</span>
+          </button>
+          <button
             @click="markReviewWithAnimation(true)"
+            :disabled="reviewMode !== 'content'"
             class="action-button-gotit flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
-            title="I remembered it!">
+            :title="reviewMode === 'content' ? 'I remembered it! (g)' : 'Available after revealing verse'">
             <i class="mdi mdi-check text-lg"></i>
             <span>Got it!</span>
           </button>
@@ -764,12 +795,12 @@
         <!-- Mode Buttons Row (Mobile) - Icons only, all 4 on one row -->
         <div class="flex gap-2">
           <button
-            @click="reviewMode === 'hints' ? addHint() : switchToHints()"
-            :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
+            @click="switchToTypeIt()"
+            :class="reviewMode === 'typeit' ? 'mode-button-active' : 'mode-button-inactive'"
             class="flex-1 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
-            title="Hint (h)"
-            aria-label="Hint">
-            <i class="mdi mdi-tooltip-question-outline text-xl"></i>
+            title="Type It (t) - Coming Soon"
+            aria-label="Type It">
+            <i class="mdi mdi-keyboard-outline text-xl"></i>
           </button>
 
           <!-- Flash Cards with +/- buttons (fused when active) -->
@@ -807,20 +838,21 @@
           </button>
 
           <button
+            @click="reviewMode === 'hints' ? addHint() : switchToHints()"
+            :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
+            class="flex-1 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
+            title="Hint (h)"
+            aria-label="Hint">
+            <i class="mdi mdi-tooltip-question-outline text-xl"></i>
+          </button>
+
+          <button
             @click="switchToFirstLetters()"
             :class="reviewMode === 'firstletters' ? 'mode-button-active' : 'mode-button-inactive'"
             class="flex-1 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
             title="First Letters (f)"
             aria-label="First Letters">
             <i class="mdi mdi-alphabet-latin text-xl"></i>
-          </button>
-
-          <button
-            @click="smartButtonAction()"
-            class="mode-button-inactive flex-1 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
-            :title="smartButtonLabel + ' (Space)'"
-            :aria-label="smartButtonLabel">
-            <i :class="reviewMode === 'content' ? 'mdi mdi-chevron-right' : 'mdi mdi-eye-outline'" class="text-xl"></i>
           </button>
         </div>
       </div>
@@ -1196,12 +1228,13 @@ const {
   canIncreaseFlashCardDifficulty,
   canDecreaseFlashCardDifficulty,
   getFlashCardLevelName,
-  smartButtonLabel,
   switchToReference,
   switchToContent,
+  revealContent,
   switchToHints,
   addHint,
   switchToFirstLetters,
+  switchToTypeIt,
   switchToFlashCards,
   increaseFlashCardDifficulty,
   decreaseFlashCardDifficulty,
@@ -1218,7 +1251,6 @@ const {
   getReviewCategory,
   getReferenceWords,
   getContentWordsStartIndex,
-  smartButtonAction,
   returnToDailyReview,
 
   // Phase 2: Keyboard shortcuts

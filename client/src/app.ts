@@ -315,12 +315,13 @@ export function bibleMemoryApp() {
     canIncreaseFlashCardDifficulty: reviewLogic.canIncreaseFlashCardDifficulty,
     canDecreaseFlashCardDifficulty: reviewLogic.canDecreaseFlashCardDifficulty,
     getFlashCardLevelName: reviewLogic.getFlashCardLevelName,
-    smartButtonLabel: reviewLogic.smartButtonLabel,
     switchToReference: reviewLogic.switchToReference,
     switchToContent: reviewLogic.switchToContent,
+    revealContent: reviewLogic.revealContent,
     switchToHints: reviewLogic.switchToHints,
     addHint: reviewLogic.addHint,
     switchToFirstLetters: reviewLogic.switchToFirstLetters,
+    switchToTypeIt: reviewLogic.switchToTypeIt,
     switchToFlashCards: reviewLogic.switchToFlashCards,
     increaseFlashCardDifficulty: reviewLogic.increaseFlashCardDifficulty,
     decreaseFlashCardDifficulty: reviewLogic.decreaseFlashCardDifficulty,
@@ -338,7 +339,6 @@ export function bibleMemoryApp() {
     formatTagForDisplay: reviewLogic.formatTagForDisplay,
     getReferenceWords: reviewLogic.getReferenceWords,
     getContentWordsStartIndex: reviewLogic.getContentWordsStartIndex,
-    smartButtonAction: reviewLogic.smartButtonAction,
     handleKeyPress: reviewLogic.handleKeyPress,
 
     // Immersive mode

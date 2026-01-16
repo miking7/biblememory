@@ -14,12 +14,13 @@ import {
 import { getFirstLettersChunks } from '../utils/firstLetters';
 
 // Review mode types
-export type ReviewMode = 
+export type ReviewMode =
   | 'reference'      // Show only verse reference
   | 'content'        // Show full verse text
   | 'hints'          // Progressive word revelation
   | 'firstletters'   // First letter + punctuation only
-  | 'flashcards';    // Random word hiding with difficulty levels
+  | 'flashcards'     // Random word hiding with difficulty levels
+  | 'typeit';        // Type the verse from memory (coming soon)
 
 export function useReview() {
   // State
@@ -184,6 +185,11 @@ export function useReview() {
     showVerseText.value = true;
   };
 
+  const revealContent = () => {
+    // Reveal button action - always switches to content mode
+    switchToContent();
+  };
+
   const switchToHints = () => {
     reviewMode.value = 'hints';
     hintsShown.value = 3; // Start with 3 words visible
@@ -201,6 +207,11 @@ export function useReview() {
   const switchToFirstLetters = () => {
     reviewMode.value = 'firstletters';
     firstLettersRevealedGroups.value.clear(); // Reset reveals
+  };
+
+  const switchToTypeIt = () => {
+    reviewMode.value = 'typeit';
+    // Future: Initialize type-it specific state
   };
 
   const switchToFlashCards = (level?: number) => {
@@ -512,7 +523,22 @@ export function useReview() {
         return true;
       case ' ':
         event.preventDefault(); // Prevent page scroll
-        smartButtonAction(); // Unified with smart button behavior
+        revealContent(); // Reveal the verse content
+        return true;
+      case 'g':
+        // Got It! - mark as successful recall
+        if (reviewMode.value === 'content') {
+          markReview(true);
+        }
+        return true;
+      case 'a':
+        // Again - mark as needs practice
+        if (reviewMode.value === 'content') {
+          markReview(false);
+        }
+        return true;
+      case 't':
+        switchToTypeIt();
         return true;
       case 'h':
         if (reviewMode.value === 'hints') {
@@ -607,31 +633,6 @@ export function useReview() {
     return getWords(currentReviewVerse.value.reference, true).length;
   };
 
-  // Phase 2: Smart button label and action
-  const smartButtonLabel = computed(() => {
-    switch (reviewMode.value) {
-      case 'reference':
-        return 'Reveal';
-      case 'content':
-        return 'Next';
-      default: // hints, flashcards, firstletters
-        return 'Reveal';
-    }
-  });
-
-  const smartButtonAction = () => {
-    switch (reviewMode.value) {
-      case 'reference':
-        switchToContent();
-        break;
-      case 'content':
-        nextVerse();
-        break;
-      default: // hints, flashcards, firstletters
-        switchToContent();
-        break;
-    }
-  };
 
   // Immersive mode functions
   const toggleImmersiveMode = () => {
@@ -711,7 +712,6 @@ export function useReview() {
     canIncreaseFlashCardDifficulty,
     canDecreaseFlashCardDifficulty,
     getFlashCardLevelName,
-    smartButtonLabel,
 
     // Methods
     loadReviewVerses,
@@ -724,9 +724,11 @@ export function useReview() {
     // Phase 2: Mode switching
     switchToReference,
     switchToContent,
+    revealContent,
     switchToHints,
     addHint,
     switchToFirstLetters,
+    switchToTypeIt,
     switchToFlashCards,
     increaseFlashCardDifficulty,
     decreaseFlashCardDifficulty,
@@ -754,7 +756,6 @@ export function useReview() {
     formatTagForDisplay,
     getReferenceWords,
     getContentWordsStartIndex,
-    smartButtonAction,
 
     // Immersive mode
     toggleImmersiveMode,

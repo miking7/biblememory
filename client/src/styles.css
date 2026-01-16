@@ -399,6 +399,34 @@ input:focus, textarea:focus {
     transform: translateY(-1px);
 }
 
+/* Disabled state for action buttons */
+.action-button-gotit:disabled,
+.action-button-again:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.action-button-gotit:disabled:hover,
+.action-button-again:disabled:hover {
+    box-shadow: none;
+    transform: none;
+}
+
+/* Disabled state for mode buttons (when used as action buttons like Reveal) */
+.mode-button-active:disabled,
+.mode-button-inactive:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.mode-button-active:disabled:hover,
+.mode-button-inactive:disabled:hover {
+    box-shadow: none;
+    transform: none;
+}
+
 /* Review Card Status Backgrounds - Visual feedback for "reviewed today" */
 .review-card {
     transition: background 0.3s ease, border-color 0.3s ease;
