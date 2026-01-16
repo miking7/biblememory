@@ -776,10 +776,11 @@
           <button
             @click="switchToContent()"
             :class="reviewMode === 'content' ? 'mode-button-active' : 'mode-button-inactive'"
-            class="flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
-            title="Reveal verse (Space)">
-            <i class="mdi mdi-eye-outline text-lg"></i>
-            <span>Reveal</span>
+            class="py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
+            style="min-width: 3rem;"
+            title="Reveal verse (Space)"
+            aria-label="Reveal">
+            <i class="mdi mdi-eye-outline text-xl"></i>
           </button>
           <button
             @click="markReviewWithAnimation(true)"
