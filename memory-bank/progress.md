@@ -106,6 +106,15 @@ MAINTENANCE PRINCIPLES (from .clinerules):
   - [x] Show hint count ("Showing 4 of 23 words")
   - [x] Reset hints on next verse
   - [x] Paragraph/newline preservation working
+- [x] Reveal mode (full content display)
+  - [x] Proper mode button (shows as active when revealed)
+  - [x] Never disabled, always accessible
+- [ ] Type It mode (stub implemented, functionality pending)
+  - [x] Mode button with keyboard icon
+  - [x] "Coming Soon" placeholder with description
+  - [ ] Input field for typing verse
+  - [ ] Character-by-character comparison
+  - [ ] Error highlighting and accuracy scoring
 
 **Navigation & UX (ALL COMPLETE ✅):**
 - [x] Card slide animations for all navigation
@@ -117,15 +126,22 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - [x] Keyboard shortcuts fully integrated
   - [x] 'n' - Next verse
   - [x] 'p' - Previous verse
-  - [x] Space - Reveal verse OR advance to next
+  - [x] Space - Reveal verse (content mode)
+  - [x] 'g' - Got It! (mark successful recall)
+  - [x] 'a' - Again (mark needs practice)
+  - [x] 't' - Type It mode (coming soon)
   - [x] 'h' - Activate hints mode / add hint
-  - [x] 'f' - Activate first letters mode
+  - [x] 'c' - Flash Cards mode
+  - [x] 'f' - First Letters mode
   - [x] 'i' - Toggle immersive mode
   - [x] Escape - Return to reference mode (or exit immersive mode if active)
 - [x] Mode switching UI
-  - [x] Buttons positioned outside/below card (matches legacy)
-  - [x] Simple, clean button styling (no emojis)
-  - [x] Horizontal difficulty links for Flash Cards
+  - [x] 5 mode buttons (Type It, Flash Cards, Hint, First Letters, Reveal)
+  - [x] Reveal as proper mode button (shows as active when content revealed)
+  - [x] Desktop: All modes on one row, actions on separate row
+  - [x] Mobile: 4 icon-only mode buttons, Reveal on action row with Again/Got It
+  - [x] Difficulty-based ordering (hardest → easiest)
+  - [x] Horizontal difficulty links for Flash Cards (+/- buttons)
 - [x] Header layout (matches legacy exactly)
   - [x] Back button | Title | Progress (1/9) | Prev/Next buttons
 - [x] Human-readable time display ("3 weeks" vs "21 days")
@@ -144,7 +160,8 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - [x] Navigation in header (Back, Prev, Next)
 - [x] Card layout matches legacy (left-aligned, clean white background)
 - [x] "Got it!" / "Again" buttons with explicit review tracking
-  - [x] Progressive disclosure (appear only after verse fully revealed)
+  - [x] Always-visible buttons (disabled when not applicable)
+  - [x] Dynamic tooltips ("Available after revealing verse" when disabled)
   - [x] Stats integration (updates Reviewed Today, Day Streak)
   - [x] Auto-advance to next verse after marking
   - [x] Green styling for "Got it!", amber for "Again"
@@ -153,7 +170,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
   - [x] Review status persists across navigation and page refresh
   - [x] Visual feedback extended to My Verses tab (at-a-glance review progress)
 - [x] Mode buttons with icons (mobile: icons only, desktop: icons + text)
-- [x] Smart button dynamic icon (eye for Reveal, chevron for Next)
+- [x] Type It mode stub (coming soon message with description)
 - [x] All content left-aligned (not centered)
 
 **Critical Fixes Completed:**
