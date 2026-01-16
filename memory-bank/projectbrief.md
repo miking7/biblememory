@@ -18,20 +18,19 @@ A modern, offline-first Bible memory application that helps users memorize scrip
 
 ## Project Origin
 
-This project evolved from three reference implementations:
+This project evolved from three reference implementations (all now fully integrated or removed):
 
-1. **Legacy Laravel App** (Active Reference)
-   - Status: Still accessible at `/legacy/` with full feature set
-   - Provides: Proven spaced repetition + 5 review modes + meditation tools
-   - Role: Feature reference during transition to modern app
-   - Future: Will be phased out once modern app achieves feature parity
+1. **Legacy Laravel App** (Removed)
+   - Status: Removed - all features now implemented in modern app
+   - Contributed: Proven spaced repetition algorithms, 5 review modes (Reference, Hints, First Letters, Flash Cards, Content)
+   - No longer exists as separate codebase
 
-2. **SPA Demo** (Historical - Integrated)
+2. **SPA Demo** (Integrated)
    - Status: Fully integrated into modern Vue 3 app
    - Contributed: Clean UI patterns, Tailwind CSS styling
    - No longer exists as separate codebase
 
-3. **OpLog Starter** (Historical - Integrated)
+3. **OpLog Starter** (Integrated)
    - Status: Fully integrated into modern app
    - Contributed: Sync architecture, IndexedDB patterns, cursor pagination
    - No longer exists as separate codebase
@@ -87,13 +86,9 @@ The project is incrementally replacing the legacy Laravel app with a modern Vue 
 - Advanced reflection tools
 
 **Phase 4 (Future):** Modern Enhancements
-- Features legacy app doesn't have
-- Statistics dashboard, dark mode, PWA capabilities
-
-**Legacy Bridge:**
-- "Legacy..." button provides access to advanced features during transition
-- Data flows: Modern app → localStorage → Legacy app (one-way)
-- Users can seamlessly switch between apps as needed
+- Advanced statistics dashboard
+- Dark mode
+- Enhanced PWA capabilities
 
 ## Current Status
 
@@ -107,9 +102,7 @@ The project is incrementally replacing the legacy Laravel app with a modern Vue 
 - Authentication (token-based)
 - Multi-device sync with conflict resolution
 
-**Production Ready:** For basic daily memorization workflows
-
-**Legacy App:** Remains accessible for advanced features (Flash Cards, Hints, Meditation prompts) until Phase 2+ complete
+**Production Ready:** Full-featured app with all review modes implemented
 
 ## Technology Foundation
 - **Frontend**: TypeScript, Vue.js 3, Tailwind CSS v4, Dexie.js, Vite

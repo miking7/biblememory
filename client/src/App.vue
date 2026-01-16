@@ -69,12 +69,6 @@
             <p class="text-sm font-semibold text-slate-800 truncate" v-text="userEmail"></p>
           </div>
           <button
-            @click="exportToLegacyAndOpen(); showUserMenu = false"
-            class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
-            <span>⏪</span>
-            <span>Legacy Mode</span>
-          </button>
-          <button
             @click="handleLogout(); showUserMenu = false"
             class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2">
             <span>🚪</span>
@@ -1151,7 +1145,6 @@ const {
   handleLogin,
   handleRegister,
   handleLogout,
-  exportToLegacyAndOpen,
 
   // Phase 2: Review mode methods
   canIncreaseFlashCardDifficulty,

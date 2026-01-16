@@ -17,16 +17,11 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 **Status:** Ready for new work
 
-**Recently Completed:** Card Slide Animations for All Navigation Actions
+**Recently Completed:** Legacy Codebase Removal (#043)
 
-Extended swipe gesture animations to all navigation methods for consistent UX:
-- **Navigation buttons:** Prev/Next now trigger smooth slide animations
-- **Review actions:** Got it!/Again buttons animate after visual feedback
-- **Accessibility:** Full reduced-motion support (CSS + JavaScript)
-- **Architecture:** Reuses existing useSwipe composable infrastructure
-- **Benefits:** Consistent feel, directional context, professional polish
+Removed the legacy jQuery-based app and all integration code now that feature parity has been achieved. See [previous-work/043_legacy_codebase_removal.md](previous-work/043_legacy_codebase_removal.md) for details.
 
-Next steps: Continue with planned features (Phase 3: Deep Engagement, or other Phase 2 enhancements)
+Next steps: Continue with Phase 3 (Deep Engagement) or Phase 4 (Modern Enhancements)
 
 ## Previous Work Index (Complete Archive)
 
@@ -79,3 +74,4 @@ This index provides titles and links for reference when needed.
 - **040** - Overflow Menu Enhancements (Copy & View Online) → [previous-work/040_overflow_menu_enhancements.md](previous-work/040_overflow_menu_enhancements.md)
 - **041** - My Verses UI Reorganization → [previous-work/041_my_verses_ui_reorganization.md](previous-work/041_my_verses_ui_reorganization.md)
 - **042** - Card Slide Animations for All Navigation → [previous-work/042_card_slide_animations.md](previous-work/042_card_slide_animations.md)
+- **043** - Legacy Codebase Removal → [previous-work/043_legacy_codebase_removal.md](previous-work/043_legacy_codebase_removal.md)
