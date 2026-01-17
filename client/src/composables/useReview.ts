@@ -44,6 +44,13 @@ export function useReview() {
   // Immersive mode state
   const isImmersiveModeActive = ref(false);
 
+  // Animation callback for external animation trigger (set from App.vue)
+  let animatedNavigateCallback: ((direction: 'left' | 'right', allowLastCard?: boolean) => void) | null = null;
+
+  const setAnimatedNavigate = (callback: (direction: 'left' | 'right', allowLastCard?: boolean) => void) => {
+    animatedNavigateCallback = callback;
+  };
+
   // Stats
   const reviewedToday = ref(0);
   const currentStreak = ref(0);
@@ -519,21 +526,28 @@ export function useReview() {
       case ' ':
         event.preventDefault(); // Prevent page scroll
         if (reviewMode.value === 'content') {
-          markReview(true); // Got it!
+          // Got it! - with animation if available
+          markReview(true, animatedNavigateCallback
+            ? () => animatedNavigateCallback!('left', true)
+            : undefined);
         } else {
           switchToContent(); // Switch to content mode (reveal verse)
         }
         return true;
       case 'g':
-        // Got It! - mark as successful recall
+        // Got It! - mark as successful recall with animation
         if (reviewMode.value === 'content') {
-          markReview(true);
+          markReview(true, animatedNavigateCallback
+            ? () => animatedNavigateCallback!('left', true)
+            : undefined);
         }
         return true;
       case 'a':
-        // Again - mark as needs practice
+        // Again - mark as needs practice with animation
         if (reviewMode.value === 'content') {
-          markReview(false);
+          markReview(false, animatedNavigateCallback
+            ? () => animatedNavigateCallback!('left', true)
+            : undefined);
         }
         return true;
       case 't':
@@ -746,6 +760,7 @@ export function useReview() {
 
     // Phase 2: Keyboard shortcuts
     handleKeyPress,
+    setAnimatedNavigate,
 
     // Phase 2: UI helpers
     getHumanReadableTime,

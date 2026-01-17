@@ -491,7 +491,7 @@
                      transition: (isSwiping || isPositioning) ? 'none' : isAnimatingExit ? 'transform 0.3s ease-out' : isAnimatingEnter ? 'transform 0.15s ease-out' : 'transform 0.3s ease-out',
                      touchAction: 'pan-y'
                    }"
-                   @click="handleCardClick">
+                   @click="handleCardClickWithAnimation">
 
               <!-- Header: Reference, Translation, and Edit Icon -->
               <div class="mb-3">
@@ -1267,8 +1267,9 @@ const {
   toggleViewMode,
   toggleVerseExpansion,
 
-  // Card click handler
+  // Card click handler (accepts optional animation callback)
   handleCardClick,
+  setAnimatedNavigate,
 
   // Add verse wizard (from useVerses via app.ts)
   addVerseStep,
@@ -1356,8 +1357,19 @@ const markReviewWithAnimation = (success: boolean) => {
   // After 400ms visual feedback, triggers slide animation instead of direct navigation
   markReview(success, () => {
     // Trigger animation to next verse (left = next)
-    triggerAnimatedNavigation('left');
+    // allowLastCard=true so completion screen shows on last card
+    triggerAnimatedNavigation('left', true);
   });
+};
+
+// Wire up animation callback for keyboard shortcuts in useReview
+setAnimatedNavigate((direction, allowLastCard) => {
+  triggerAnimatedNavigation(direction, allowLastCard);
+});
+
+// Wrapper for card click that provides animation callback
+const handleCardClickWithAnimation = () => {
+  handleCardClick(() => triggerAnimatedNavigation('left', true));
 };
 
 // Set up keyboard shortcuts

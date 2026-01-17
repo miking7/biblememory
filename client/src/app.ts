@@ -141,13 +141,15 @@ export function bibleMemoryApp() {
   };
 
   // Click-anywhere card handler
-  const handleCardClick = () => {
+  // onAnimatedNavigate is optional callback for triggering slide animation (set from App.vue)
+  const handleCardClick = (onAnimatedNavigate?: () => void) => {
     switch (reviewLogic.reviewMode.value) {
       case 'reference':
         reviewLogic.switchToContent();
         break;
       case 'content':
-        reviewLogic.markReview(true); // Got it!
+        // Got it! - with animation if callback provided
+        reviewLogic.markReview(true, onAnimatedNavigate);
         break;
       case 'hints':
         reviewLogic.addHint();
@@ -339,6 +341,7 @@ export function bibleMemoryApp() {
     getReferenceWords: reviewLogic.getReferenceWords,
     getContentWordsStartIndex: reviewLogic.getContentWordsStartIndex,
     handleKeyPress: reviewLogic.handleKeyPress,
+    setAnimatedNavigate: reviewLogic.setAnimatedNavigate,
 
     // Immersive mode
     isImmersiveModeActive: reviewLogic.isImmersiveModeActive,

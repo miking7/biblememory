@@ -176,10 +176,11 @@ export function useSwipe(
   /**
    * Programmatically trigger animated navigation (for button clicks)
    * @param direction - 'left' for next, 'right' for previous
+   * @param allowLastCard - if true, allow left navigation even on last card (for review completion)
    */
-  const triggerAnimatedNavigation = (direction: 'left' | 'right') => {
-    // Check if navigation is allowed
-    if (direction === 'left' && !canSwipeLeft()) return;
+  const triggerAnimatedNavigation = (direction: 'left' | 'right', allowLastCard = false) => {
+    // Check if navigation is allowed (but allow last card navigation for review completion)
+    if (direction === 'left' && !canSwipeLeft() && !allowLastCard) return;
     if (direction === 'right' && !canSwipeRight()) return;
 
     // Check for reduced-motion preference (accessibility)
