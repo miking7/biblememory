@@ -17,9 +17,9 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 **Status:** Ready for new work
 
-**Recently Completed:** Review Buttons Refactoring (#045)
+**Recently Completed:** Review Card Reveal Mode "Got It" Behavior (#046)
 
-Redesigned review buttons with clear mode/action separation. Reveal is now a proper mode button, action buttons are always visible (disabled when not applicable), and added Type It mode stub. Responsive layout optimized for both desktop and mobile. See [previous-work/045_review_buttons_refactoring.md](previous-work/045_review_buttons_refactoring.md) for complete details.
+Changed spacebar and card click behavior when in reveal mode to perform the "got-it" action instead of advancing to next card. This makes the most common user action more accessible - after revealing a verse, pressing spacebar or clicking the card now marks it as successfully recalled and advances. See [previous-work/046_review_card_reveal_mode_gotit.md](previous-work/046_review_card_reveal_mode_gotit.md) for complete details.
 
 Next steps: Continue with Phase 3 (Deep Engagement) or Phase 4 (Modern Enhancements)
 
@@ -77,3 +77,4 @@ This index provides titles and links for reference when needed.
 - **043** - Legacy Codebase Removal → [previous-work/043_legacy_codebase_removal.md](previous-work/043_legacy_codebase_removal.md)
 - **044** - About Page with GitHub Link → [previous-work/044_about_page_github_link.md](previous-work/044_about_page_github_link.md)
 - **045** - Review Buttons Refactoring → [previous-work/045_review_buttons_refactoring.md](previous-work/045_review_buttons_refactoring.md)
+- **046** - Review Card Reveal Mode "Got It" Behavior → [previous-work/046_review_card_reveal_mode_gotit.md](previous-work/046_review_card_reveal_mode_gotit.md)

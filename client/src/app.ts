@@ -147,7 +147,7 @@ export function bibleMemoryApp() {
         reviewLogic.switchToContent();
         break;
       case 'content':
-        reviewLogic.nextVerse();
+        reviewLogic.markReview(true); // Got it!
         break;
       case 'hints':
         reviewLogic.addHint();

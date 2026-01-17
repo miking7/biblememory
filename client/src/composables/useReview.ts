@@ -518,7 +518,11 @@ export function useReview() {
         return true;
       case ' ':
         event.preventDefault(); // Prevent page scroll
-        switchToContent(); // Switch to content mode (reveal verse)
+        if (reviewMode.value === 'content') {
+          markReview(true); // Got it!
+        } else {
+          switchToContent(); // Switch to content mode (reveal verse)
+        }
         return true;
       case 'g':
         // Got It! - mark as successful recall
