@@ -1,15 +1,13 @@
 #!/usr/bin/env node
 import sharp from 'sharp';
-import { writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const SOURCE = join(__dirname, 'public/legacy/bible.png');
+const SOURCE = join(__dirname, 'public/icons/bible-memory-master-970.png');
 const ICONS_DIR = join(__dirname, 'public/icons');
-const PUBLIC_DIR = join(__dirname, 'public');
 
 const sizes = [
   { size: 16, name: 'favicon-16x16.png', dir: ICONS_DIR },
@@ -34,19 +32,6 @@ async function generateIcons() {
       .toFile(output);
     console.log(`✓ Generated ${name} (${size}x${size})`);
   }
-
-  // Generate favicon.ico (32x32 version)
-  const icoBuffer = await sharp(SOURCE)
-    .resize(32, 32, {
-      kernel: sharp.kernel.lanczos3,
-      fit: 'contain',
-      background: { r: 255, g: 255, b: 255, alpha: 0 }
-    })
-    .png()
-    .toBuffer();
-
-  writeFileSync(join(PUBLIC_DIR, 'favicon.ico'), icoBuffer);
-  console.log('✓ Generated favicon.ico (32x32)');
 
   console.log('\n✅ All PWA icons generated successfully!');
   console.log('\nNote: Source image is 57x57. For production, consider creating');

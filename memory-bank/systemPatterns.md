@@ -332,7 +332,7 @@ KEY QUESTION THIS FILE ANSWERS: "How is the system architectured and why?"
 3. **App Icons** - Multiple sizes for different platforms
    - Android: 192x192, 512x512 (standard + maskable)
    - iOS: 180x180 (apple-touch-icon)
-   - Favicon: 16x16, 32x32, favicon.ico
+   - Favicon: 16x16, 32x32 (PNG format, no .ico)
    - Generated from source image using Sharp
 
 4. **PWA Meta Tags** - iOS and Android configurations

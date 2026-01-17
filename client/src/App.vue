@@ -36,8 +36,9 @@
     <!-- Header - Hidden in immersive mode -->
     <header v-show="!isImmersiveModeActive" class="mb-6 sm:mb-10 fade-in relative immersive-hideable">
       <div class="text-left sm:text-center">
-        <h1 class="text-3xl sm:text-5xl font-bold text-white mb-3 tracking-tight">
-          📖 <span class="gradient-text">Bible Memory</span>
+        <h1 class="text-3xl sm:text-5xl font-bold text-white mb-3 tracking-tight flex items-center justify-start sm:justify-center gap-2 sm:gap-3">
+          <img src="/icons/favicon-32x32.png" alt="" class="w-8 h-8 sm:w-12 sm:h-12" />
+          <span class="gradient-text">Bible Memory</span>
         </h1>
         <p class="text-blue-200 text-lg font-light text-[clamp(0.6rem,4.7vw,1.125rem)]">Memorize Scripture, one verse at a time</p>
       </div>
@@ -386,7 +387,7 @@
 
         <!-- No verses at all -->
         <div v-show="verses.length === 0" class="text-center py-12 text-slate-500">
-          <div class="text-4xl sm:text-5xl mb-4">📖</div>
+          <img src="/icons/icon-192.png" alt="" class="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 opacity-50" />
           <p class="text-lg">No verses yet. Add your first verse to get started!</p>
         </div>
 
