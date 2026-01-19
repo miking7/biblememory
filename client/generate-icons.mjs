@@ -6,7 +6,7 @@ import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const SOURCE = join(__dirname, 'public/icons/bible-memory-master-970.png');
+const SOURCE = join(__dirname, 'public/icons/bible-memory-master-880.png');
 const ICONS_DIR = join(__dirname, 'public/icons');
 
 const sizes = [
