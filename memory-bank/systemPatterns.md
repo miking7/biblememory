@@ -217,9 +217,9 @@ KEY QUESTION THIS FILE ANSWERS: "How is the system architectured and why?"
 **Current Composables:**
 - `client/src/composables/useAuth.ts` - Authentication state and operations
 - `client/src/composables/useVerses.ts` - Verse CRUD and filtering
-- `client/src/composables/useReview.ts` - Review system logic and stats
+- `client/src/composables/useReview.ts` - Review system logic, navigation, and animations
 - `client/src/composables/useSync.ts` - Sync scheduling and status tracking
-- `client/src/composables/useCardTransitions.ts` - Card animation primitives (exit/entry)
+- `client/src/composables/useCardTransitions.ts` - Card animation primitives (used internally by useReview)
 - `client/src/composables/useSwipeDetection.ts` - Touch gesture detection
 - `client/src/app.ts` - Orchestrates composables (reduced from 694 to 141 lines)
 
@@ -609,6 +609,101 @@ watch(hasSyncIssuesWithAuth, (newValue, oldValue) => {
 - `client/src/styles.css` lines 228-254 - Toast styling with animations
 
 **See:** previous-work/031_offline_notification_redesign.md for full implementation details
+
+### 13. Unified Review Navigation Pattern
+
+**Purpose:** Centralize navigation and animation logic within the review composable to eliminate duplication and awkward injection patterns
+
+**Problem Solved:**
+- 11 different navigation entry points with ~70% code duplication
+- Each handler (buttons, swipes, keyboard) repeated guard checks, animations, and navigation logic
+- Navigation logic spread across template where it was harder to maintain
+- Completion screen didn't differentiate between daily and filtered review modes
+
+**How It Works:**
+- `useReview` composable manages `useCardTransitions` internally
+- Single `navigate()` method handles all navigation with optional review recording
+- Keyboard shortcuts call `navigate()` directly (no injection needed)
+- All navigation triggers unified through clean, direct API
+
+**Implementation:**
+```typescript
+// useReview manages transitions internally:
+const review = useReview(cardElement);
+
+// All handlers use review.navigate() directly:
+const handleGotIt = () => review.navigate({
+  direction: 'next',
+  recordReview: true  // Optional: records "got it" review
+});
+
+const handlePreviousClick = () => review.navigate({
+  direction: 'previous'
+});
+```
+
+**Key Features:**
+1. **Unified Entry Point:** Single `navigate()` method on review composable
+2. **Guard Logic:** Checks transition state and boundary conditions
+3. **Animation Coordination:** Sequences exit → navigation → entry animations
+4. **Review Recording:** Optional parameter integrates review tracking
+5. **Boundary Handling:** Explicit completion state for last card
+6. **No Injection:** Keyboard shortcuts call navigate() directly
+
+**Navigation Flow:**
+```
+1. Guard checks (is transitioning? at boundary?)
+   ↓
+2. Record review (optional, with visual feedback)
+   ↓
+3. Exit animation (card slides out)
+   ↓
+4. Navigate (update index, handle completion)
+   ↓
+5. Entry animation (new card slides in)
+   OR show completion screen
+```
+
+**Why This Pattern:**
+- ✅ **Simple architecture:** Clean 2-layer design (App.vue → useReview)
+- ✅ **No coordination overhead:** Keyboard shortcuts call navigate() directly
+- ✅ **Single responsibility:** Review owns all review-related logic including navigation
+- ✅ **Less indirection:** Direct call chain without callbacks
+- ✅ **Navigation IS review logic:** Colocated where it belongs
+- ✅ **~192 lines eliminated:** Removed duplicated handler code
+
+**Architecture:**
+```
+App.vue → useReview (owns transitions internally)
+```
+
+**Integration Points:**
+- Button clicks → `review.navigate()`
+- Swipe gestures → `review.navigate()`
+- Keyboard shortcuts → `review.navigate()` (direct, no injection)
+- Review buttons → `review.navigate({ recordReview: true/false })`
+- Completion screen → `review.viewLastCard()`
+- Card click → `review.navigate({ recordReview: true })`
+
+**Trade-offs Accepted:**
+- Review composable is larger (~800 lines vs ~700 before)
+- Transitions tightly coupled to review (acceptable - only used in review)
+- Could be seen as violating separation of concerns (but navigation IS review logic)
+
+**Completion Screen Differentiation:**
+- **Daily mode:** Celebratory (🎉 "Review Complete!")
+- **Filtered mode:** Informational (✓ "End of Filtered Set")
+- Both offer "View Last Card" button
+- Different action buttons based on context
+
+**Implementation Files:**
+- `client/src/composables/useReview.ts` - All review logic including navigation and animations
+- `client/src/composables/useCardTransitions.ts` - Animation primitives (used internally by useReview)
+- `client/src/app.ts` - Passes cardElement to useReview
+- `client/src/App.vue` - Uses review.navigate() directly
+
+**See:**
+- previous-work/049_unified_review_navigation.md - Complete navigation unification
 
 ## Component Relationships
 

@@ -5,7 +5,7 @@ import { useReview } from './composables/useReview';
 import { useSync } from './composables/useSync';
 
 // Vue.js app function using Composition API with composables
-export function bibleMemoryApp() {
+export function bibleMemoryApp(reviewCardElement?: any) {
   // Tab state (kept in main app for coordination)
   const currentTab = ref<'add' | 'list' | 'review'>('list');
 
@@ -16,7 +16,7 @@ export function bibleMemoryApp() {
   // Use composables
   const auth = useAuth();
   const versesLogic = useVerses();
-  const reviewLogic = useReview();
+  const reviewLogic = useReview(reviewCardElement);
   const sync = useSync();
 
   // Combined hasSyncIssues that checks authentication
@@ -141,15 +141,14 @@ export function bibleMemoryApp() {
   };
 
   // Click-anywhere card handler
-  // onAnimatedNavigate is optional callback for triggering slide animation (set from App.vue)
-  const handleCardClick = (onAnimatedNavigate?: () => void) => {
+  const handleCardClick = () => {
     switch (reviewLogic.reviewMode.value) {
       case 'reference':
         reviewLogic.switchToContent();
         break;
       case 'content':
-        // Got it! - with animation if callback provided
-        reviewLogic.markReview(true, onAnimatedNavigate);
+        // Got it! - navigate with review recording
+        reviewLogic.navigate({ direction: 'next', recordReview: true });
         break;
       case 'hints':
         reviewLogic.addHint();
@@ -303,6 +302,8 @@ export function bibleMemoryApp() {
     loadReviewVerses: reviewLogic.loadReviewVerses,
     markReview: reviewLogic.markReview,
     resetReview: reviewLogic.resetReview,
+    completeReview: reviewLogic.completeReview,
+    uncompleteReview: reviewLogic.uncompleteReview,
     startFilteredReview: reviewLogic.startFilteredReview,
     returnToDailyReview: reviewLogic.returnToDailyReview,
     refreshCurrentVerse: reviewLogic.refreshCurrentVerse,
@@ -341,7 +342,16 @@ export function bibleMemoryApp() {
     getReferenceWords: reviewLogic.getReferenceWords,
     getContentWordsStartIndex: reviewLogic.getContentWordsStartIndex,
     handleKeyPress: reviewLogic.handleKeyPress,
-    setAnimatedNavigate: reviewLogic.setAnimatedNavigate,
+
+    // Navigation (with animations)
+    navigate: reviewLogic.navigate,
+    viewLastCard: reviewLogic.viewLastCard,
+
+    // Transition state (for template bindings)
+    isTransitioning: reviewLogic.isTransitioning,
+    cardOffset: reviewLogic.cardOffset,
+    cardVisible: reviewLogic.cardVisible,
+    transitionDuration: reviewLogic.transitionDuration,
 
     // Immersive mode
     isImmersiveModeActive: reviewLogic.isImmersiveModeActive,

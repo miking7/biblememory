@@ -17,28 +17,16 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 **Status:** Ready for new work
 
-**Recently Completed:** Card Animation System Refactor (#048)
+**Recently Completed:** Unified Review Navigation (#049)
 
-Completely refactored the card animation system to use a clearer, more maintainable architecture based on **separation of concerns**. Split the monolithic `useSwipe.ts` (289 lines) into two focused composables:
-
-1. **useCardTransitions.ts** - Pure animation primitives (`exitTransition`, `entryTransition`)
-2. **useSwipeDetection.ts** - Touch gesture detection only
-
-Key improvements:
-- **Linear async/await flow** replaces nested setTimeout chains (much easier to read)
-- **Business logic explicit** in App.vue (not hidden in animation code)
-- **Simpler state:** 3 clear flags instead of 6 interrelated ones
-- **Animation lock** prevents race conditions
-- **Composable primitives** easy to test and extend
-
-All navigation methods migrated (buttons, swipes, keyboard, review actions). See [previous-work/048_card_animation_refactor.md](previous-work/048_card_animation_refactor.md) for complete details.
+Centralized all navigation logic into `useReview` composable, eliminating ~192 lines of duplicated code across 11 navigation entry points. Added differentiated completion screens (daily vs filtered) and "View Last Card" functionality.
 
 Next steps: Continue with Phase 3 (Deep Engagement) or Phase 4 (Modern Enhancements)
 
 ## Previous Work Index (Complete Archive)
 
-<!-- 
-IMPORTANT: Complete chronological index of all archived work (oldest first). 
+<!--
+IMPORTANT: Complete chronological index of all archived work (oldest first).
 Previous work files are NOT auto-loaded - only read when specifically relevant to current task.
 This index provides titles and links for reference when needed.
 -->
@@ -92,3 +80,4 @@ This index provides titles and links for reference when needed.
 - **046** - Review Card Reveal Mode "Got It" Behavior → [previous-work/046_review_card_reveal_mode_gotit.md](previous-work/046_review_card_reveal_mode_gotit.md)
 - **047** - Animation Consistency & Completion Screen Fix → [previous-work/047_animation_consistency_completion_screen.md](previous-work/047_animation_consistency_completion_screen.md)
 - **048** - Card Animation System Refactor → [previous-work/048_card_animation_refactor.md](previous-work/048_card_animation_refactor.md)
+- **049** - Unified Review Navigation → [previous-work/049_unified_review_navigation.md](previous-work/049_unified_review_navigation.md)

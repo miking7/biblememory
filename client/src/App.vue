@@ -492,7 +492,7 @@
                      opacity: cardVisible ? 1 : 0,
                      touchAction: 'pan-y'
                    }"
-                   @click="handleCardClickWithAnimation">
+                   @click="handleCardClick">
 
               <!-- Header: Reference, Translation, and Edit Icon -->
               <div class="mb-3">
@@ -652,14 +652,43 @@
         </div>
 
         <div v-show="reviewComplete" class="text-center py-16">
-          <div class="text-5xl sm:text-7xl mb-4">🎉</div>
-          <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">Review Complete!</p>
-          <p class="text-slate-500 mb-6 text-lg">Great job reviewing today's verses.</p>
-          <button
-            @click="resetReview()"
-            class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
-            Review More
-          </button>
+          <!-- Daily mode completion (celebratory) -->
+          <template v-if="reviewSource === 'daily'">
+            <div class="text-5xl sm:text-7xl mb-4">🎉</div>
+            <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">Review Complete!</p>
+            <p class="text-slate-500 mb-6 text-lg">Great job reviewing today's verses.</p>
+            <div class="flex gap-3 justify-center flex-wrap">
+              <button
+                @click="viewLastCard()"
+                class="px-6 py-3 rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all">
+                View Last Card
+              </button>
+              <button
+                @click="resetReview()"
+                class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
+                Review More
+              </button>
+            </div>
+          </template>
+
+          <!-- Filtered mode completion (informational) -->
+          <template v-else>
+            <div class="text-4xl sm:text-6xl mb-4 text-slate-600">✓</div>
+            <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">End of Filtered Set</p>
+            <p class="text-slate-500 mb-6 text-lg">You've reviewed all {{ totalReviewCount }} cards in this filtered set.</p>
+            <div class="flex gap-3 justify-center flex-wrap">
+              <button
+                @click="viewLastCard()"
+                class="px-6 py-3 rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all">
+                View Last Card
+              </button>
+              <button
+                @click="returnToDailyReview()"
+                class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
+                Return to Daily Review
+              </button>
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -1148,12 +1177,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, type Ref } from 'vue';
+import { ref, onMounted, onUnmounted, type Ref } from 'vue';
 import { bibleMemoryApp } from './app';
 import { getCachedReviewStatus } from './actions';
 import VerseCard from './components/VerseCard.vue';
-import { useCardTransitions } from './composables/useCardTransitions';
 import { useSwipeDetection } from './composables/useSwipeDetection';
+
+// Review card ref for swipe detection and card transitions
+const reviewCardElement = ref<HTMLElement | null>(null) as Ref<HTMLElement | null>;
 
 // Destructure everything from bibleMemoryApp (app.ts)
 const {
@@ -1169,7 +1200,6 @@ const {
   dueForReview,
   currentReviewIndex,
   currentReviewVerse,
-  showVerseText,
   reviewComplete,
   reviewedToday,
   currentStreak,
@@ -1182,10 +1212,6 @@ const {
   authForm,
   authLoading,
   showUserMenu,
-  lastSyncSuccess,
-  lastSyncError,
-  lastSyncAttempt,
-  isOffline,
 
   // Toast notifications
   showOfflineToast,
@@ -1194,14 +1220,12 @@ const {
   // Phase 2: Review mode state
   reviewMode,
   hintsShown,
-  flashcardLevel,
   flashcardHiddenWords,
   flashcardRevealedWords,
   firstLettersRevealedGroups,
 
   // Review source selection state
   reviewSource,
-  filteredReviewVerses,
 
   // Computed
   filteredVerses,
@@ -1218,6 +1242,8 @@ const {
   loadReviewVerses,
   markReview,
   resetReview,
+  completeReview,
+  uncompleteReview,
   exportVerses,
   importVerses,
   formatTagForDisplay,
@@ -1231,7 +1257,6 @@ const {
   canIncreaseFlashCardDifficulty,
   canDecreaseFlashCardDifficulty,
   getFlashCardLevelName,
-  switchToReference,
   switchToContent,
   switchToHints,
   addHint,
@@ -1241,14 +1266,12 @@ const {
   increaseFlashCardDifficulty,
   decreaseFlashCardDifficulty,
   getHintedContent,
-  getFirstLettersContent,
   getFirstLettersChunks,
   revealFirstLetterChunk,
   getWords,
   revealWord,
   nextVerse,
   previousVerse,
-  getHumanReadableTime,
   getAbbreviatedAge,
   getReviewCategory,
   getReferenceWords,
@@ -1271,7 +1294,16 @@ const {
 
   // Card click handler (accepts optional animation callback)
   handleCardClick,
-  setAnimatedNavigate,
+
+  // Navigation (with animations)
+  navigate,
+  viewLastCard,
+
+  // Transition state (for template bindings)
+  isTransitioning,
+  cardOffset,
+  cardVisible,
+  transitionDuration,
 
   // Add verse wizard (from useVerses via app.ts)
   addVerseStep,
@@ -1285,7 +1317,7 @@ const {
   // Review source selection handlers
   startReviewFromFiltered,
   startReviewAtVerse,
-} = bibleMemoryApp();
+} = bibleMemoryApp(reviewCardElement);
 
 // Local state for My Verses menu
 const showMyVersesMenu = ref(false);
@@ -1298,9 +1330,6 @@ const showReviewCardMenu = ref(false);
 
 // Local state for About modal
 const showAboutModal = ref(false);
-
-// Review card ref for swipe detection and card transitions
-const reviewCardElement = ref<HTMLElement | null>(null) as Ref<HTMLElement | null>;
 
 // Copy verse to clipboard
 const copyVerseToClipboard = (verse: any) => {
@@ -1327,135 +1356,20 @@ const viewVerseOnline = (verse: any) => {
   window.open(url, '_blank');
 };
 
-// Check if can navigate to previous/next verse
-const canNavigateRight = computed(() => currentReviewIndex.value > 0);
-const canNavigateLeft = computed(() => currentReviewIndex.value < dueForReview.value.length - 1);
-
-// Set up card transitions
-const {
-  exitTransition,
-  entryTransition,
-  isTransitioning,
-  cardOffset,
-  cardVisible,
-  transitionDuration,
-} = useCardTransitions(reviewCardElement);
-
 // Set up swipe gesture detection
 const { isSwiping, swipeOffset } = useSwipeDetection(reviewCardElement, {
-  onSwipeLeft: () => handleSwipeLeft(),
-  onSwipeRight: () => handleSwipeRight(),
+  onSwipeLeft: () => navigate({ direction: 'next' }),
+  onSwipeRight: () => navigate({ direction: 'previous' }),
   threshold: 50,
-  canSwipeLeft: () => canNavigateLeft.value,
-  canSwipeRight: () => canNavigateRight.value,
+  canSwipeLeft: () => currentReviewIndex.value < totalReviewCount.value - 1,
+  canSwipeRight: () => currentReviewIndex.value > 0,
 });
 
-// Swipe handlers (combine detection with animation)
-async function handleSwipeLeft() {
-  if (!canNavigateLeft.value || isTransitioning.value) return;
-
-  await exitTransition({ direction: 'left', duration: 300 });
-  nextVerse();
-  await entryTransition({ direction: 'right', duration: 150 });
-}
-
-async function handleSwipeRight() {
-  if (!canNavigateRight.value || isTransitioning.value) return;
-
-  await exitTransition({ direction: 'right', duration: 300 });
-  previousVerse();
-  await entryTransition({ direction: 'left', duration: 150 });
-}
-
-// Button navigation handlers
-async function handlePreviousClick() {
-  if (!canNavigateRight.value || isTransitioning.value) return;
-
-  await exitTransition({ direction: 'right', duration: 300 });
-  previousVerse();
-  await entryTransition({ direction: 'left', duration: 150 });
-}
-
-async function handleNextClick() {
-  if (!canNavigateLeft.value || isTransitioning.value) return;
-
-  await exitTransition({ direction: 'left', duration: 300 });
-  nextVerse();
-  await entryTransition({ direction: 'right', duration: 150 });
-}
-
-// Review button handlers
-async function handleGotIt() {
-  if (isTransitioning.value) return;
-
-  await markReview(true); // Record review
-  await sleep(400); // Visual feedback duration
-
-  await exitTransition({ direction: 'left', duration: 300 });
-
-  if (canNavigateLeft.value) {
-    nextVerse();
-    await entryTransition({ direction: 'right', duration: 150 });
-  } else {
-    // Last card - just exit, completion screen will show
-  }
-}
-
-async function handleAgain() {
-  if (isTransitioning.value) return;
-
-  await markReview(false); // Record review
-  await sleep(400); // Visual feedback duration
-
-  await exitTransition({ direction: 'left', duration: 300 });
-
-  if (canNavigateLeft.value) {
-    nextVerse();
-    await entryTransition({ direction: 'right', duration: 150 });
-  } else {
-    // Last card - just exit, completion screen will show
-  }
-}
-
-// Wrapper for card click (for spacebar/click in reveal mode)
-async function handleCardClickWithAnimation() {
-  if (isTransitioning.value) return;
-
-  // handleCardClick decides if navigation should happen
-  // Pass it an async navigation callback
-  handleCardClick(async () => {
-    await exitTransition({ direction: 'left', duration: 300 });
-
-    if (canNavigateLeft.value) {
-      nextVerse();
-      await entryTransition({ direction: 'right', duration: 150 });
-    }
-  });
-}
-
-// Wire up animation callback for keyboard shortcuts in useReview
-setAnimatedNavigate(async (direction: 'left' | 'right') => {
-  if (isTransitioning.value) return;
-
-  if (direction === 'left') {
-    await exitTransition({ direction: 'left', duration: 300 });
-    if (canNavigateLeft.value) {
-      nextVerse();
-      await entryTransition({ direction: 'right', duration: 150 });
-    }
-  } else {
-    await exitTransition({ direction: 'right', duration: 300 });
-    if (canNavigateRight.value) {
-      previousVerse();
-      await entryTransition({ direction: 'left', duration: 150 });
-    }
-  }
-});
-
-// Helper function
-function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+// Navigation handlers
+const handlePreviousClick = () => navigate({ direction: 'previous' });
+const handleNextClick = () => navigate({ direction: 'next' });
+const handleGotIt = () => navigate({ direction: 'next', recordReview: true });
+const handleAgain = () => navigate({ direction: 'next', recordReview: false });
 
 // Set up keyboard shortcuts
 onMounted(() => {

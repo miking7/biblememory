@@ -120,9 +120,17 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - [x] Card slide animations for all navigation
   - [x] Navigation buttons (Prev/Next) trigger smooth slides
   - [x] Review buttons (Got it!/Again) animate after visual feedback
-  - [x] Reuses existing swipe gesture infrastructure
+  - [x] Swipe gestures with smooth animations
+  - [x] Keyboard shortcuts integrated with animations
   - [x] Full reduced-motion accessibility support (CSS + JS)
   - [x] Direction-aware: left for next, right for previous
+- [x] Unified navigation architecture
+  - [x] Single entry point for all navigation triggers (buttons, swipes, keyboard)
+  - [x] Eliminated ~192 lines of duplicated/boilerplate code across evolution
+  - [x] Explicit boundary logic handling
+  - [x] Completion screen differentiation (daily vs filtered)
+  - [x] "View Last Card" button from completion screen
+  - [x] Simplified from 3-layer to 2-layer architecture (merged orchestrator into review)
 - [x] Keyboard shortcuts fully integrated
   - [x] 'n' - Next verse
   - [x] 'p' - Previous verse

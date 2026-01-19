@@ -12,6 +12,7 @@ import {
   RecentReviewEntry
 } from '../actions';
 import { getFirstLettersChunks } from '../utils/firstLetters';
+import { useCardTransitions } from './useCardTransitions';
 
 // Review mode types
 export type ReviewMode =
@@ -22,7 +23,10 @@ export type ReviewMode =
   | 'flashcards'     // Random word hiding with difficulty levels
   | 'typeit';        // Type the verse from memory (coming soon)
 
-export function useReview() {
+export function useReview(cardElement?: any) {
+  // Initialize card transitions (lazy - only if cardElement provided)
+  const transitions = cardElement ? useCardTransitions(cardElement) : null;
+
   // State
   const currentReviewIndex = ref(0);
   const showVerseText = ref(false);
@@ -43,13 +47,6 @@ export function useReview() {
 
   // Immersive mode state
   const isImmersiveModeActive = ref(false);
-
-  // Animation callback for external animation trigger (set from App.vue)
-  let animatedNavigateCallback: ((direction: 'left' | 'right', allowLastCard?: boolean) => void) | null = null;
-
-  const setAnimatedNavigate = (callback: (direction: 'left' | 'right', allowLastCard?: boolean) => void) => {
-    animatedNavigateCallback = callback;
-  };
 
   // Stats
   const reviewedToday = ref(0);
@@ -131,7 +128,7 @@ export function useReview() {
     await loadTodaysReviewsIntoCache();
   };
 
-  const markReview = async (success: boolean, onNavigate?: () => void) => {
+  const markReview = async (success: boolean) => {
     const verse = currentReviewVerse.value;
     if (!verse) return;
 
@@ -151,14 +148,8 @@ export function useReview() {
       await updateStats();
 
       // Brief delay for visual feedback (card shows color before advancing)
+      // Navigation is handled by the orchestrator
       await new Promise(resolve => setTimeout(resolve, 400));
-
-      // Navigate to next verse - use callback if provided, otherwise call nextVerse directly
-      if (onNavigate) {
-        onNavigate();
-      } else {
-        await nextVerse();
-      }
 
     } catch (error) {
       console.error("Failed to record review:", error);
@@ -171,12 +162,23 @@ export function useReview() {
     showVerseText.value = false;
     reviewComplete.value = false;
     switchToReference();
-    
+
     // Only regenerate daily review if in daily mode
     if (reviewSource.value === 'daily') {
       loadReviewVerses(true); // Force regenerate
     }
     // For filtered mode, just restart same list (no regeneration)
+  };
+
+  const completeReview = () => {
+    reviewComplete.value = true;
+    // Index stays at last card (in bounds)
+  };
+
+  const uncompleteReview = () => {
+    reviewComplete.value = false;
+    // Manually set index to last card
+    currentReviewIndex.value = totalReviewCount.value - 1;
   };
 
   // Phase 2: Mode switching functions
@@ -516,38 +518,27 @@ export function useReview() {
         toggleImmersiveMode();
         return true;
       case 'n':
-        if (reviewMode.value === 'content') {
-          nextVerse();
-        }
+        navigate({ direction: 'next' });
         return true;
       case 'p':
-        previousVerse();
+        navigate({ direction: 'previous' });
         return true;
       case ' ':
         event.preventDefault(); // Prevent page scroll
         if (reviewMode.value === 'content') {
-          // Got it! - with animation if available
-          markReview(true, animatedNavigateCallback
-            ? () => animatedNavigateCallback!('left', true)
-            : undefined);
+          navigate({ direction: 'next', recordReview: true });
         } else {
           switchToContent(); // Switch to content mode (reveal verse)
         }
         return true;
       case 'g':
-        // Got It! - mark as successful recall with animation
         if (reviewMode.value === 'content') {
-          markReview(true, animatedNavigateCallback
-            ? () => animatedNavigateCallback!('left', true)
-            : undefined);
+          navigate({ direction: 'next', recordReview: true });
         }
         return true;
       case 'a':
-        // Again - mark as needs practice with animation
         if (reviewMode.value === 'content') {
-          markReview(false, animatedNavigateCallback
-            ? () => animatedNavigateCallback!('left', true)
-            : undefined);
+          navigate({ direction: 'next', recordReview: false });
         }
         return true;
       case 't':
@@ -682,7 +673,7 @@ export function useReview() {
       if (index !== -1) {
         dueForReview.value[index] = updatedVerse;
       }
-    } 
+    }
     // Update in filtered review if that's the current source
     else {
       const index = filteredReviewVerses.value.findIndex(v => v.id === updatedVerse.id);
@@ -690,6 +681,75 @@ export function useReview() {
         filteredReviewVerses.value[index] = updatedVerse;
       }
     }
+  };
+
+  /**
+   * Navigate to next or previous card with animation
+   * Coordinates review recording, exit/entry animations, and verse navigation
+   *
+   * @param options.direction - 'next' or 'previous'
+   * @param options.recordReview - Optional: true = "got it", false = "needs practice"
+   */
+  const navigate = async (options: {
+    direction: 'next' | 'previous';
+    recordReview?: boolean;
+  }) => {
+    // Guards
+    if (!transitions) {
+      console.error('Card transitions not initialized - cardElement not provided to useReview');
+      return;
+    }
+    if (transitions.isTransitioning.value) return;
+
+    // Can't go previous from first card
+    if (options.direction === 'previous' && currentReviewIndex.value === 0) {
+      return;
+    }
+
+    // Record review if requested (includes 400ms visual feedback)
+    if (options.recordReview !== undefined) {
+      await markReview(options.recordReview);
+    }
+
+    // Exit animation
+    const exitDir = options.direction === 'next' ? 'left' : 'right';
+    await transitions.exitTransition({ direction: exitDir, duration: 300 });
+
+    // Navigate
+    if (options.direction === 'next') {
+      const isOnLastCard = currentReviewIndex.value === totalReviewCount.value - 1;
+
+      if (isOnLastCard) {
+        // Reached end - show completion screen
+        completeReview();
+        // No entry animation for completion (screen just appears)
+      } else {
+        // Normal next card
+        await nextVerse();
+        await transitions.entryTransition({ direction: 'right', duration: 150 });
+      }
+    } else {
+      // Previous card
+      await previousVerse();
+      await transitions.entryTransition({ direction: 'left', duration: 150 });
+    }
+  };
+
+  /**
+   * View the last card from the completion screen
+   * Un-completes the review and shows the last card with animation
+   */
+  const viewLastCard = async () => {
+    if (!reviewComplete.value) return;
+    if (!transitions) {
+      console.error('Card transitions not initialized - cardElement not provided to useReview');
+      return;
+    }
+    if (transitions.isTransitioning.value) return;
+
+    uncompleteReview();
+    // Slide in from top/bottom
+    await transitions.entryTransition({ direction: 'down', duration: 200 });
   };
 
   return {
@@ -719,6 +779,12 @@ export function useReview() {
     // Immersive mode state
     isImmersiveModeActive,
 
+    // Transition state (for template bindings - only if transitions initialized)
+    isTransitioning: transitions?.isTransitioning,
+    cardOffset: transitions?.cardOffset,
+    cardVisible: transitions?.cardVisible,
+    transitionDuration: transitions?.transitionDuration,
+
     // Computed
     currentReviewVerse,
     totalReviewCount,
@@ -733,6 +799,8 @@ export function useReview() {
     updateCurrentVerseReviewStatus,
     markReview,
     resetReview,
+    completeReview,
+    uncompleteReview,
 
     // Phase 2: Mode switching
     switchToReference,
@@ -754,13 +822,14 @@ export function useReview() {
     revealWord,
     generateHiddenWords,
 
-    // Phase 2: Navigation
+    // Navigation (with animations)
+    navigate,
+    viewLastCard,
     nextVerse,
     previousVerse,
 
     // Phase 2: Keyboard shortcuts
     handleKeyPress,
-    setAnimatedNavigate,
 
     // Phase 2: UI helpers
     getHumanReadableTime,
