@@ -11,7 +11,7 @@
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.x-green.svg)](https://vuejs.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-[Live Demo](#) • [Documentation](memory-bank/) • [Report Bug](https://github.com/miking7/biblememory/issues) • [Request Feature](https://github.com/miking7/biblememory/issues)
+[Try It Now](https://bible-memory.app) • [Documentation](memory-bank/) • [Report Bug](https://github.com/miking7/biblememory/issues) • [Request Feature](https://github.com/miking7/biblememory/issues)
 
 </div>
 
@@ -36,7 +36,7 @@ Bible Memory helps you effectively memorize Scripture through scientifically-pro
 
 ### For Users
 
-**Try it now:** Visit the [live demo](#) and start memorizing immediately - no installation required!
+**Try it now:** Visit [bible-memory.app](https://bible-memory.app) and start memorizing immediately - no installation required!
 
 **Install as an app:**
 - **iOS**: Open in Safari → Share → Add to Home Screen
@@ -527,7 +527,7 @@ Built with love for believers who want to hide God's Word in their hearts.
 
 **⭐ Star this repo if it helps you memorize Scripture!**
 
-[Report Bug](https://github.com/miking7/biblememory/issues) • [Request Feature](https://github.com/miking7/biblememory/issues) • [View Demo](#)
+[Try It Now](https://bible-memory.app) • [Report Bug](https://github.com/miking7/biblememory/issues) • [Request Feature](https://github.com/miking7/biblememory/issues)
 
 *Last Updated: January 2025*
 
