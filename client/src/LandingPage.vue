@@ -370,7 +370,8 @@
           <div>
             <h3 class="text-white font-semibold mb-3">Product</h3>
             <ul class="space-y-2 text-sm">
-              <li><a href="#features" class="text-blue-200 hover:text-white transition-colors">Features</a></li>
+              <li><a href="/about.html" class="text-blue-200 hover:text-white transition-colors">About</a></li>
+              <li><a href="/features.html" class="text-blue-200 hover:text-white transition-colors">Features</a></li>
               <li><a href="#how-it-works" class="text-blue-200 hover:text-white transition-colors">How It Works</a></li>
               <li>
                 <a href="https://github.com/miking7/biblememory" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-blue-200 hover:text-white transition-colors">
