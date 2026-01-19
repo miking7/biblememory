@@ -540,6 +540,6 @@ Built with love for believers who want to hide God's Word in their hearts.
 
 [Try It Now](https://bible-memory.app) • [Report Bug](https://github.com/miking7/biblememory/issues) • [Request Feature](https://github.com/miking7/biblememory/issues)
 
-*Last Updated: January 2025*
+*Last Updated: January 2026*
 
 </div>

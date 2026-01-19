@@ -1,7 +1,7 @@
 # Landing Page Implementation Specification
 
 **Project:** Bible Memory App Landing Page & Marketing Pages
-**Date Created:** 2025-01-19
+**Date Created:** 2026-01-19
 **Status:** Planning → Implementation
 **Domain:** https://bible-memory.app
 
@@ -306,7 +306,7 @@ Visual suggestion: Icon badges showing iOS/Android compatibility
 - GitHub (→ https://github.com/miking7/biblememory)
 
 **Copyright:**
-> © 2025 Bible Memory. Open source under [LICENSE].
+> © 2026 Bible Memory. Open source under [LICENSE].
 
 ---
 
@@ -610,31 +610,31 @@ Add before closing `</head>` tag:
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://bible-memory.app/</loc>
-    <lastmod>2025-01-19</lastmod>
+    <lastmod>2026-01-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://bible-memory.app/features.html</loc>
-    <lastmod>2025-01-19</lastmod>
+    <lastmod>2026-01-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://bible-memory.app/about.html</loc>
-    <lastmod>2025-01-19</lastmod>
+    <lastmod>2026-01-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://bible-memory.app/privacy.html</loc>
-    <lastmod>2025-01-19</lastmod>
+    <lastmod>2026-01-19</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://bible-memory.app/terms.html</loc>
-    <lastmod>2025-01-19</lastmod>
+    <lastmod>2026-01-19</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -875,7 +875,7 @@ Ideas to consider after core implementation:
 
 ## 📝 Notes & Decisions Log
 
-**2025-01-19: Initial Specification**
+**2026-01-19: Initial Specification**
 - Decided on simplified architecture (no Vue Router)
 - Landing page for unauthenticated, app for authenticated
 - Static HTML for additional pages (features, about, legal)
@@ -909,5 +909,5 @@ Ideas to consider after core implementation:
 ---
 
 **Document Version:** 1.0
-**Last Updated:** 2025-01-19
+**Last Updated:** 2026-01-19
 **Next Review:** After Phase 1 completion
