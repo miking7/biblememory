@@ -65,14 +65,31 @@
             </div>
           </div>
 
-          <!-- Hero Image Mock (16:9 aspect ratio) -->
+          <!-- Hero Video/Image -->
           <div class="order-first lg:order-last">
-            <div class="aspect-[16/9] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl border border-white/20 shadow-2xl flex items-center justify-center">
-              <div class="text-center p-6">
-                <i class="mdi mdi-book-open-page-variant text-6xl text-white/40 mb-3"></i>
-                <p class="text-white/60 text-sm font-medium">Hero image placeholder</p>
-                <p class="text-white/40 text-xs mt-1">Replace with app screenshot</p>
-              </div>
+            <div class="aspect-[16/9] rounded-2xl border border-white/20 shadow-2xl overflow-hidden bg-slate-900">
+              <!-- Video (hidden for users who prefer reduced motion) -->
+              <video
+                v-if="!prefersReducedMotion"
+                ref="heroVideo"
+                class="w-full h-full object-cover"
+                autoplay
+                muted
+                loop
+                playsinline
+                poster="/images/hero.png"
+              >
+                <source src="/images/hero.mp4" type="video/mp4">
+                <!-- Fallback for browsers that don't support video -->
+                <img src="/images/hero.png" alt="Bible Memory app screenshot" class="w-full h-full object-cover">
+              </video>
+              <!-- Static image for reduced motion preference -->
+              <img
+                v-else
+                src="/images/hero.png"
+                alt="Bible Memory app screenshot"
+                class="w-full h-full object-cover"
+              >
             </div>
           </div>
         </div>
@@ -177,13 +194,13 @@
           <!-- Step 1 -->
           <div class="text-center">
             <div class="mb-6 flex justify-center">
-              <!-- Screenshot mock (9:16 aspect ratio - portrait phone) -->
-              <div class="w-48 sm:w-56 aspect-[9/16] bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 shadow-2xl flex items-center justify-center">
-                <div class="text-center p-4">
-                  <i class="mdi mdi-plus-circle-outline text-4xl text-white/40 mb-2"></i>
-                  <p class="text-white/60 text-xs font-medium">Screenshot 1</p>
-                  <p class="text-white/40 text-xs mt-1">Add Verse tab</p>
-                </div>
+              <!-- Screenshot (1:2 aspect ratio - portrait phone) -->
+              <div class="w-48 sm:w-56 aspect-[1/2] rounded-2xl border border-white/20 shadow-2xl overflow-hidden">
+                <img
+                  src="/images/1-add-verse.png"
+                  alt="Add Verse screen - paste any verse and let AI extract the reference"
+                  class="w-full h-full object-cover"
+                >
               </div>
             </div>
             <div class="glass-card rounded-xl p-6 bg-white/95">
@@ -200,13 +217,13 @@
           <!-- Step 2 -->
           <div class="text-center">
             <div class="mb-6 flex justify-center">
-              <!-- Screenshot mock (9:16 aspect ratio - portrait phone) -->
-              <div class="w-48 sm:w-56 aspect-[9/16] bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 shadow-2xl flex items-center justify-center">
-                <div class="text-center p-4">
-                  <i class="mdi mdi-cards-outline text-4xl text-white/40 mb-2"></i>
-                  <p class="text-white/60 text-xs font-medium">Screenshot 2</p>
-                  <p class="text-white/40 text-xs mt-1">Review tab</p>
-                </div>
+              <!-- Screenshot (1:2 aspect ratio - portrait phone) -->
+              <div class="w-48 sm:w-56 aspect-[1/2] rounded-2xl border border-white/20 shadow-2xl overflow-hidden">
+                <img
+                  src="/images/2-review-page.png"
+                  alt="Review screen - practice your verses with different modes"
+                  class="w-full h-full object-cover"
+                >
               </div>
             </div>
             <div class="glass-card rounded-xl p-6 bg-white/95">
@@ -223,13 +240,13 @@
           <!-- Step 3 -->
           <div class="text-center">
             <div class="mb-6 flex justify-center">
-              <!-- Screenshot mock (9:16 aspect ratio - portrait phone) -->
-              <div class="w-48 sm:w-56 aspect-[9/16] bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 shadow-2xl flex items-center justify-center">
-                <div class="text-center p-4">
-                  <i class="mdi mdi-chart-line text-4xl text-white/40 mb-2"></i>
-                  <p class="text-white/60 text-xs font-medium">Screenshot 3</p>
-                  <p class="text-white/40 text-xs mt-1">Stats</p>
-                </div>
+              <!-- Screenshot (1:2 aspect ratio - portrait phone) -->
+              <div class="w-48 sm:w-56 aspect-[1/2] rounded-2xl border border-white/20 shadow-2xl overflow-hidden">
+                <img
+                  src="/images/3-my-verses-with-streak.png"
+                  alt="My Verses screen - track your progress and streak"
+                  class="w-full h-full object-cover"
+                >
               </div>
             </div>
             <div class="glass-card rounded-xl p-6 bg-white/95">
@@ -404,19 +421,22 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 
 // Emit events for auth modal opening
 defineEmits<{
   openAuth: [mode: 'login' | 'register']
 }>();
 
+// Check if user prefers reduced motion (for video vs static image)
+const prefersReducedMotion = ref(false);
+
 // Setup scroll-triggered fade-in animations
 onMounted(() => {
   // Check if user prefers reduced motion
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  if (prefersReducedMotion) {
+  if (prefersReducedMotion.value) {
     // Skip animations if user prefers reduced motion
     return;
   }
