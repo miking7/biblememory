@@ -10,16 +10,18 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - This file should answer "where are we in the project?"
 -->
 
-## Current Status: Phase 2+ Complete ✅ (Enhanced Review + Flexible Review Workflows)
+## Current Status: Phase 2+ Complete ✅ (Enhanced Review + Flexible Review Workflows + Landing Page)
 
 ## What Works
 
-### ✅ Phase 1 Complete (Basic Features)
+### ✅ Phase 1 Complete (Basic Features + Landing Page)
 
 **What This Means:**
 - Core infrastructure complete (build system, offline-first, sync, auth)
 - Basic review functionality implemented (reference → content reveal)
 - CRUD operations for verses working
+- **NEW:** Professional landing page for unauthenticated users
+- **NEW:** SEO-optimized with comprehensive meta tags
 - Ready for daily use with basic memorization workflow
 
 ### ✅ Phase 2+ Complete (Enhanced Review + Flexible Review Workflows)
@@ -42,6 +44,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 #### Implemented Features
 - **Build System**: Vite 5.x + TypeScript + HMR + Vue 3 SFC
 - **User Interface**: Glass-morphism design, responsive layout, tab navigation, modals
+- **Landing Page**: Professional marketing page for unauthenticated users (8 sections, SEO-optimized)
 - **Data Management**: Verse CRUD, multi-paragraph support, structured tags, IndexedDB storage
 - **Review System (Basic)**: Spaced repetition algorithm (auto-categorization: 8→56→112 days), simple reveal flow
 - **Offline-First**: Full offline functionality, automatic sync when online
@@ -51,6 +54,18 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - **Import/Export**: JSON export/import with smart ID handling
 - **Backend**: PHP 8.0+ REST API, SQLite with WAL mode, 5 endpoints
 - **Search**: Unicode-insensitive, tags search, context-aware empty states
+
+#### Landing Page Features (Phase 1 Complete ✅)
+- **Conditional Rendering**: Landing page for guests, main app for authenticated users
+- **8 Sections**: Sticky nav, hero, features grid, how-it-works, PWA install, social proof, CTA, footer
+- **SEO-Optimized**: Comprehensive meta tags (Open Graph, Twitter Cards, canonical URL)
+- **Mobile-First**: Responsive design with sticky navigation and backdrop blur
+- **Visual Assets**: Aspect-ratio placeholders for hero (16:9) and screenshots (9:16)
+- **Auth Integration**: All CTAs open existing auth modal via emits pattern
+- **Material Design Icons**: 15+ icons from existing CDN for visual elements
+- **Single Component**: Clean LandingPage.vue (no over-engineering)
+- **Ready for Phase 2**: Static pages (features.html, about.html, privacy.html, terms.html)
+- **Ready for Phase 3**: Image replacement, og-image.png, sitemap
 
 **Legacy App Status:**
 - Remains accessible via "Legacy..." button for advanced review features
