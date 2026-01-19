@@ -8,7 +8,7 @@
 
 *A modern, offline-first progressive web app for memorizing Scripture through proven spaced repetition*
 
-[![License](https://img.shields.io/badge/license-Private-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-Open%20Source-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.x-green.svg)](https://vuejs.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
@@ -22,6 +22,8 @@
 ## ✨ Overview
 
 Bible Memory helps you effectively memorize Scripture through scientifically-proven spaced repetition, beautiful design, and offline-first architecture. Whether you're starting your first verse or maintaining hundreds, our app makes it simple, joyful, and sustainable.
+
+I built this app because I've experienced firsthand the power of hiding God's Word in my heart. When you memorize Scripture, it becomes a living resource that surfaces exactly when you need it most—bringing comfort, wisdom, and strength in moments of need.
 
 **Why Bible Memory?**
 - 🌐 **Works Everywhere** - Full offline functionality, syncs when online
@@ -504,21 +506,32 @@ These documents follow the [Memory Bank](https://github.com/cline/memory-bank) p
 **Michael Engelbrecht**
 - GitHub: [@miking7](https://github.com/miking7)
 
-Built with love for believers who want to hide God's Word in their hearts.
+### The Story Behind Bible Memory
+
+Fifteen years ago, I took a Scripture memory course with Dan Vis at FAST Missions. His course included a simple online tool, and I found it incredibly helpful. When the course ended, I built my own web app so I could keep memorizing—and I used it faithfully for many years.
+
+In 2025, I felt inspired to get back into regularly memorizing new verses. But when I opened my old app, I realized it had aged badly—clunky, hard to use on mobile, and couldn't work offline. So during a holiday break, I rebuilt it from the ground up as a modern Progressive Web App.
+
+After spending several days on it, something became clear: this shouldn't just be for me. If this tool could help me hide God's Word in my heart, maybe it could help others too. That's why I'm making it completely free and open source.
+
+My hope is that whether you're memorizing your first verse or your hundredth passage, this tool will help you experience the joy of having God's Word come alive exactly when you need it most.
 
 ---
 
 ## 📄 License
 
-Private project - All rights reserved (for now)
+Open source project - Free for everyone to use, modify, and distribute.
 
-*Considering open source license options for future release*
+*License details to be formalized - this tool exists to help believers memorize God's Word*
 
 ---
 
 ## 🙏 Acknowledgments
 
 Built with love for believers who want to hide God's Word in their hearts.
+
+**Special Thanks:**
+- **[Dan Vis and FAST Missions](https://www.fastmissions.com/spark)** - For the Scripture memory course 15 years ago that first introduced me to systematic Bible memorization and inspired the original version of this tool
 
 **Key Technologies:**
 - [Vue.js](https://vuejs.org/) - Progressive JavaScript framework
