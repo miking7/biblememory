@@ -1,6 +1,8 @@
 <div align="center">
 
-# 📖 Bible Memory
+<img src="https://bible-memory.app/icons/icon-192.png" alt="Bible Memory Icon" width="96" height="96" />
+
+# Bible Memory
 
 ### Hide God's Word in Your Heart
 
