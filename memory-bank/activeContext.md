@@ -17,13 +17,21 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 **Status:** Ready for new work
 
-**Recently Completed:** Animation Consistency & Completion Screen Fix (#047)
+**Recently Completed:** Card Animation System Refactor (#048)
 
-Fixed two bugs from the #046 changes:
-1. Congratulatory screen (🎉 "Review Complete!") was not appearing on last card - animation guard blocked navigation
-2. Spacebar and card-click had no slide animations while buttons did - added animation callback system
+Completely refactored the card animation system to use a clearer, more maintainable architecture based on **separation of concerns**. Split the monolithic `useSwipe.ts` (289 lines) into two focused composables:
 
-All review actions (buttons, spacebar, card-click, keyboard shortcuts) now have consistent slide animations and properly show the completion screen. See [previous-work/047_animation_consistency_completion_screen.md](previous-work/047_animation_consistency_completion_screen.md) for details.
+1. **useCardTransitions.ts** - Pure animation primitives (`exitTransition`, `entryTransition`)
+2. **useSwipeDetection.ts** - Touch gesture detection only
+
+Key improvements:
+- **Linear async/await flow** replaces nested setTimeout chains (much easier to read)
+- **Business logic explicit** in App.vue (not hidden in animation code)
+- **Simpler state:** 3 clear flags instead of 6 interrelated ones
+- **Animation lock** prevents race conditions
+- **Composable primitives** easy to test and extend
+
+All navigation methods migrated (buttons, swipes, keyboard, review actions). See [previous-work/048_card_animation_refactor.md](previous-work/048_card_animation_refactor.md) for complete details.
 
 Next steps: Continue with Phase 3 (Deep Engagement) or Phase 4 (Modern Enhancements)
 
@@ -83,3 +91,4 @@ This index provides titles and links for reference when needed.
 - **045** - Review Buttons Refactoring → [previous-work/045_review_buttons_refactoring.md](previous-work/045_review_buttons_refactoring.md)
 - **046** - Review Card Reveal Mode "Got It" Behavior → [previous-work/046_review_card_reveal_mode_gotit.md](previous-work/046_review_card_reveal_mode_gotit.md)
 - **047** - Animation Consistency & Completion Screen Fix → [previous-work/047_animation_consistency_completion_screen.md](previous-work/047_animation_consistency_completion_screen.md)
+- **048** - Card Animation System Refactor → [previous-work/048_card_animation_refactor.md](previous-work/048_card_animation_refactor.md)

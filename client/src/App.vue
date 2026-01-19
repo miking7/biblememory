@@ -454,7 +454,7 @@
             <div class="relative">
               <!-- Left Arrow (Previous) -->
               <button
-                @click="navigateWithAnimation('right')"
+                @click="handlePreviousClick"
                 :disabled="currentReviewIndex === 0"
                 class="no-zoom absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 sm:-translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
                 title="Previous verse (p)">
@@ -463,7 +463,7 @@
 
               <!-- Right Arrow (Next) -->
               <button
-                @click="navigateWithAnimation('left')"
+                @click="handleNextClick"
                 :disabled="currentReviewIndex >= totalReviewCount - 1"
                 class="no-zoom absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
                 title="Next verse (n)">
@@ -487,8 +487,9 @@
                      'review-card-again': currentVerseReviewStatus?.lastReviewType === 'practice'
                    }"
                    :style="{
-                     transform: `translateX(${swipeOffset}px)`,
-                     transition: (isSwiping || isPositioning) ? 'none' : isAnimatingExit ? 'transform 0.3s ease-out' : isAnimatingEnter ? 'transform 0.15s ease-out' : 'transform 0.3s ease-out',
+                     transform: `translateX(${isSwiping ? swipeOffset : cardOffset}px)`,
+                     transition: isSwiping ? 'none' : `transform ${transitionDuration} ease-out`,
+                     opacity: cardVisible ? 1 : 0,
                      touchAction: 'pan-y'
                    }"
                    @click="handleCardClickWithAnimation">
@@ -744,7 +745,7 @@
         <!-- Action Buttons Row (Desktop) - Always visible, disabled until verse revealed -->
         <div class="flex gap-3 justify-center">
           <button
-            @click="markReviewWithAnimation(false)"
+            @click="handleAgain"
             :disabled="reviewMode !== 'content'"
             class="action-button-again px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
             :title="reviewMode === 'content' ? 'Need more practice (a)' : 'Available after revealing verse'">
@@ -752,7 +753,7 @@
             <span>Again</span>
           </button>
           <button
-            @click="markReviewWithAnimation(true)"
+            @click="handleGotIt"
             :disabled="reviewMode !== 'content'"
             class="action-button-gotit px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
             :title="reviewMode === 'content' ? 'I remembered it! (g)' : 'Available after revealing verse'">
@@ -767,7 +768,7 @@
         <!-- Action Buttons Row (Mobile) - Always visible, disabled until verse revealed -->
         <div class="flex gap-3">
           <button
-            @click="markReviewWithAnimation(false)"
+            @click="handleAgain"
             :disabled="reviewMode !== 'content'"
             class="action-button-again flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
             :title="reviewMode === 'content' ? 'Need more practice (a)' : 'Available after revealing verse'">
@@ -784,7 +785,7 @@
             <i class="mdi mdi-eye-outline text-xl"></i>
           </button>
           <button
-            @click="markReviewWithAnimation(true)"
+            @click="handleGotIt"
             :disabled="reviewMode !== 'content'"
             class="action-button-gotit flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
             :title="reviewMode === 'content' ? 'I remembered it! (g)' : 'Available after revealing verse'">
@@ -1151,7 +1152,8 @@ import { ref, onMounted, onUnmounted, computed, type Ref } from 'vue';
 import { bibleMemoryApp } from './app';
 import { getCachedReviewStatus } from './actions';
 import VerseCard from './components/VerseCard.vue';
-import { useSwipe } from './composables/useSwipe';
+import { useCardTransitions } from './composables/useCardTransitions';
+import { useSwipeDetection } from './composables/useSwipeDetection';
 
 // Destructure everything from bibleMemoryApp (app.ts)
 const {
@@ -1297,7 +1299,7 @@ const showReviewCardMenu = ref(false);
 // Local state for About modal
 const showAboutModal = ref(false);
 
-// Review card ref for swipe functionality (cast to proper type for useSwipe)
+// Review card ref for swipe detection and card transitions
 const reviewCardElement = ref<HTMLElement | null>(null) as Ref<HTMLElement | null>;
 
 // Copy verse to clipboard
@@ -1326,51 +1328,134 @@ const viewVerseOnline = (verse: any) => {
 };
 
 // Check if can navigate to previous/next verse
-const canSwipeRight = computed(() => currentReviewIndex.value > 0);
-const canSwipeLeft = computed(() => currentReviewIndex.value < dueForReview.value.length - 1);
+const canNavigateRight = computed(() => currentReviewIndex.value > 0);
+const canNavigateLeft = computed(() => currentReviewIndex.value < dueForReview.value.length - 1);
 
-// Set up swipe gestures for review cards
-const { isSwiping, swipeOffset, swipeDirection, isAnimatingExit, isAnimatingEnter, isPositioning, triggerAnimatedNavigation } = useSwipe(reviewCardElement, {
-  onSwipeLeft: () => {
-    if (canSwipeLeft.value) {
-      nextVerse();
-    }
-  },
-  onSwipeRight: () => {
-    if (canSwipeRight.value) {
-      previousVerse();
-    }
-  },
+// Set up card transitions
+const {
+  exitTransition,
+  entryTransition,
+  isTransitioning,
+  cardOffset,
+  cardVisible,
+  transitionDuration,
+} = useCardTransitions(reviewCardElement);
+
+// Set up swipe gesture detection
+const { isSwiping, swipeOffset } = useSwipeDetection(reviewCardElement, {
+  onSwipeLeft: () => handleSwipeLeft(),
+  onSwipeRight: () => handleSwipeRight(),
   threshold: 50,
-  canSwipeLeft: () => canSwipeLeft.value,
-  canSwipeRight: () => canSwipeRight.value,
+  canSwipeLeft: () => canNavigateLeft.value,
+  canSwipeRight: () => canNavigateRight.value,
 });
 
-// Animated navigation for button clicks (Prev/Next buttons)
-const navigateWithAnimation = (direction: 'left' | 'right') => {
-  triggerAnimatedNavigation(direction);
-};
+// Swipe handlers (combine detection with animation)
+async function handleSwipeLeft() {
+  if (!canNavigateLeft.value || isTransitioning.value) return;
 
-// Animated navigation for review marking (Got it! / Again buttons)
-const markReviewWithAnimation = (success: boolean) => {
-  // Mark the review with animation callback
-  // After 400ms visual feedback, triggers slide animation instead of direct navigation
-  markReview(success, () => {
-    // Trigger animation to next verse (left = next)
-    // allowLastCard=true so completion screen shows on last card
-    triggerAnimatedNavigation('left', true);
+  await exitTransition({ direction: 'left', duration: 300 });
+  nextVerse();
+  await entryTransition({ direction: 'right', duration: 150 });
+}
+
+async function handleSwipeRight() {
+  if (!canNavigateRight.value || isTransitioning.value) return;
+
+  await exitTransition({ direction: 'right', duration: 300 });
+  previousVerse();
+  await entryTransition({ direction: 'left', duration: 150 });
+}
+
+// Button navigation handlers
+async function handlePreviousClick() {
+  if (!canNavigateRight.value || isTransitioning.value) return;
+
+  await exitTransition({ direction: 'right', duration: 300 });
+  previousVerse();
+  await entryTransition({ direction: 'left', duration: 150 });
+}
+
+async function handleNextClick() {
+  if (!canNavigateLeft.value || isTransitioning.value) return;
+
+  await exitTransition({ direction: 'left', duration: 300 });
+  nextVerse();
+  await entryTransition({ direction: 'right', duration: 150 });
+}
+
+// Review button handlers
+async function handleGotIt() {
+  if (isTransitioning.value) return;
+
+  await markReview(true); // Record review
+  await sleep(400); // Visual feedback duration
+
+  await exitTransition({ direction: 'left', duration: 300 });
+
+  if (canNavigateLeft.value) {
+    nextVerse();
+    await entryTransition({ direction: 'right', duration: 150 });
+  } else {
+    // Last card - just exit, completion screen will show
+  }
+}
+
+async function handleAgain() {
+  if (isTransitioning.value) return;
+
+  await markReview(false); // Record review
+  await sleep(400); // Visual feedback duration
+
+  await exitTransition({ direction: 'left', duration: 300 });
+
+  if (canNavigateLeft.value) {
+    nextVerse();
+    await entryTransition({ direction: 'right', duration: 150 });
+  } else {
+    // Last card - just exit, completion screen will show
+  }
+}
+
+// Wrapper for card click (for spacebar/click in reveal mode)
+async function handleCardClickWithAnimation() {
+  if (isTransitioning.value) return;
+
+  // handleCardClick decides if navigation should happen
+  // Pass it an async navigation callback
+  handleCardClick(async () => {
+    await exitTransition({ direction: 'left', duration: 300 });
+
+    if (canNavigateLeft.value) {
+      nextVerse();
+      await entryTransition({ direction: 'right', duration: 150 });
+    }
   });
-};
+}
 
 // Wire up animation callback for keyboard shortcuts in useReview
-setAnimatedNavigate((direction, allowLastCard) => {
-  triggerAnimatedNavigation(direction, allowLastCard);
+setAnimatedNavigate(async (direction: 'left' | 'right') => {
+  if (isTransitioning.value) return;
+
+  if (direction === 'left') {
+    await exitTransition({ direction: 'left', duration: 300 });
+    if (canNavigateLeft.value) {
+      nextVerse();
+      await entryTransition({ direction: 'right', duration: 150 });
+    }
+  } else {
+    await exitTransition({ direction: 'right', duration: 300 });
+    if (canNavigateRight.value) {
+      previousVerse();
+      await entryTransition({ direction: 'left', duration: 150 });
+    }
+  }
 });
 
-// Wrapper for card click that provides animation callback
-const handleCardClickWithAnimation = () => {
-  handleCardClick(() => triggerAnimatedNavigation('left', true));
-};
+// Helper function
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // Set up keyboard shortcuts
 onMounted(() => {

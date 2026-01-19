@@ -219,7 +219,8 @@ KEY QUESTION THIS FILE ANSWERS: "How is the system architectured and why?"
 - `client/src/composables/useVerses.ts` - Verse CRUD and filtering
 - `client/src/composables/useReview.ts` - Review system logic and stats
 - `client/src/composables/useSync.ts` - Sync scheduling and status tracking
-- `client/src/composables/useSwipe.ts` - Touch gesture detection and card slide animations
+- `client/src/composables/useCardTransitions.ts` - Card animation primitives (exit/entry)
+- `client/src/composables/useSwipeDetection.ts` - Touch gesture detection
 - `client/src/app.ts` - Orchestrates composables (reduced from 694 to 141 lines)
 
 ### 7. Mobile-First Responsive Design Pattern
