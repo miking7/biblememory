@@ -10,7 +10,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - This file should answer "where are we in the project?"
 -->
 
-## Current Status: Phase 2+ Complete ✅ (Enhanced Review + Flexible Review Workflows + Landing Page)
+## Current Status: Phase 2+ Complete ✅ (Enhanced Review + Flexible Review Workflows + Landing Page + Static Pages)
 
 ## What Works
 
@@ -64,8 +64,16 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - **Auth Integration**: All CTAs open existing auth modal via emits pattern
 - **Material Design Icons**: 15+ icons from existing CDN for visual elements
 - **Single Component**: Clean LandingPage.vue (no over-engineering)
-- **Ready for Phase 2**: Static pages (features.html, about.html, privacy.html, terms.html)
-- **Ready for Phase 3**: Image replacement, og-image.png, sitemap
+
+#### Static Pages (Phase 2 Complete ✅)
+- **4 Static Pages**: features.html, about.html, privacy.html, terms.html
+- **Consistent Design**: Tailwind CDN styling matching landing page aesthetic
+- **Master Templates**: _header-template.html and _footer-template.html for easy updates
+- **Personal Tone**: Authentic story in about.html, minimal legal jargon in privacy/terms
+- **User-Benefit Focus**: Features page emphasizes value, not technical details (11 features)
+- **Integrated Navigation**: All links active in LandingPage.vue header and footer
+- **SEO Ready**: All 5 pages (index + 4 static) included in sitemap.xml
+- **Ready for Phase 3**: Visual assets (og-image.png, screenshots), content refinement
 
 **Legacy App Status:**
 - Remains accessible via "Legacy..." button for advanced review features
