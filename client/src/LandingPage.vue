@@ -395,7 +395,7 @@
 
         <!-- Copyright -->
         <div class="pt-8 border-t border-white/10 text-center text-sm text-blue-200">
-          <p>&copy; 2025 Bible Memory. Open source project.</p>
+          <p>&copy; 2025 Bible Memory by Michael Engelbrecht. Open source project.</p>
         </div>
       </div>
     </footer>

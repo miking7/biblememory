@@ -499,6 +499,15 @@ These documents follow the [Memory Bank](https://github.com/cline/memory-bank) p
 
 ---
 
+## 👨‍💻 Author
+
+**Michael Engelbrecht**
+- GitHub: [@miking7](https://github.com/miking7)
+
+Built with love for believers who want to hide God's Word in their hearts.
+
+---
+
 ## 📄 License
 
 Private project - All rights reserved (for now)
