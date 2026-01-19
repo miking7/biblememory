@@ -530,9 +530,6 @@ Open source project - Free for everyone to use, modify, and distribute.
 
 Built with love for believers who want to hide God's Word in their hearts.
 
-**Special Thanks:**
-- **[Dan Vis and FAST Missions](https://www.fastmissions.com/spark)** - For the Scripture memory course 15 years ago that first introduced me to systematic Bible memorization and inspired the original version of this tool
-
 **Key Technologies:**
 - [Vue.js](https://vuejs.org/) - Progressive JavaScript framework
 - [Vite](https://vitejs.dev/) - Lightning-fast build tool
@@ -540,10 +537,10 @@ Built with love for believers who want to hide God's Word in their hearts.
 - [Dexie.js](https://dexie.org/) - Minimalistic IndexedDB wrapper
 - [Workbox](https://developers.google.com/web/tools/workbox) - Service worker toolkit
 
-**Inspiration:**
-- Spaced repetition research (Ebbinghaus, Pimsleur, SuperMemo)
-- Modern SaaS landing pages (Stripe, Linear, Vercel)
-- Progressive Web App best practices (Google, Microsoft)
+**Special Thanks:**
+- [Cline](https://github.com/cline/cline) - AI coding assistant that made rapid development possible
+- [Claude Code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview) - another AI coding assistant - that even works on your mobile phone
+- [Dan Vis and FAST Missions](https://www.fastmissions.com/spark) - For the Scripture memory course 15 years ago that first introduced me to systematic Bible memorization and inspired the original version of this tool
 
 ---
 
