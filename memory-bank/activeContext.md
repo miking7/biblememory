@@ -15,13 +15,47 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Ready for new work
+**Status:** Planning - Landing Page Implementation
+
+**New Major Feature:** Landing Page & Marketing Site
+
+Creating a professional landing page for first-time visitors while maintaining full app functionality for authenticated users. This addresses the need for better first impressions and clear value communication when users discover the app.
+
+### Approach (Simplified Architecture)
+- **No Vue Router needed** - Just conditional rendering based on `isAuthenticated`
+- **Landing page for guests** - Show marketing content when not authenticated
+- **App for users** - Show full app when authenticated
+- **Static HTML pages** - Features, About, Privacy, Terms as separate HTML files
+- **Modal auth flow** - Keep existing modal pattern (no dedicated /login routes)
+
+### Key Benefits
+- Professional first impression with clear value proposition
+- SEO-friendly (index.html with meta tags + static HTML pages)
+- Simple architecture (no router, no SSG plugins)
+- Server already configured (fallback to index.html working)
+- Progressive implementation (can launch with just landing page)
+
+### Implementation Phases
+1. **Phase 1:** Core landing page (LandingPage.vue + App.vue changes) - **HIGH PRIORITY**
+2. **Phase 2:** Static pages (features.html, about.html, privacy.html, terms.html) - **MEDIUM PRIORITY**
+3. **Phase 3:** SEO optimization & polish (og-image, sitemap, structured data) - **LOW PRIORITY**
+
+### Specification Document
+Complete implementation spec created: `memory-bank/landing-page-implementation-spec.md`
+
+Contains:
+- Complete architecture details
+- Draft copy for all sections
+- Visual asset specifications
+- SEO configuration
+- Testing checklists
+- Three-phase implementation plan
 
 **Recently Completed:** Unified Review Navigation (#049)
 
 Centralized all navigation logic into `useReview` composable, eliminating ~192 lines of duplicated code across 11 navigation entry points. Added differentiated completion screens (daily vs filtered) and "View Last Card" functionality.
 
-Next steps: Continue with Phase 3 (Deep Engagement) or Phase 4 (Modern Enhancements)
+Next steps: Begin Phase 1 implementation (LandingPage.vue)
 
 ## Previous Work Index (Complete Archive)
 
