@@ -8,11 +8,7 @@
     <priority>1.0</priority>
   </url>
 
-  <!--
-    Future pages - uncomment when Phase 2 static pages are created
-    Only include pages that exist and return 200 OK (best practice for SEO)
-  -->
-  <!--
+  <!-- Phase 2 static pages -->
   <url>
     <loc>https://bible-memory.app/features.html</loc>
     <lastmod>2026-01-19</lastmod>
@@ -37,5 +33,4 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
-  -->
 </urlset>

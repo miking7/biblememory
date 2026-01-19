@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - Bible Memory</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      min-height: 100vh;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Header -->
+  <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-slate-200 shadow-sm transition-all">
+    <div class="container mx-auto px-4 max-w-6xl">
+      <div class="flex items-center justify-between py-4">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <img src="/icons/favicon-32x32.png" alt="" class="w-8 h-8" />
+          <span class="text-xl font-bold gradient-text">Bible Memory</span>
+        </a>
+
+        <!-- Desktop Navigation Links (hidden on mobile) -->
+        <nav class="hidden md:flex items-center gap-6">
+          <a href="/features.html" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">Features</a>
+          <a href="/about.html" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">About</a>
+          <a href="https://github.com/miking7/biblememory" target="_blank" rel="noopener noreferrer" class="text-slate-700 hover:text-blue-600 transition-colors" aria-label="View on GitHub">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+            </svg>
+          </a>
+        </nav>
+
+        <!-- CTA Buttons -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <a href="/" class="px-3 sm:px-5 py-2 text-slate-700 hover:bg-slate-50 rounded-lg font-medium transition-all border border-slate-200">
+            Sign In
+          </a>
+          <a href="/" class="px-3 sm:px-5 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all font-semibold">
+            Sign Up
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="py-12 sm:py-20">
+    <div class="container mx-auto px-4 max-w-4xl">
+      <!-- Page Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-4xl sm:text-5xl font-bold text-slate-800 mb-4">
+          About <span class="gradient-text">Bible Memory</span>
+        </h1>
+        <p class="text-slate-600 text-lg">Helping believers hide God's Word in their hearts</p>
+      </div>
+
+      <!-- Content Card -->
+      <div class="bg-white rounded-2xl shadow-lg p-8 sm:p-12">
+        <div class="prose prose-slate max-w-none">
+          <p class="text-xl text-slate-700 mb-8 leading-relaxed">
+            Hi, I'm Michael Engelbrecht, and I built Bible Memory to help believers hide God's Word in their hearts.
+          </p>
+
+          <h2 class="text-2xl font-bold text-slate-800 mt-8 mb-4">Why I Built This</h2>
+          <p class="text-slate-700 mb-4">
+            I wanted a Scripture memorization tool that:
+          </p>
+          <ul class="list-disc pl-6 text-slate-700 space-y-2 mb-6">
+            <li>Works offline (no internet required)</li>
+            <li>Syncs across my devices</li>
+            <li>Uses proven spaced repetition (not random review)</li>
+            <li>Looks beautiful and feels modern</li>
+            <li>Respects my privacy (no tracking, no ads)</li>
+          </ul>
+          <p class="text-slate-700 mb-4">
+            Most Bible apps focus on reading, not memorization. The memorization tools I found were either outdated,
+            web-only (no offline), or locked behind paywalls.
+          </p>
+          <p class="text-slate-700 font-semibold">
+            So I built the tool I wanted to use.
+          </p>
+
+          <h2 class="text-2xl font-bold text-slate-800 mt-8 mb-4">Open Source Commitment</h2>
+          <p class="text-slate-700 mb-4">
+            Bible Memory is 100% open source. That means:
+          </p>
+          <ul class="list-disc pl-6 text-slate-700 space-y-2 mb-6">
+            <li>You can see exactly what the code does</li>
+            <li>No hidden tracking or data selling</li>
+            <li>Free forever (no premium tiers)</li>
+            <li>Community can contribute improvements</li>
+          </ul>
+          <p class="text-slate-700">
+            The technology stack: Vue 3, TypeScript, IndexedDB, Progressive Web App, and spaced repetition algorithms.
+          </p>
+
+          <h2 class="text-2xl font-bold text-slate-800 mt-8 mb-4">How You Can Help</h2>
+          <ul class="list-disc pl-6 text-slate-700 space-y-2 mb-6">
+            <li>⭐ Star the project on GitHub</li>
+            <li>🐛 Report bugs or suggest features (GitHub Issues)</li>
+            <li>💻 Contribute code (Pull Requests welcome)</li>
+            <li>📢 Share with your church or small group</li>
+            <li>🙏 Pray for the project and its users</li>
+          </ul>
+
+          <h2 class="text-2xl font-bold text-slate-800 mt-8 mb-4">The Mission</h2>
+          <p class="text-slate-700 mb-4">
+            My goal is simple: make Scripture memorization accessible, effective, and delightful.
+          </p>
+          <p class="text-slate-700 mb-6">
+            Whether you're memorizing your first verse or your hundredth chapter, I hope this tool helps you
+            treasure God's Word in your heart.
+          </p>
+
+          <!-- Scripture Quote -->
+          <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-l-4 border-blue-500 p-6 rounded-r-lg my-8">
+            <p class="text-slate-800 italic mb-2">
+              "I have hidden your word in my heart that I might not sin against you."
+            </p>
+            <p class="text-slate-600 text-sm font-semibold">
+              — Psalm 119:11
+            </p>
+          </div>
+
+          <h2 class="text-2xl font-bold text-slate-800 mt-8 mb-4">Contact & Contribute</h2>
+          <div class="flex flex-col gap-3">
+            <a href="https://github.com/miking7/biblememory" target="_blank" rel="noopener noreferrer"
+               class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+              </svg>
+              <span>GitHub Repository</span>
+            </a>
+            <a href="https://github.com/miking7/biblememory/issues" target="_blank" rel="noopener noreferrer"
+               class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+              </svg>
+              <span>Issues & Feedback</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-12 bg-gradient-to-br from-slate-800 to-slate-900">
+    <div class="container mx-auto px-4 max-w-6xl">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+        <!-- Logo & Description -->
+        <div class="lg:col-span-2">
+          <div class="flex items-center gap-2 mb-4">
+            <img src="/icons/favicon-32x32.png" alt="" class="w-8 h-8" />
+            <span class="text-xl font-bold text-white">Bible Memory</span>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed max-w-md">
+            Memorize Scripture, one verse at a time. Built with ❤️ for believers who want to hide God's Word in their hearts.
+          </p>
+        </div>
+
+        <!-- Links Column 1 -->
+        <div>
+          <h3 class="text-white font-semibold mb-3">Product</h3>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/features.html" class="text-slate-300 hover:text-white transition-colors">Features</a></li>
+            <li><a href="/about.html" class="text-slate-300 hover:text-white transition-colors">About</a></li>
+            <li>
+              <a href="https://github.com/miking7/biblememory" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+                </svg>
+                <span>GitHub</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Links Column 2 -->
+        <div>
+          <h3 class="text-white font-semibold mb-3">Legal</h3>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/privacy.html" class="text-slate-300 hover:text-white transition-colors">Privacy Policy</a></li>
+            <li><a href="/terms.html" class="text-slate-300 hover:text-white transition-colors">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Copyright -->
+      <div class="pt-8 border-t border-slate-700 text-center text-sm text-slate-300">
+        <p>&copy; 2026 Bible Memory by Michael Engelbrecht. Open source project.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

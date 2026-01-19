@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Features - Bible Memory</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      min-height: 100vh;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Header -->
+  <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-slate-200 shadow-sm transition-all">
+    <div class="container mx-auto px-4 max-w-6xl">
+      <div class="flex items-center justify-between py-4">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <img src="/icons/favicon-32x32.png" alt="" class="w-8 h-8" />
+          <span class="text-xl font-bold gradient-text">Bible Memory</span>
+        </a>
+
+        <!-- Desktop Navigation Links (hidden on mobile) -->
+        <nav class="hidden md:flex items-center gap-6">
+          <a href="/features.html" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">Features</a>
+          <a href="/about.html" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">About</a>
+          <a href="https://github.com/miking7/biblememory" target="_blank" rel="noopener noreferrer" class="text-slate-700 hover:text-blue-600 transition-colors" aria-label="View on GitHub">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+            </svg>
+          </a>
+        </nav>
+
+        <!-- CTA Buttons -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <a href="/" class="px-3 sm:px-5 py-2 text-slate-700 hover:bg-slate-50 rounded-lg font-medium transition-all border border-slate-200">
+            Sign In
+          </a>
+          <a href="/" class="px-3 sm:px-5 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all font-semibold">
+            Sign Up
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="py-12 sm:py-20">
+    <div class="container mx-auto px-4 max-w-5xl">
+      <!-- Page Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-4xl sm:text-5xl font-bold text-slate-800 mb-4">
+          Powerful <span class="gradient-text">Features</span>
+        </h1>
+        <p class="text-slate-600 text-lg max-w-2xl mx-auto">
+          Everything you need to memorize Scripture effectively and build a lasting habit.
+        </p>
+      </div>
+
+      <!-- Features Grid -->
+      <div class="space-y-8">
+        <!-- Feature 1: Works Everywhere, Even Offline -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 sm:p-10">
+          <div class="feature-icon bg-gradient-to-br from-blue-500 to-blue-600">
+            <span class="text-3xl">📱</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">Works Everywhere, Even Offline</h2>
+          <p class="text-slate-700 text-lg mb-4 leading-relaxed">
+            Memorize verses anywhere, anytime—no internet required. Your verses are stored locally on your device,
+            so the app works perfectly in airplane mode, on the subway, or anywhere without connectivity.
+          </p>
+          <p class="text-slate-700 text-lg leading-relaxed">
+            When you're back online, your changes automatically sync across all your devices. Start reviewing on your
+            phone during your commute, continue on your tablet at lunch, and pick up where you left off on your computer at home.
+          </p>
+        </div>
+
+        <!-- Feature 2: Proven Spaced Repetition -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 sm:p-10">
+          <div class="feature-icon bg-gradient-to-br from-purple-500 to-purple-600">
+            <span class="text-3xl">🧠</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">Proven Spaced Repetition</h2>
+          <p class="text-slate-700 text-lg mb-4 leading-relaxed">
+            Bible Memory uses a scientifically-proven spaced repetition system to help you remember verses long-term.
+          </p>
+          <p class="text-slate-700 text-lg mb-4 font-semibold">Here's how it works:</p>
+          <ul class="list-disc pl-6 text-slate-700 space-y-2 mb-4">
+            <li><strong>New verses:</strong> Review daily for the first 8 days (learning phase)</li>
+            <li><strong>Young verses:</strong> Review daily for 8-56 days (establishing memory)</li>
+            <li><strong>Maturing verses:</strong> Review periodically at 56-112 days (solidifying)</li>
+            <li><strong>Mature verses:</strong> Review occasionally after 112+ days (maintaining)</li>
+          </ul>
+          <p class="text-slate-700 text-lg leading-relaxed">
+            The algorithm automatically schedules verses at the optimal time for your brain to retain them permanently.
+          </p>
+        </div>
+
+        <!-- Feature 3: Multiple Review Modes -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 sm:p-10">
+          <div class="feature-icon bg-gradient-to-br from-green-500 to-green-600">
+            <span class="text-3xl">🎯</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">Multiple Review Modes</h2>
+          <p class="text-slate-700 text-lg mb-4 leading-relaxed">
+            Everyone learns differently. Choose the review mode that works for you:
+          </p>
+          <ul class="list-disc pl-6 text-slate-700 space-y-2 mb-4">
+            <li><strong>Flash Cards:</strong> Classic flip-card review (tap to reveal)</li>
+            <li><strong>Progressive Hints:</strong> See more of the verse as you need help</li>
+            <li><strong>First Letters:</strong> See the first letter of each word</li>
+            <li><strong>Type It:</strong> Type the entire verse from memory</li>
+            <li><strong>Full Reveal:</strong> Just read and reflect</li>
+          </ul>
+          <p class="text-slate-700 text-lg leading-relaxed">
+            Switch modes anytime during review. Having trouble? Drop to hints. Feeling confident? Try typing it out.
+          </p>
+        </div>
+
+        <!-- Feature 4: Immersive Focus Mode -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 sm:p-10">
+          <div class="feature-icon bg-gradient-to-br from-pink-500 to-pink-600">
+            <span class="text-3xl">🎨</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">Immersive Focus Mode</h2>
+          <p class="text-slate-700 text-lg mb-4 leading-relaxed">
+            Remove all distractions with a single click. Immersive mode hides stats, navigation, and buttons—leaving
+            just you and the Word.
+          </p>
+          <p class="text-slate-700 text-lg leading-relaxed">
+            Perfect for deep focus during review sessions. The clean, modern interface with glass-morphism design keeps
+            you focused on what matters: God's Word.
+          </p>
+        </div>
+
+        <!-- Feature 5: Multi-Device Sync -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 sm:p-10">
+          <div class="feature-icon bg-gradient-to-br from-indigo-500 to-indigo-600">
+            <span class="text-3xl">☁️</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">Seamless Multi-Device Sync</h2>
+          <p class="text-slate-700 text-lg mb-4 leading-relaxed">
+            Your account syncs across unlimited devices. No extra setup—just log in and everything is there.
+          </p>
+          <p class="text-slate-700 text-lg leading-relaxed">
+            All your verses, review history, and progress stays perfectly in sync. Start on your phone, continue on
+            your computer—it all just works.
+          </p>
+        </div>
+
+        <!-- Feature 6: Install as App -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 sm:p-10">
+          <div class="feature-icon bg-gradient-to-br from-amber-500 to-amber-600">
+            <span class="text-3xl">📲</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">Install as a Native-Like App</h2>
+          <p class="text-slate-700 text-lg mb-4 leading-relaxed">
+            Bible Memory is a Progressive Web App (PWA), which means you can install it directly to your home screen—no
+            app store required.
+          </p>
+          <p class="text-slate-700 text-lg mb-4 font-semibold">After installing:</p>
+          <ul class="list-disc pl-6 text-slate-700 space-y-2 mb-4">
+            <li>Launches like a native app</li>
+            <li>Works offline automatically</li>
+            <li>Appears in your app drawer/dock</li>
+            <li>Fast, responsive, native feel</li>
+          </ul>
+        </div>
+
+        <!-- Feature 7: Track Your Progress -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 sm:p-10">
+          <div class="feature-icon bg-gradient-to-br from-emerald-500 to-emerald-600">
+            <span class="text-3xl">📊</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">Track Your Progress</h2>
+          <p class="text-slate-700 text-lg mb-4 leading-relaxed">
+            Watch your memorization habit grow with simple, motivating stats:
+          </p>
+          <ul class="list-disc pl-6 text-slate-700 space-y-2 mb-4">
+            <li>Total verses in your library</li>
+            <li>Verses reviewed today</li>
+            <li>Current day streak</li>
+            <li>Visual progress indicators</li>
+          </ul>
+          <p class="text-slate-700 text-lg leading-relaxed">
+            Simple stats that motivate without overwhelming. Build a streak and watch your library grow!
+          </p>
+        </div>
+
+        <!-- Feature 8: Smart Verse Input -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 sm:p-10">
+          <div class="feature-icon bg-gradient-to-br from-cyan-500 to-cyan-600">
+            <span class="text-3xl">✨</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">Smart Verse Input</h2>
+          <p class="text-slate-700 text-lg mb-4 leading-relaxed">
+            Paste any verse and let AI extract the reference and clean the text automatically. No manual formatting needed.
+          </p>
+          <p class="text-slate-700 text-lg leading-relaxed">
+            Or enter verses manually with full control over reference, translation, and tags. Your choice.
+          </p>
+        </div>
+
+        <!-- Feature 9: Organize with Tags -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 sm:p-10">
+          <div class="feature-icon bg-gradient-to-br from-rose-500 to-rose-600">
+            <span class="text-3xl">🏷️</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">Organize with Tags</h2>
+          <p class="text-slate-700 text-lg mb-4 leading-relaxed">
+            Tag verses by theme, book, or any way you want:
+          </p>
+          <ul class="list-disc pl-6 text-slate-700 space-y-2 mb-4">
+            <li>"Comfort"</li>
+            <li>"Promises"</li>
+            <li>"Psalms"</li>
+            <li>"Sermon Series"</li>
+          </ul>
+          <p class="text-slate-700 text-lg leading-relaxed">
+            Then filter your review to focus on specific tags. Perfect for preparing for a specific topic or
+            reviewing verses from your current sermon series.
+          </p>
+        </div>
+
+        <!-- Feature 10: Export Your Data -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 sm:p-10">
+          <div class="feature-icon bg-gradient-to-br from-violet-500 to-violet-600">
+            <span class="text-3xl">💾</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">Export Your Data</h2>
+          <p class="text-slate-700 text-lg leading-relaxed">
+            Your verses belong to you. Export everything as JSON anytime—no lock-in, no barriers. Your data is yours forever.
+          </p>
+        </div>
+
+        <!-- Feature 11: Free & Open Source -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-lg p-8 sm:p-10 text-white">
+          <div class="feature-icon bg-white/10">
+            <span class="text-3xl">🌐</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold mb-4">Free & Open Source</h2>
+          <ul class="list-disc pl-6 space-y-2 mb-4 text-slate-200">
+            <li>No paywalls or premium tiers</li>
+            <li>No tracking or analytics</li>
+            <li>No ads ever</li>
+            <li>Open source code on GitHub</li>
+            <li>Community-driven development</li>
+          </ul>
+          <p class="text-lg text-slate-200 leading-relaxed">
+            Built with transparency. You can see exactly what the code does, and contribute improvements if you'd like.
+          </p>
+        </div>
+      </div>
+
+      <!-- CTA Section -->
+      <div class="text-center mt-12">
+        <h2 class="text-3xl font-bold text-slate-800 mb-4">
+          Ready to <span class="gradient-text">start memorizing</span>?
+        </h2>
+        <p class="text-slate-600 text-lg mb-6">
+          Join others hiding God's Word in their hearts.
+        </p>
+        <a href="/" class="inline-block px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-xl transition-all font-bold text-lg">
+          Get Started Free
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-12 bg-gradient-to-br from-slate-800 to-slate-900 mt-12">
+    <div class="container mx-auto px-4 max-w-6xl">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+        <!-- Logo & Description -->
+        <div class="lg:col-span-2">
+          <div class="flex items-center gap-2 mb-4">
+            <img src="/icons/favicon-32x32.png" alt="" class="w-8 h-8" />
+            <span class="text-xl font-bold text-white">Bible Memory</span>
+          </div>
+          <p class="text-slate-300 text-sm leading-relaxed max-w-md">
+            Memorize Scripture, one verse at a time. Built with ❤️ for believers who want to hide God's Word in their hearts.
+          </p>
+        </div>
+
+        <!-- Links Column 1 -->
+        <div>
+          <h3 class="text-white font-semibold mb-3">Product</h3>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/features.html" class="text-slate-300 hover:text-white transition-colors">Features</a></li>
+            <li><a href="/about.html" class="text-slate-300 hover:text-white transition-colors">About</a></li>
+            <li>
+              <a href="https://github.com/miking7/biblememory" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+                </svg>
+                <span>GitHub</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Links Column 2 -->
+        <div>
+          <h3 class="text-white font-semibold mb-3">Legal</h3>
+          <ul class="space-y-2 text-sm">
+            <li><a href="/privacy.html" class="text-slate-300 hover:text-white transition-colors">Privacy Policy</a></li>
+            <li><a href="/terms.html" class="text-slate-300 hover:text-white transition-colors">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Copyright -->
+      <div class="pt-8 border-t border-slate-700 text-center text-sm text-slate-300">
+        <p>&copy; 2026 Bible Memory by Michael Engelbrecht. Open source project.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
