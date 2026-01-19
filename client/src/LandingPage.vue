@@ -35,7 +35,7 @@
     </header>
 
     <!-- Hero Section -->
-    <section class="py-12 sm:py-20 lg:py-28">
+    <section class="py-12 sm:py-20 lg:py-28 fade-in-section">
       <div class="container mx-auto px-4 max-w-6xl">
         <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           <!-- Hero Content -->
@@ -76,7 +76,7 @@
     </section>
 
     <!-- Features Grid -->
-    <section id="features" class="py-16 sm:py-24 bg-white">
+    <section id="features" class="py-16 sm:py-24 bg-white fade-in-section">
       <div class="container mx-auto px-4 max-w-6xl">
         <div class="text-center mb-12 sm:mb-16">
           <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 mb-4">
@@ -158,7 +158,7 @@
     </section>
 
     <!-- How It Works -->
-    <section id="how-it-works" class="py-16 sm:py-24">
+    <section id="how-it-works" class="py-16 sm:py-24 fade-in-section">
       <div class="container mx-auto px-4 max-w-6xl">
         <div class="text-center mb-12 sm:mb-16">
           <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
@@ -243,7 +243,7 @@
     </section>
 
     <!-- PWA Installation Callout -->
-    <section class="py-16 sm:py-24 bg-gradient-to-br from-blue-50 to-indigo-50">
+    <section class="py-16 sm:py-24 bg-gradient-to-br from-blue-50 to-indigo-50 fade-in-section">
       <div class="container mx-auto px-4 max-w-4xl">
         <div class="glass-card rounded-2xl p-8 sm:p-12 text-center">
           <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -294,7 +294,7 @@
     </section>
 
     <!-- Social Proof / Open Source Section -->
-    <section class="py-16 sm:py-24 bg-white">
+    <section class="py-16 sm:py-24 bg-white fade-in-section">
       <div class="container mx-auto px-4 max-w-4xl text-center">
         <h2 class="text-3xl sm:text-4xl font-bold text-slate-800 mb-4">
           <span class="gradient-text">Open Source</span> & Free Forever
@@ -331,7 +331,7 @@
     </section>
 
     <!-- Final CTA Section -->
-    <section class="py-16 sm:py-24">
+    <section class="py-16 sm:py-24 fade-in-section">
       <div class="container mx-auto px-4 max-w-4xl text-center">
         <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
           <span class="gradient-text">Start Memorizing</span> Today
@@ -392,10 +392,45 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue';
+
 // Emit events for auth modal opening
 defineEmits<{
   openAuth: [mode: 'login' | 'register']
 }>();
+
+// Setup scroll-triggered fade-in animations
+onMounted(() => {
+  // Check if user prefers reduced motion
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (prefersReducedMotion) {
+    // Skip animations if user prefers reduced motion
+    return;
+  }
+
+  // Create intersection observer for fade-in animations
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('fade-in-visible');
+          // Optional: Stop observing once animated (prevents re-animation)
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    {
+      threshold: 0.1, // Trigger when 10% of element is visible
+      rootMargin: '0px 0px -50px 0px' // Trigger slightly before element enters viewport
+    }
+  );
+
+  // Observe all sections with fade-in-section class
+  document.querySelectorAll('.fade-in-section').forEach((el) => {
+    observer.observe(el);
+  });
+});
 </script>
 
 <style scoped>

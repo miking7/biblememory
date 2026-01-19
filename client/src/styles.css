@@ -502,6 +502,19 @@ input:focus, textarea:focus {
     animation: fadeIn 0.3s ease-in;
 }
 
+/* Landing Page Scroll-Triggered Animations */
+/* Fade in sections as they enter viewport */
+.fade-in-section {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.fade-in-section.fade-in-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 /* Reduced Motion Support - Accessibility */
 /* Respects user's preference for reduced motion */
 @media (prefers-reduced-motion: reduce) {
@@ -511,6 +524,13 @@ input:focus, textarea:focus {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
+    }
+
+    /* Disable landing page fade-in animations */
+    .fade-in-section {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
     }
 
     /* Specifically disable review card slide animations */
