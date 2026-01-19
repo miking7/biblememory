@@ -1,175 +1,322 @@
-# Bible Memory App - Modern PWA
+<div align="center">
 
-A modern, offline-first Bible memory application built with Vue 3 and TypeScript. Features spaced repetition for effective scripture memorization, beautiful UI with glass-morphism design, and robust multi-device sync.
+# 📖 Bible Memory
 
-## ✨ Features
+### Hide God's Word in Your Heart
 
-- **Verse Management**: Add, edit, delete, search, and organize scripture verses
-- **Spaced Repetition**: Proven algorithm with auto-categorization (learn/daily/weekly/monthly)
-- **Review System**: Basic mode (reference → content reveal) with progress tracking
-- **Offline-First**: Full functionality without internet via IndexedDB
-- **Multi-Device Sync**: OpLog pattern with cursor-based pagination and conflict resolution
-- **Authentication**: Secure token-based auth with data migration on signup
-- **Import/Export**: JSON format with smart ID handling
-- **Tags System**: Structured key-value organization
-- **Modern UI**: Glass-morphism design, responsive layout, smooth animations
-- **Advanced Features**: Flash Cards, Hints, and more via integrated legacy app
+*A modern, offline-first progressive web app for memorizing Scripture through proven spaced repetition*
 
-## 🚀 Technology Stack
+[![License](https://img.shields.io/badge/license-Private-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
+[![Vue.js](https://img.shields.io/badge/Vue.js-3.x-green.svg)](https://vuejs.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-**Frontend:** Vue.js 3, TypeScript, Tailwind CSS v4, Dexie.js, Vite 5
-**Backend:** PHP 8.0+, SQLite, OpLog sync pattern
-**Architecture:** Offline-first SPA with token-based authentication
+[Live Demo](#) • [Documentation](memory-bank/) • [Report Bug](https://github.com/miking7/biblememory/issues) • [Request Feature](https://github.com/miking7/biblememory/issues)
 
-See [techContext.md](memory-bank/techContext.md) for detailed stack information.
+</div>
+
+---
+
+## ✨ Overview
+
+Bible Memory helps you effectively memorize Scripture through scientifically-proven spaced repetition, beautiful design, and offline-first architecture. Whether you're starting your first verse or maintaining hundreds, our app makes it simple, joyful, and sustainable.
+
+**Why Bible Memory?**
+- 🌐 **Works Everywhere** - Full offline functionality, syncs when online
+- 🧠 **Proven Method** - Spaced repetition algorithm (8→56→112 day intervals)
+- 🎯 **Flexible Practice** - Multiple review modes (Flash Cards, Hints, First Letters, Type It)
+- ✨ **Beautiful Design** - Glass-morphism UI with distraction-free immersive mode
+- 🔄 **Seamless Sync** - Your progress stays in sync across all devices
+- 📱 **Native-Like** - Install to home screen, works like a native app
+- 💯 **Free & Open Source** - No ads, no tracking, no premium tiers
+
+---
+
+## 🚀 Quick Start
+
+### For Users
+
+**Try it now:** Visit the [live demo](#) and start memorizing immediately - no installation required!
+
+**Install as an app:**
+- **iOS**: Open in Safari → Share → Add to Home Screen
+- **Android**: Open in Chrome → Menu → Install app
+- **Desktop**: Look for the install icon in your browser's address bar
+
+### For Developers
+
+```bash
+# Clone the repository
+git clone https://github.com/miking7/biblememory.git
+cd biblememory
+
+# Install dependencies
+npm run install:client
+
+# Set up database
+npm run migrate
+
+# Build for production
+npm run build
+
+# Serve with Laravel Herd (recommended) or PHP server
+# Herd: Automatically serves at https://biblememory.test
+# PHP: cd server/public && php -S localhost:8000 router.php
+```
+
+For development with hot reload:
+```bash
+npm run dev  # Starts at http://localhost:3000
+```
+
+See [Setup Guide](#️-setup-instructions) for detailed instructions.
+
+---
+
+## 💎 Features
+
+### Core Functionality
+
+**Verse Management**
+- Add verses with AI-assisted parsing (paste any verse, we'll extract reference and clean formatting)
+- Multi-paragraph support with preserved line breaks
+- Structured tagging system (organize by topic, book, study series)
+- Search by reference, content, or tags
+- Import/Export to JSON for backups
+
+**Spaced Repetition**
+- Automatic categorization (Learn → Daily → Weekly → Monthly)
+- Optimal review intervals based on memory science
+- Progress tracking (streak counter, verses reviewed today)
+- Visual feedback for review status
+
+**Review Modes**
+- **Flash Cards** - Hide random words (5 difficulty levels)
+- **Progressive Hints** - Reveal words incrementally
+- **First Letters** - Show first letter + punctuation
+- **Type It** - Type the full verse (coming soon)
+- **Reveal** - See full content for hard verses
+
+**Sync & Storage**
+- Offline-first with IndexedDB (works without internet)
+- OpLog sync pattern with conflict resolution
+- Multi-device support (phone, tablet, desktop)
+- Secure token-based authentication
+
+### User Experience
+
+**Design**
+- Glass-morphism aesthetic with gradient backgrounds
+- Mobile-first responsive design
+- Smooth animations and transitions
+- Immersive review mode (distraction-free)
+- Dark gradient theme optimized for focus
+
+**Accessibility**
+- Keyboard shortcuts (n/p for navigation, space to reveal)
+- Reduced motion support for accessibility
+- Touch-friendly targets on mobile
+- Clean visual hierarchy
+
+**Progressive Web App**
+- Install to home screen
+- Offline caching with service worker
+- Auto-updates when new version available
+- Works on iOS, Android, and desktop
+
+---
+
+## 🏗️ Technology Stack
+
+**Frontend**
+- **Framework**: Vue.js 3 (Composition API)
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS v4
+- **Build Tool**: Vite 5
+- **Storage**: Dexie.js (IndexedDB wrapper)
+- **PWA**: vite-plugin-pwa with Workbox
+
+**Backend**
+- **Language**: PHP 8.0+
+- **Database**: SQLite with WAL mode
+- **Sync**: OpLog pattern with cursor-based pagination
+- **Auth**: Token-based with bcrypt hashing
+
+**Architecture**
+- Offline-first SPA with automatic sync
+- Last-Write-Wins conflict resolution
+- Cursor-based pagination (handles millions of operations)
+- Modern ES2020 JavaScript with full TypeScript types
+
+See [techContext.md](memory-bank/techContext.md) for detailed technical information.
+
+---
+
+## 📖 Usage
+
+### Adding Your First Verse
+
+1. Click **"Add Verse"** tab
+2. Paste any verse (e.g., "John 3:16 For God so loved...")
+3. AI will extract reference and clean formatting
+4. Optionally add tags like `fast.sk=3` or `personal`
+5. Click **"Add Verse"** - it's immediately available offline!
+
+### Reviewing Verses
+
+1. Click **"Review"** tab to see verses due today
+2. Try to recall the verse from the reference
+3. Choose a review mode (Flash Cards, Hints, etc.)
+4. Click **"Got it!"** or **"Again"** to track progress
+5. Algorithm adjusts future review dates automatically
+
+### Managing Your Library
+
+1. Click **"My Verses"** tab to see all verses
+2. Use search to filter by reference, content, or tags
+3. Click **"⋮"** menu on any verse for actions:
+   - Review This - Start review from this verse
+   - Edit - Update reference or content
+   - Delete - Remove verse
+4. Use settings menu (⚙️) to export/import JSON backups
+
+### Review Schedule
+
+The spaced repetition algorithm uses optimal intervals:
+- **Learn** (days 1-7): Review daily
+- **Daily** (days 8-56): Review daily
+- **Weekly** (days 57-112): 1-in-7 chance per session
+- **Monthly** (day 113+): 1-in-30 chance per session
+
+This ensures new verses get frequent practice while maintaining long-term retention of established verses.
+
+---
+
+## 🛠️ Setup Instructions
+
+### Prerequisites
+
+- **Node.js 18+** (for frontend development)
+- **PHP 8.0+** with SQLite3 extension
+- **Laravel Herd** (recommended) or PHP built-in server
+
+### Installation Steps
+
+1. **Clone and install**
+   ```bash
+   git clone https://github.com/miking7/biblememory.git
+   cd biblememory
+   npm run install:client
+   ```
+
+2. **Database setup**
+   ```bash
+   npm run migrate  # Creates tables in server/api/db.sqlite
+   ```
+
+3. **Build frontend**
+   ```bash
+   npm run build  # Outputs to server/public/dist/
+   ```
+
+4. **Serve the app**
+
+   **Option A: Laravel Herd (Recommended)**
+   - Herd automatically serves `server/public/` at `https://biblememory.test`
+   - Visit `https://biblememory.test` - done!
+
+   **Option B: PHP Built-in Server**
+   ```bash
+   cd server/public
+   php -S localhost:8000 router.php
+   ```
+   - Visit `http://localhost:8000`
+
+### Development Workflow
+
+**Frontend development with HMR:**
+```bash
+npm run dev  # Starts Vite at http://localhost:3000
+```
+- API calls proxy to backend automatically
+- Hot module replacement for instant feedback
+- Vue DevTools available in browser
+
+**Database management:**
+```bash
+npm run db:reset  # Delete and recreate database
+npm run db:open   # Open SQLite CLI for queries
+```
+
+**All commands work from project root!** No need to `cd` into subdirectories.
+
+See [techContext.md](memory-bank/techContext.md) for deployment configurations (Apache, Nginx) and advanced setup.
+
+---
 
 ## 📁 Project Structure
 
 ```
 biblememory/
-├── client/                     # Vue 3 frontend (TypeScript + Vite)
-│   ├── src/                   # Source code (main.ts, app.ts, db.ts, actions.ts, sync.ts)
-│   └── ...                    # Config files (vite.config.ts, tsconfig.json)
+├── client/                    # Vue 3 frontend (TypeScript + Vite)
+│   ├── src/
+│   │   ├── App.vue           # Main component with conditional rendering
+│   │   ├── LandingPage.vue   # Marketing page for guests
+│   │   ├── main.ts           # Vue app initialization
+│   │   ├── app.ts            # App orchestration (composables)
+│   │   ├── db.ts             # Dexie schema (IndexedDB)
+│   │   ├── actions.ts        # CRUD operations + OpLog creation
+│   │   ├── sync.ts           # Push/pull sync logic
+│   │   ├── composables/      # Vue 3 composables pattern
+│   │   │   ├── useAuth.ts    # Authentication state
+│   │   │   ├── useVerses.ts  # Verse CRUD and filtering
+│   │   │   ├── useReview.ts  # Review system + animations
+│   │   │   └── useSync.ts    # Sync scheduling
+│   │   └── components/       # Reusable Vue components
+│   ├── index.html            # Entry point with SEO meta tags
+│   ├── vite.config.ts        # Vite configuration + PWA plugin
+│   └── package.json          # Dependencies
 │
-├── server/                     # PHP backend
+├── server/                    # PHP backend
 │   ├── public/
-│   │   ├── dist/              # Built assets (generated by Vite)
-│   │   │   └── legacy/        # Legacy app with advanced features
-│   │   └── ...                # Router files (index.php, router.php)
-│   ├── api/                   # API endpoints (register, login, push, pull, migrate)
-│   └── schema.sql             # Database schema
+│   │   ├── dist/             # Built assets (generated by Vite)
+│   │   ├── icons/            # PWA icons
+│   │   ├── index.php         # SPA entry point
+│   │   └── router.php        # PHP built-in server router
+│   ├── api/                  # REST API endpoints
+│   │   ├── register.php      # User registration
+│   │   ├── login.php         # Authentication
+│   │   ├── logout.php        # Session termination
+│   │   ├── push.php          # Sync operations to server
+│   │   ├── pull.php          # Sync operations from server
+│   │   ├── migrate.php       # Database setup script
+│   │   └── lib.php           # Shared functions
+│   └── schema.sql            # Database schema (SQLite)
 │
-└── memory-bank/               # 📚 Complete project documentation
-    ├── projectbrief.md        # Project foundation and goals
-    ├── productContext.md      # User experience and features
-    ├── systemPatterns.md      # Architecture and design patterns
-    ├── techContext.md         # Technology stack and setup
-    ├── activeContext.md       # Current work and decisions
-    ├── progress.md            # Roadmap and feature status
-    └── previous-work/         # Archived work sessions
+└── memory-bank/              # 📚 Project documentation
+    ├── projectbrief.md       # Project foundation and goals
+    ├── productContext.md     # User experience and features
+    ├── systemPatterns.md     # Architecture decisions
+    ├── techContext.md        # Technology stack details
+    ├── progress.md           # Roadmap and status
+    ├── activeContext.md      # Current work focus
+    └── previous-work/        # Archived implementation sessions
 ```
 
-## 🛠️ Setup Instructions
+---
 
-### Prerequisites
-- **Node.js 18+** (for client development)
-- **PHP 8.0+** (for server)
-- **SQLite3** extension enabled in PHP
-- **Laravel Herd** (recommended) or PHP built-in server
-
-### Quick Start
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd biblememory
-```
-
-2. **Install client dependencies**
-```bash
-npm run install:client
-```
-
-3. **Set up the database**
-```bash
-npm run migrate
-```
-
-4. **Build the client** (for production)
-```bash
-npm run build
-```
-Note: This automatically runs `npm install` before building to ensure dependencies are up-to-date.
-
-5. **Serve the app**
-
-**Option A: Laravel Herd (Recommended)**
-- Herd automatically serves `server/public` at `https://biblememory.test`
-- No additional setup needed!
-- Visit `https://biblememory.test`
-
-**Option B: PHP Built-in Server**
-```bash
-cd server/public
-php -S localhost:8000 router.php
-```
-- Visit `http://localhost:8000`
-
-### Development Mode
-
-For frontend development with hot reload:
-
-```bash
-npm run dev
-```
-
-This starts Vite dev server at `http://localhost:3000` with hot module replacement.
-
-**With Laravel Herd:**
-- Vite proxies API calls to `https://biblememory.test/api/*`
-- Visit `http://localhost:3000` for development
-
-**With PHP Built-in Server:**
-- Update `client/vite.config.ts` proxy target to `http://localhost:8000`
-- Start PHP server: `cd server/public && php -S localhost:8000 router.php`
-- Visit `http://localhost:3000` for development
-
-**Note:** All npm commands can now be run from the project root!
-
-See [techContext.md](memory-bank/techContext.md) for detailed setup instructions, deployment configurations, and development workflows.
-
-## 💡 Usage
-
-### Adding Verses
-
-1. Click the **"📝 Add Verse"** tab
-2. Fill in the form:
-   - **Reference**: e.g., "John 3:16"
-   - **Reference Sort**: e.g., "bible.43003016" (format: bible.BBCCCVVV)
-     - BB = book number (01-66)
-     - CCC = chapter (001-999)
-     - VVV = verse (001-999)
-   - **Verse Text**: The verse content (supports multi-paragraph with line breaks)
-   - **Translation**: e.g., "NIV", "ESV", "KJV" (optional)
-   - **Tags**: Comma-separated, e.g., "fast.sk=3, ss=2010.Q2.W01, personal" (optional)
-3. Click **"Add Verse"**
-
-### Reviewing Verses
-
-1. Click the **"🎯 Review"** tab
-2. You'll see verses due for review based on spaced repetition
-3. Click **"Reveal Verse"** to see the content
-4. Mark as **"✓ Got it!"** or **"Need Practice"**
-
-### Managing Verses
-
-1. Click the **"📚 My Verses"** tab
-2. Use the search box to filter verses
-3. Click **"Edit"** to modify a verse
-4. Click **"Delete"** to remove a verse
-5. Click **"Export"** to download all verses as JSON
-6. Click **"Import"** to upload verses from JSON
-
-### Spaced Repetition Schedule
-
-The app uses a proven spaced repetition algorithm:
-
-- **Learn** (first 7 days): Daily review
-- **Daily** (days 8-56): Daily review
-- **Weekly** (days 57-112): 1-in-7 probability
-- **Monthly** (after day 112): 1-in-30 probability
-
-## 🔌 API Endpoints
+## 🔌 API Reference
 
 ### Authentication
 
+**Register**
 ```http
-POST /api/register.php
+POST /api/register
 Content-Type: application/json
 
 {
   "email": "user@example.com",
-  "password": "password123"
+  "password": "secure-password"
 }
 
 Response: {
@@ -178,13 +325,14 @@ Response: {
 }
 ```
 
+**Login**
 ```http
-POST /api/login.php
+POST /api/login
 Content-Type: application/json
 
 {
   "email": "user@example.com",
-  "password": "password123"
+  "password": "secure-password"
 }
 
 Response: {
@@ -193,31 +341,31 @@ Response: {
 }
 ```
 
+**Logout**
 ```http
-POST /api/logout.php
+POST /api/logout
 X-Auth-Token: your-token-here
 
-Response: {
-  "ok": true
-}
+Response: { "ok": true }
 ```
 
-### Sync
+### Sync Operations
 
+**Push (Client → Server)**
 ```http
-POST /api/push.php
+POST /api/push
 X-Auth-Token: your-token-here
 Content-Type: application/json
 
 {
-  "client_id": "device-id",
+  "client_id": "device-uuid",
   "ops": [
     {
       "id": "op-uuid",
       "table": "verses",
       "row_id": "verse-uuid",
       "op_type": "insert",
-      "data": { ... },
+      "data": { "reference": "John 3:16", ... },
       "ts": 1234567890
     }
   ]
@@ -230,8 +378,9 @@ Response: {
 }
 ```
 
+**Pull (Server → Client)**
 ```http
-GET /api/pull.php?since=0&limit=500
+GET /api/pull?since=0&limit=500
 X-Auth-Token: your-token-here
 
 Response: {
@@ -240,157 +389,146 @@ Response: {
 }
 ```
 
-## 📊 Data Model
+---
 
-### Verse
-```typescript
-{
-  id: string              // UUID v4
-  reference: string       // "John 3:16"
-  refSort: string         // "bible.43003016"
-  content: string         // Verse text with \n for line breaks
-  translation: string     // "NIV", "ESV", "KJV"
-  reviewCat: string       // "auto", "future", "learn", "daily", "weekly", "monthly"
-  startedAt: number|null  // Epoch ms
-  tags: Array<{key, value}>
-  favorite: boolean
-  createdAt: number       // Epoch ms
-  updatedAt: number       // Epoch ms
-}
-```
+## 🗺️ Roadmap
 
-### Review
-```typescript
-{
-  id: string              // UUID v4
-  verseId: string         // Foreign key
-  reviewType: string      // "recall", "practice"
-  createdAt: number       // Epoch ms
-}
-```
+### ✅ Phase 1 Complete: Foundation + Landing Page
+- Core infrastructure (build system, offline-first, sync, auth)
+- Basic review functionality (reference → content reveal)
+- CRUD operations with multi-device sync
+- **NEW**: Professional landing page for first-time visitors
+- **NEW**: SEO optimization with comprehensive meta tags
+- **NEW**: Scroll-triggered fade-in animations
 
-## 🎨 UI Features
+### ✅ Phase 2 Complete: Enhanced Review Modes
+- Flash Cards with 5 difficulty levels
+- Progressive Hints mode
+- First Letters mode
+- Keyboard shortcuts (n, p, h, f, c, space, escape, i)
+- Immersive review mode
+- Card slide animations with accessibility
+- Review tracking (Got it! / Again buttons)
 
-### Design System
-- **Color Scheme**: Deep blue/purple gradients
-- **Typography**: Inter font family
-- **Components**: Glass-morphism cards with backdrop blur
-- **Animations**: Smooth transitions and hover effects
-- **Responsive**: Mobile-first design with Tailwind breakpoints
+### 🚧 Phase 2.5: Landing Page Polish (In Progress)
+- [ ] Static pages (features.html, about.html, privacy.html, terms.html)
+- [ ] Real hero image and app screenshots
+- [ ] og-image.png for social sharing (1200x630)
+- [ ] Sitemap.xml for SEO
+- [ ] Structured data (JSON-LD)
 
-### Key UI Elements
-- Gradient background (blue → purple → slate)
-- Frosted glass cards with blur effects
-- Rounded corners and shadows
-- Color-coded stats cards
-- Smooth hover animations
-- Badge notifications for due reviews
-- Modal dialogs for editing
-
-## 🧪 Development
-
-### Available Commands (Root Level)
-
-All commands can now be run from the project root:
-
-```bash
-# Frontend Development
-npm run dev              # Start Vite dev server with HMR (port 3000)
-npm run build            # Install deps + build for production
-npm run preview          # Preview production build
-npm run install:client   # Install client dependencies only
-
-# Database Management
-npm run migrate          # Setup database (creates tables)
-npm run db:reset         # Delete database and recreate
-npm run db:open          # Open SQLite CLI
-
-# Note: No server command needed if using Laravel Herd
-# Herd automatically serves server/public at https://biblememory.test
-```
-
-See [techContext.md](memory-bank/techContext.md) for additional development workflows, code style guidelines, and testing procedures.
-
-## 🐛 Troubleshooting
-
-### Client Issues
-
-**Problem**: `npm install` fails
-**Solution**: Ensure Node.js 18+ is installed, try `npm cache clean --force`
-
-**Problem**: Build fails with TypeScript errors
-**Solution**: Run `npm install` to ensure all dependencies are installed
-
-**Problem**: Styles not loading
-**Solution**: Ensure Tailwind CSS v4 is installed, rebuild with `npm run build`
-
-**Problem**: App doesn't load in browser
-**Solution**: Check browser console for errors, ensure dev server is running
-
-### Server Issues
-
-**Problem**: Database errors
-**Solution**: Delete `api/db.sqlite` and run `php api/migrate.php` again
-
-**Problem**: Authentication fails
-**Solution**: 
-- Check that token is being sent in `X-Auth-Token` header
-- Verify token in database `users` table
-- Try logging in again to get a fresh token
-
-**Problem**: CORS errors
-**Solution**: Ensure `handle_cors()` is called in all API endpoints
-
-**Problem**: 404 errors for assets
-**Solution**: 
-- Verify build completed successfully
-- Check that `server/public/dist/` directory exists
-- Ensure `router.php` is being used with PHP built-in server
-
-**Problem**: PHP errors about SQLite
-**Solution**: Ensure SQLite3 extension is enabled in `php.ini`
-
-## 🚀 Roadmap
-
-### Phase 2: Enhanced Review Modes
-
-- Flash Cards mode (5 difficulty levels: 0%, 10%, 25%, 45%, 100%)
-- First Letters mode (first letter + punctuation)
-- Progressive Hints mode (incremental word reveal)
-- Keyboard shortcuts (n/p/h/f/Space)
-- Quick jump from verse list to review
-
-### Phase 3: Deep Engagement
-
+### 📋 Phase 3: Deep Engagement (Planned)
 - Meditation questions (structured reflection prompts)
-- Application questions (4 life areas: Goals, Decisions, Lifestyle, Problems)
+- Application questions (Goals, Decisions, Lifestyle, Problems)
 - BibleGateway chapter lookup integration
-- Human-readable time display
+- Context-sensitive help and guidance
 
-### Phase 4: Modern Enhancements
-
+### 🎯 Phase 4: Modern Enhancements (Future)
 - Statistics dashboard with charts
-- Dark mode, PWA installation
-- Streak tracking with achievements
-- Background sync and notifications
+- Dark mode toggle
+- Streak achievements and gamification
+- Background sync API
+- Push notifications for review reminders
+- Social features (share verses, group study)
 
-See [progress.md](memory-bank/progress.md) for complete roadmap and feature parity status.
-
-## 📄 License
-
-Private project - All rights reserved
-
-## 📚 Documentation
-
-For detailed project documentation, see the [memory-bank/](memory-bank/) directory:
-
-- [projectbrief.md](memory-bank/projectbrief.md) - Project foundation and goals
-- [productContext.md](memory-bank/productContext.md) - User experience and features
-- [systemPatterns.md](memory-bank/systemPatterns.md) - Architecture and design patterns
-- [techContext.md](memory-bank/techContext.md) - Technology stack and setup
-- [progress.md](memory-bank/progress.md) - Roadmap and feature status
-- [activeContext.md](memory-bank/activeContext.md) - Current work focus
+See [progress.md](memory-bank/progress.md) for detailed feature status and implementation notes.
 
 ---
 
-**Last Updated**: January 2025
+## 🤝 Contributing
+
+We welcome contributions! Here's how you can help:
+
+1. **Report bugs** - Open an issue with steps to reproduce
+2. **Suggest features** - Share your ideas in GitHub Issues
+3. **Submit PRs** - Fork, create a feature branch, and submit a pull request
+4. **Improve docs** - Help us make documentation clearer
+5. **Share feedback** - Tell us how we can improve
+
+**Development Guidelines:**
+- Follow existing code style (TypeScript, Vue 3 Composition API)
+- Write clear commit messages
+- Test on mobile and desktop before submitting
+- Update documentation for new features
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines (coming soon).
+
+---
+
+## 🐛 Troubleshooting
+
+**App won't load**
+- Check browser console for errors
+- Ensure you're using a modern browser (Chrome 90+, Firefox 88+, Safari 14+)
+- Clear browser cache and reload
+
+**Sync not working**
+- Check network connection
+- Verify you're logged in (look for offline badge)
+- Try manual sync by navigating between tabs
+
+**Database errors**
+```bash
+npm run db:reset  # Resets database (WARNING: loses data)
+```
+
+**Build fails**
+```bash
+npm run install:client  # Reinstall dependencies
+npm run build           # Try building again
+```
+
+See [techContext.md](memory-bank/techContext.md) for detailed troubleshooting.
+
+---
+
+## 📚 Documentation
+
+Comprehensive project documentation is available in the `memory-bank/` directory:
+
+- **[projectbrief.md](memory-bank/projectbrief.md)** - Project vision and goals
+- **[productContext.md](memory-bank/productContext.md)** - User experience and features
+- **[systemPatterns.md](memory-bank/systemPatterns.md)** - Architecture and design patterns
+- **[techContext.md](memory-bank/techContext.md)** - Technology stack and setup
+- **[progress.md](memory-bank/progress.md)** - Roadmap and feature status
+- **[activeContext.md](memory-bank/activeContext.md)** - Current work focus
+
+These documents follow the [Memory Bank](https://github.com/cline/memory-bank) pattern for AI-assisted development.
+
+---
+
+## 📄 License
+
+Private project - All rights reserved (for now)
+
+*Considering open source license options for future release*
+
+---
+
+## 🙏 Acknowledgments
+
+Built with love for believers who want to hide God's Word in their hearts.
+
+**Key Technologies:**
+- [Vue.js](https://vuejs.org/) - Progressive JavaScript framework
+- [Vite](https://vitejs.dev/) - Lightning-fast build tool
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Dexie.js](https://dexie.org/) - Minimalistic IndexedDB wrapper
+- [Workbox](https://developers.google.com/web/tools/workbox) - Service worker toolkit
+
+**Inspiration:**
+- Spaced repetition research (Ebbinghaus, Pimsleur, SuperMemo)
+- Modern SaaS landing pages (Stripe, Linear, Vercel)
+- Progressive Web App best practices (Google, Microsoft)
+
+---
+
+<div align="center">
+
+**⭐ Star this repo if it helps you memorize Scripture!**
+
+[Report Bug](https://github.com/miking7/biblememory/issues) • [Request Feature](https://github.com/miking7/biblememory/issues) • [View Demo](#)
+
+*Last Updated: January 2025*
+
+</div>
