@@ -57,7 +57,7 @@ if (php_sapi_name() === 'cli-server') {
 // Allow any file in dist/ with safe extensions (PWA-friendly)
 $ext = pathinfo($path, PATHINFO_EXTENSION);
 $allowedExtensions = ['js', 'css', 'html', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico',
-                      'woff', 'woff2', 'ttf', 'webmanifest', 'json'];
+                      'woff', 'woff2', 'ttf', 'webmanifest', 'json', 'xml', 'txt'];
 
 if (in_array($ext, $allowedExtensions, true)) {
     $assetPath = __DIR__ . '/dist' . $path;
@@ -86,6 +86,8 @@ if (in_array($ext, $allowedExtensions, true)) {
             'ttf' => 'font/ttf',
             'webmanifest' => 'application/manifest+json',
             'json' => 'application/json',
+            'xml' => 'application/xml; charset=utf-8',
+            'txt' => 'text/plain; charset=utf-8',
         ];
 
         if (isset($contentTypes[$ext])) {

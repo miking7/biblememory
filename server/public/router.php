@@ -10,7 +10,7 @@ $requestUri = $_SERVER['REQUEST_URI'];
 $requestPath = parse_url($requestUri, PHP_URL_PATH);
 
 // Serve static files from dist/ directory
-if (preg_match('/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf)$/', $requestPath)) {
+if (preg_match('/\.(js|css|html|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|webmanifest|json|xml|txt)$/', $requestPath)) {
     $file = __DIR__ . '/dist' . $requestPath;
     if (file_exists($file) && is_file($file)) {
         // Determine content type
@@ -18,6 +18,7 @@ if (preg_match('/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf)$/', $request
         $contentTypes = [
             'js' => 'application/javascript',
             'css' => 'text/css',
+            'html' => 'text/html; charset=utf-8',
             'png' => 'image/png',
             'jpg' => 'image/jpeg',
             'jpeg' => 'image/jpeg',
@@ -27,6 +28,10 @@ if (preg_match('/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf)$/', $request
             'woff' => 'font/woff',
             'woff2' => 'font/woff2',
             'ttf' => 'font/ttf',
+            'webmanifest' => 'application/manifest+json',
+            'json' => 'application/json',
+            'xml' => 'application/xml; charset=utf-8',
+            'txt' => 'text/plain; charset=utf-8',
         ];
         
         if (isset($contentTypes[$ext])) {

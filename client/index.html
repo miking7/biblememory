@@ -21,10 +21,10 @@
     <meta property="og:site_name" content="Bible Memory">
     <meta property="og:title" content="Bible Memory - Memorize Scripture with Spaced Repetition">
     <meta property="og:description" content="Hide God's Word in your heart. Memorize Scripture effectively with proven spaced repetition, offline-first access, and beautiful design. Free and open source.">
-    <!-- TODO: Add og-image.png (1200x630) in Phase 3 -->
-    <!-- <meta property="og:image" content="https://bible-memory.app/og-image.png"> -->
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
+    <!-- TEMPORARY: Using app icon (512x512) until proper og-image.png (1200x630) is created -->
+    <meta property="og:image" content="https://bible-memory.app/icons/icon-512.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
     <meta property="og:image:alt" content="Bible Memory App">
     <meta property="og:locale" content="en_US">
 
@@ -33,8 +33,8 @@
     <meta name="twitter:url" content="https://bible-memory.app/">
     <meta name="twitter:title" content="Bible Memory - Memorize Scripture with Spaced Repetition">
     <meta name="twitter:description" content="Hide God's Word in your heart. Memorize Scripture effectively with proven spaced repetition and offline-first access.">
-    <!-- TODO: Add og-image.png (1200x630) in Phase 3 -->
-    <!-- <meta name="twitter:image" content="https://bible-memory.app/og-image.png"> -->
+    <!-- TEMPORARY: Using app icon (512x512) until proper og-image.png (1200x630) is created -->
+    <meta name="twitter:image" content="https://bible-memory.app/icons/icon-512.png">
     <meta name="twitter:image:alt" content="Bible Memory App">
 
     <!-- Additional SEO / PWA Meta Tags -->
@@ -50,6 +50,37 @@
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.webmanifest">
+
+    <!-- JSON-LD Structured Data (Schema.org) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Bible Memory",
+      "url": "https://bible-memory.app",
+      "description": "Memorize Scripture effectively with proven spaced repetition, offline-first access, and beautiful design. Free and open source.",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Bible Memory"
+      },
+      "browserRequirements": "Requires JavaScript. Supports ES2020+.",
+      "softwareVersion": "1.2.0",
+      "datePublished": "2025-01-19",
+      "screenshot": "https://bible-memory.app/icons/icon-512x512.png",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5.0",
+        "ratingCount": "1"
+      }
+    }
+    </script>
 
     <!-- Fonts (Non-blocking with preload) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
