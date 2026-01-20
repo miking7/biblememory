@@ -55,8 +55,22 @@ if (php_sapi_name() === 'cli-server') {
 
 // Serve static assets from dist/ (generic approach)
 // Allow any file in dist/ with safe extensions (PWA-friendly)
+    /* 
+    Note: on production nginx servers, the following config...
+        # Serve static files from dist directory first
+        location ~* \.(xml|txt|html|css|js|png|jpg|jpeg|gif|svg|mp4|ico|woff|woff2|webmanifest|json)$ {
+            root /home/biblememorybrightangel7com/biblememory.brightangel7.com/server/public/dist;
+            try_files $uri /index.php?$query_string;
+        }
+    # is inserted before...
+
+    # ...the normal index.php try-files block
+        location / {
+            try_files $uri $uri/ /index.php?$query_string;
+        }
+    */
 $ext = pathinfo($path, PATHINFO_EXTENSION);
-$allowedExtensions = ['js', 'css', 'html', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico',
+$allowedExtensions = ['js', 'css', 'html', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico', 'mp4',
                       'woff', 'woff2', 'ttf', 'webmanifest', 'json', 'xml', 'txt'];
 
 if (in_array($ext, $allowedExtensions, true)) {
@@ -80,6 +94,7 @@ if (in_array($ext, $allowedExtensions, true)) {
             'jpeg' => 'image/jpeg',
             'gif' => 'image/gif',
             'svg' => 'image/svg+xml',
+            'mp4' => 'video/mp4',
             'ico' => 'image/x-icon',
             'woff' => 'font/woff',
             'woff2' => 'font/woff2',
