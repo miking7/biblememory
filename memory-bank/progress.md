@@ -269,46 +269,40 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 
 ### Phase 1.5: Authentication UI (Complete ✅)
 
-**Status:** Implementation Complete, Testing in Progress  
-**Completed:** January 6, 2026  
-**Goal:** Add optional authentication with smart prompts for multi-device sync
+**Status:** Implementation Complete, Testing in Progress
+**Completed:** January 6, 2026
+**Goal:** Required authentication with landing page for unauthenticated visitors
 
 #### Core Features
 - [x] Authentication state management in app
-- [x] Persistent auth banner (anonymous and authenticated states)
+- [x] Landing page for unauthenticated users (replaces anonymous app access)
 - [x] Authentication modal (login/register forms)
-- [x] Data migration on signup (sync local verses to server)
-- [x] Sync status indicator in banner
-- [x] Modified sync behavior (only sync when authenticated)
-- ⏭️ Strategic prompts (deferred - optional enhancement)
-- ⏭️ Account menu in header (covered by banner)
+- [x] Sync status indicator in user menu
+- [x] Sync behavior (only for authenticated users)
+- [x] Logout clears all local data with outbox warning
 
 #### User Experience
-- [x] App works fully without authentication (local-only mode)
-- [x] Users can add/edit/review verses immediately
-- [x] Banner encourages signup (not dismissible - always visible)
-- [x] Seamless migration of local data on signup
-- [x] Clear sync status indicators in banner
-- [x] Logout preserves local data
+- [x] Unauthenticated visitors see landing page (not the app)
+- [x] Users must login/register to access app functionality
+- [x] Clear sync status indicators
+- [x] Logout clears all local data (with outbox warning if unsynced changes exist)
+- [x] Pre-login cleanup ensures clean slate for each user
 
 #### Technical Implementation
 - [x] Add auth state to Vue.js app
-- [x] Build auth banner component (two states)
+- [x] Build landing page component for unauthenticated users
 - [x] Build auth modal with forms (login/register toggle)
-- [x] Add data migration function
 - [x] Update sync.ts to check authentication
 - [x] Style all components with glass-morphism
 - [x] **Bug Fix:** Fixed API routing (removed .php extensions)
-- ⏭️ Strategic prompt logic (deferred)
-- ⏭️ localStorage tracking for prompts (deferred)
+- [x] Logout state cleanup (clearLocalData + clearServiceWorkerCaches)
 
 #### Testing
-- [ ] Anonymous user flow (use without auth) - **In Progress**
 - [ ] Authentication flow (login/register) - **In Progress**
-- [ ] Data migration (local verses sync on signup)
 - [ ] Authenticated user flow (sync, logout)
 - [ ] Multi-device sync
 - [ ] Edge cases (offline, token expiry, errors)
+- [ ] Logout with/without pending outbox items
 
 #### Bug Fixes
 - [x] **API Routing Issue** - Client was calling `/api/register.php` but server expected `/api/register`

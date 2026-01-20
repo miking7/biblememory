@@ -4,7 +4,8 @@ import {
   login as apiLogin,
   register as apiRegister,
   logout as apiLogout,
-  getCurrentUserEmail
+  getCurrentUserEmail,
+  getOutboxCount
 } from '../sync';
 
 export function useAuth() {
@@ -143,17 +144,26 @@ export function useAuth() {
   };
 
   const handleLogout = async () => {
-    if (!confirm('Are you sure you want to logout? Your local data will be preserved.')) {
+    // Check for unsynchronized changes
+    const outboxCount = await getOutboxCount();
+
+    let message: string;
+    if (outboxCount > 0) {
+      message = `⚠️ WARNING: You have ${outboxCount} unsynced change${outboxCount !== 1 ? 's' : ''} that will be PERMANENTLY LOST if you logout now.\n\nPlease wait for sync to complete, or click OK to logout anyway and lose these changes.`;
+    } else {
+      message = 'Are you sure you want to logout?\n\nAll local data will be cleared from this device.';
+    }
+
+    if (!confirm(message)) {
       return;
     }
 
     try {
       await apiLogout();
+      console.log("Logout successful - redirecting to landing page");
 
-      isAuthenticated.value = false;
-      userEmail.value = '';
-
-      console.log("Logout successful");
+      // Redirect to landing page (page refresh resets all in-memory state)
+      window.location.href = '/';
     } catch (error) {
       console.error("Logout failed:", error);
       alert("Logout failed. Please try again.");

@@ -84,3 +84,30 @@ export class BibleMemoryDB extends Dexie {
 }
 
 export const db = new BibleMemoryDB();
+
+/**
+ * Clears all local data (user data stored locally).
+ * - Deletes the entire IndexedDB database
+ * - Clears all localStorage
+ * - Clears all sessionStorage
+ */
+export async function clearLocalData(): Promise<void> {
+  await db.delete();
+  localStorage.clear();
+  sessionStorage.clear();
+}
+
+/**
+ * Clears all service worker caches.
+ * These contain static assets (JS, CSS, fonts) - not user data.
+ */
+export async function clearServiceWorkerCaches(): Promise<void> {
+  if ('caches' in window) {
+    try {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+    } catch (error) {
+      console.warn('Failed to clear service worker caches:', error);
+    }
+  }
+}

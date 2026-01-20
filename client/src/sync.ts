@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { db, clearLocalData, clearServiceWorkerCaches } from "./db";
 import { updateReviewCache } from "./actions";
 
 const API_BASE = "/api";
@@ -211,6 +211,12 @@ export async function getCurrentUserEmail(): Promise<string | null> {
 
 // Login
 export async function login(email: string, password: string): Promise<void> {
+  // Pre-cleanup: ensure clean slate before login
+  await clearLocalData();
+
+  // Reinitialize db after delete (Dexie recreates automatically on next access)
+  await db.open();
+
   const response = await fetch(`${API_BASE}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -239,6 +245,12 @@ export async function login(email: string, password: string): Promise<void> {
 
 // Register
 export async function register(email: string, password: string): Promise<void> {
+  // Pre-cleanup: ensure clean slate before registration
+  await clearLocalData();
+
+  // Reinitialize db after delete (Dexie recreates automatically on next access)
+  await db.open();
+
   const response = await fetch(`${API_BASE}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -265,10 +277,14 @@ export async function register(email: string, password: string): Promise<void> {
   await syncNow();
 }
 
-// Logout
-export async function logout(): Promise<void> {
+// Get count of pending operations in outbox
+export async function getOutboxCount(): Promise<number> {
+  return await db.outbox.count();
+}
+
+// Notify server of logout (best-effort, doesn't throw)
+async function notifyServerLogout(): Promise<void> {
   try {
-    // Try to notify server
     const headers = await getAuthHeaders();
     await fetch(`${API_BASE}/logout`, {
       method: "POST",
@@ -278,9 +294,13 @@ export async function logout(): Promise<void> {
     // Ignore errors - logout locally anyway
     console.error("Logout server notification failed:", error);
   }
+}
 
-  // Clear local auth
-  await db.auth.delete("current");
+// Logout - notifies server and clears all local data
+export async function logout(): Promise<void> {
+  await notifyServerLogout();
+  await clearLocalData();
+  await clearServiceWorkerCaches();
 }
 
 // Get sync status

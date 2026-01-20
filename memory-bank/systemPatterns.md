@@ -290,7 +290,7 @@ KEY QUESTION THIS FILE ANSWERS: "How is the system architectured and why?"
 - Track actual sync operation results in app state
 - Properties: `lastSyncSuccess`, `lastSyncError`, `lastSyncAttempt`
 - Computed property `hasSyncIssues` determines UI indicator visibility
-- Only shows issues for authenticated users (local-only mode doesn't need sync)
+- Only relevant for authenticated users (unauthenticated users see landing page, not app)
 
 **Why This Pattern:**
 - Works uniformly across all browsers (no special cases)
@@ -918,6 +918,53 @@ Result: Device B's edit wins (Last-Write-Wins based on ts_server)
 - Cursor-based pull (no duplicate data transferred)
 - Smart retry with adaptive backoff (1s → 30s when failing)
 - Sync only when authenticated and online
+
+### 14. Logout State Cleanup Pattern
+
+**Purpose:** Ensure complete cleanup of all local data on logout while providing appropriate warnings for data loss scenarios
+
+**Problem Solved:**
+- Logout previously only cleared auth token, leaving user data behind
+- No warning when users had unsynced changes in outbox
+- In-memory state in composables persisted after "logout"
+- localStorage preferences and service worker caches not cleared
+
+**How It Works:**
+
+**Two focused cleanup functions in `db.ts`:**
+- `clearLocalData()` - Deletes IndexedDB database, clears localStorage and sessionStorage
+- `clearServiceWorkerCaches()` - Clears all service worker caches (static assets)
+
+**Auth flows use them explicitly:**
+- **Login/Register:** `clearLocalData()` only (clean slate, keep SW caches)
+- **Logout:** Both functions + page redirect to `/`
+
+**Outbox warning before logout:**
+- Check `getOutboxCount()` before showing confirmation
+- If items pending: Strong warning about permanent data loss
+- If empty: Simple confirmation dialog
+
+**Why This Pattern:**
+- ✅ Explicit behavior (no hidden wrapper functions)
+- ✅ Self-documenting call sites
+- ✅ Clean separation: user data vs static assets
+- ✅ Pre-login cleanup prevents stale data issues
+- ✅ Page redirect guarantees clean in-memory state
+- ✅ User agency (warning about unsynced changes)
+
+**Data Cleared on Logout:**
+- **IndexedDB:** All tables (verses, reviews, settings, auth, outbox, appliedOps, sync)
+- **localStorage:** All keys (verseViewMode, verseSortPreference)
+- **sessionStorage:** Everything
+- **SW Caches:** google-fonts-cache, gstatic-fonts-cache, mdi-icons-cache, workbox precache
+- **In-Memory:** All composable state (via page refresh)
+
+**Implementation Files:**
+- `client/src/db.ts` - Cleanup functions
+- `client/src/sync.ts` - Auth flows with cleanup
+- `client/src/composables/useAuth.ts` - Logout UI with warning
+
+**See:** previous-work/053_logout_state_cleanup.md for detailed implementation
 
 ## Security Patterns
 
