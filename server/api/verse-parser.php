@@ -34,8 +34,9 @@ CRITICAL RULES:
 5. Remove cross-reference information
 6. Keep verse numbers at the start of each verse
 7. Combine ALL verses into a content field comprising an array of verse strings
-8. Detect version/translation if present (NIV, ESV, KJV, NKJV, NLT, NASB, CSB, etc.)
+8. Detect version/translation if present (NIV, ESV, KJV, NKJV, NLT, NASB, CSB, AMP, etc.)
 9. If no version detected, return null for translation
+10. You should NEVER try to infer the content of the verse if it is not present - you are only allowed to return the content if it is present (with cleaned up and normalized content, but never modifying the content in any other way). If the content is not present, return an error object in the format specified below.
 
 SPECIAL NOTES:
 1. The input from some online bibles include the chapter number in front of verse #1 instead of "1" - ie: for Psalms 23:1-2 the text for the verses might be "23 The Lord is my shepherd... 2 Second verse content... 3 Third verse content... etc.".  Please keep this in mind when trying to understand the content.  The "23 The Lord..." should be interpreted as chapter 23, verse 1, and result in the output content correctly using verse number 1 instead - ie: "1 The Lord is my shepherd... 2 Second verse content... 3 Third verse content... etc.".
@@ -58,16 +59,21 @@ Return EXACTLY ONE JSON object (NOT an array of objects):
   "translation": "VERSION" or null
 }
 
+If there are any errors in parsing the verse or in the format of the input, return EXACTLY ONE JSON error object with the following fields:
+{
+  "error": "ERROR MESSAGE"
+}
+
 CRITICAL: 
 - Return ONE object, NOT an array of objects
 - ALL verses go in a SINGLE content field
 - For multi-verse passages, each verse is a separate string in the content array, with each verse preceeded by its verse number
-- For single-verse passages, the content array will be an array with a single string, WITHOUT a verse number prefix
 
 Examples:
 - "John 3:16 (NIV) 16 For God so loved..." → {"reference": "John 3:16", "refSort": "bible.43003016", "content": ["For God so loved..."], "translation": "NIV"}
 - "Romans 8:28-29 ESV 28 And we... 29 For those..." → {"reference": "Romans 8:28-29", "refSort": "bible.45008028", "content": ["28 And we know that in all things God works...", "29 For those God foreknew he also predestined..."], "translation": "ESV"}
 - "16 For God so loved..." → {"reference": null, "refSort": null, "content": ["16 For God so loved..."], "translation": null}
+- "John 3:16 AMP" (content not present) → {"error": "Please paste the entire verse text instead of just the reference. (AI cannot reliably generate content from just a reference.)"}
 PROMPT;
 
   // Prepare API request
@@ -142,7 +148,12 @@ PROMPT;
       throw new Exception('Failed to parse JSON from AI response');
     }
     
-    // Validate structure
+    // Check if AI returned an error object - return it as-is for caller to handle
+    if (isset($parsed['error']) && is_string($parsed['error'])) {
+      return $parsed;
+    }
+    
+    // Validate structure for normal response
     if (!array_key_exists('reference', $parsed) ||
         !array_key_exists('refSort', $parsed) ||
         !array_key_exists('content', $parsed) ||

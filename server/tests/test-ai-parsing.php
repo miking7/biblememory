@@ -220,6 +220,12 @@ function loadEnv($envFile) {
 function callParseAPI($apiKey, $text) {
   // Call shared parsing functions (same as parse-verse.php uses)
   $parsed = callAnthropicAPI($apiKey, $text);
+  
+  // Check if AI returned an error object - return it as-is
+  if (isset($parsed['error'])) {
+    return $parsed;
+  }
+  
   $result = processAIResponse($parsed, $text);
   
   return $result;
@@ -232,6 +238,38 @@ function callParseAPI($apiKey, $text) {
 function compareResults($expected, $actual) {
   $differences = [];
   
+  // Check if either is an error response
+  $expectedIsError = isset($expected['error']);
+  $actualIsError = isset($actual['error']);
+  
+  // If error status differs, that's a difference
+  if ($expectedIsError !== $actualIsError) {
+    if ($expectedIsError) {
+      $differences['error'] = [
+        'expected' => $expected['error'],
+        'actual' => '(not an error response)',
+      ];
+    } else {
+      $differences['error'] = [
+        'expected' => '(not an error response)',
+        'actual' => $actual['error'],
+      ];
+    }
+    return $differences;
+  }
+  
+  // If both are error responses, compare error messages
+  if ($expectedIsError && $actualIsError) {
+    if ($expected['error'] !== $actual['error']) {
+      $differences['error'] = [
+        'expected' => $expected['error'],
+        'actual' => $actual['error'],
+      ];
+    }
+    return $differences;
+  }
+  
+  // Compare normal response fields
   $fields = ['reference', 'refSort', 'content', 'translation'];
   
   foreach ($fields as $field) {

@@ -36,6 +36,12 @@ if (!$apiKey) {
 // Call Anthropic API to parse the verse
 try {
   $parsed = callAnthropicAPI($apiKey, $text);
+  
+  // Check if AI returned an error object - pass it through directly
+  if (isset($parsed['error'])) {
+    json_out($parsed, 400);
+  }
+  
   $result = processAIResponse($parsed, $text);
   
   // Return parsed data with tags field
@@ -49,7 +55,10 @@ try {
   
 } catch (Exception $e) {
   error_log('AI parsing error: ' . $e->getMessage());
-  json_out(['error' => 'Unable to parse verse - please try again or enter manually'], 500);
+  json_out([
+    'error' => 'Unable to parse verse - please try again or enter manually',
+    'errorDetails' => $e->getMessage()
+  ], 500);
 }
 
 /**
