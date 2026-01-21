@@ -32,11 +32,12 @@ CRITICAL RULES:
 3. If no reference found, return null for reference and refSort
 4. Remove ALL footnote markers ([a], [b], *, †, superscripts, etc.) and footnote sections
 5. Remove cross-reference information
-6. Keep verse numbers at the start of each verse
-7. Combine ALL verses into a content field comprising an array of verse strings
-8. Detect version/translation if present (NIV, ESV, KJV, NKJV, NLT, NASB, CSB, AMP, etc.)
-9. If no version detected, return null for translation
-10. You should NEVER try to infer the content of the verse if it is not present - you are only allowed to return the content if it is present (with cleaned up and normalized content, but never modifying the content in any other way). If the content is not present, return an error object in the format specified below.
+6. For SINGLE-VERSE passages: strip the verse number from the content (it's redundant since reference shows the verse)
+7. For MULTI-VERSE passages: keep verse numbers at the start of each verse (needed to distinguish verses)
+8. Combine ALL verses into a content field comprising an array of verse strings
+9. Detect version/translation if present (NIV, ESV, KJV, NKJV, NLT, NASB, CSB, AMP, etc.)
+10. If no version detected, return null for translation
+11. You should NEVER try to infer the content of the verse if it is not present - you are only allowed to return the content if it is present (with cleaned up and normalized content, but never modifying the content in any other way). If the content is not present, return an error object in the format specified below.
 
 SPECIAL NOTES:
 1. The input from some online bibles include the chapter number in front of verse #1 instead of "1" - ie: for Psalms 23:1-2 the text for the verses might be "23 The Lord is my shepherd... 2 Second verse content... 3 Third verse content... etc.".  Please keep this in mind when trying to understand the content.  The "23 The Lord..." should be interpreted as chapter 23, verse 1, and result in the output content correctly using verse number 1 instead - ie: "1 The Lord is my shepherd... 2 Second verse content... 3 Third verse content... etc.".
@@ -67,13 +68,15 @@ If there are any errors in parsing the verse or in the format of the input, retu
 CRITICAL: 
 - Return ONE object, NOT an array of objects
 - ALL verses go in a SINGLE content field
-- For multi-verse passages, each verse is a separate string in the content array, with each verse preceeded by its verse number
+- For SINGLE-VERSE passages: content is an array with one string, NO verse number prefix (e.g., ["For God so loved..."])
+- For MULTI-VERSE passages: each verse is a separate string with its verse number prefix (e.g., ["28 And we...", "29 For those..."])
 
 Examples:
-- "John 3:16 (NIV) 16 For God so loved..." → {"reference": "John 3:16", "refSort": "bible.43003016", "content": ["For God so loved..."], "translation": "NIV"}
-- "Romans 8:28-29 ESV 28 And we... 29 For those..." → {"reference": "Romans 8:28-29", "refSort": "bible.45008028", "content": ["28 And we know that in all things God works...", "29 For those God foreknew he also predestined..."], "translation": "ESV"}
-- "16 For God so loved..." → {"reference": null, "refSort": null, "content": ["16 For God so loved..."], "translation": null}
-- "John 3:16 AMP" (content not present) → {"error": "Please paste the entire verse text instead of just the reference. (AI cannot reliably generate content from just a reference.)"}
+- Single verse: "John 3:16 (NIV) 16 For God so loved..." → {"reference": "John 3:16", "refSort": "bible.43003016", "content": ["For God so loved..."], "translation": "NIV"}
+- Single verse: "Romans 8:28 AMP 28 And we know..." → {"reference": "Romans 8:28", "refSort": "bible.45008028", "content": ["And we know [with great confidence]..."], "translation": "AMP"}
+- Multi-verse: "Romans 8:28-29 ESV 28 And we... 29 For those..." → {"reference": "Romans 8:28-29", "refSort": "bible.45008028", "content": ["28 And we know that in all things God works...", "29 For those God foreknew he also predestined..."], "translation": "ESV"}
+- No reference: "16 For God so loved..." → {"reference": null, "refSort": null, "content": ["16 For God so loved..."], "translation": null}
+- Content not present error: "John 3:16 AMP" → {"error": "Please paste the entire verse text instead of just the reference. (AI cannot reliably generate content from just a reference.)"}
 PROMPT;
 
   // Prepare API request
