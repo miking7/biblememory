@@ -1,0 +1,102 @@
+[
+  {
+    "reference": "2 Timothy 3:16",
+    "refSort": "bible.55003016",
+    "content": "All Scripture is God-breathed and is useful for teaching, rebuking, correcting and training in righteousness.",
+    "translation": "NIV",
+    "tags": [
+      { "key": "course", "value": "fast" },
+      { "key": "level", "value": "basic-training" }
+    ]
+  },
+  {
+    "reference": "John 15:7",
+    "refSort": "bible.43015007",
+    "content": "If you remain in me and my words remain in you, ask whatever you wish, and it will be done for you.",
+    "translation": "NIV",
+    "tags": [
+      { "key": "course", "value": "fast" },
+      { "key": "level", "value": "basic-training" }
+    ]
+  },
+  {
+    "reference": "1 John 1:9",
+    "refSort": "bible.62001009",
+    "content": "If we confess our sins, he is faithful and just and will forgive us our sins and purify us from all unrighteousness.",
+    "translation": "NIV",
+    "tags": [
+      { "key": "course", "value": "fast" },
+      { "key": "level", "value": "basic-training" }
+    ]
+  },
+  {
+    "reference": "Proverbs 3:5-6",
+    "refSort": "bible.20003005",
+    "content": "Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.",
+    "translation": "NIV",
+    "tags": [
+      { "key": "course", "value": "fast" },
+      { "key": "level", "value": "basic-training" }
+    ]
+  },
+  {
+    "reference": "Matthew 6:33",
+    "refSort": "bible.40006033",
+    "content": "But seek first his kingdom and his righteousness, and all these things will be given to you as well.",
+    "translation": "NIV",
+    "tags": [
+      { "key": "course", "value": "fast" },
+      { "key": "level", "value": "basic-training" }
+    ]
+  },
+  {
+    "reference": "Romans 12:1",
+    "refSort": "bible.45012001",
+    "content": "Therefore, I urge you, brothers and sisters, in view of God's mercy, to offer your bodies as a living sacrifice, holy and pleasing to God—this is your true and proper worship.",
+    "translation": "NIV",
+    "tags": [
+      { "key": "course", "value": "fast" },
+      { "key": "level", "value": "basic-training" }
+    ]
+  },
+  {
+    "reference": "Hebrews 10:24-25",
+    "refSort": "bible.58010024",
+    "content": "And let us consider how we may spur one another on toward love and good deeds, not giving up meeting together, as some are in the habit of doing, but encouraging one another—and all the more as you see the Day approaching.",
+    "translation": "NIV",
+    "tags": [
+      { "key": "course", "value": "fast" },
+      { "key": "level", "value": "basic-training" }
+    ]
+  },
+  {
+    "reference": "Matthew 4:19",
+    "refSort": "bible.40004019",
+    "content": "\"Come, follow me,\" Jesus said, \"and I will send you out to fish for people.\"",
+    "translation": "NIV",
+    "tags": [
+      { "key": "course", "value": "fast" },
+      { "key": "level", "value": "basic-training" }
+    ]
+  },
+  {
+    "reference": "2 Corinthians 5:17",
+    "refSort": "bible.47005017",
+    "content": "Therefore, if anyone is in Christ, the new creation has come: The old has gone, the new is here!",
+    "translation": "NIV",
+    "tags": [
+      { "key": "course", "value": "fast" },
+      { "key": "level", "value": "basic-training" }
+    ]
+  },
+  {
+    "reference": "Galatians 2:20",
+    "refSort": "bible.48002020",
+    "content": "I have been crucified with Christ and I no longer live, but Christ lives in me. The life I now live in the body, I live by faith in the Son of God, who loved me and gave himself for me.",
+    "translation": "NIV",
+    "tags": [
+      { "key": "course", "value": "fast" },
+      { "key": "level", "value": "basic-training" }
+    ]
+  }
+]

@@ -24,6 +24,7 @@ $apiRoutes = [
     'GET /api/pull' => __DIR__ . '/../api/pull.php',
     'POST /api/migrate' => __DIR__ . '/../api/migrate.php',
     'POST /api/parse-verse' => __DIR__ . '/../api/parse-verse.php',
+    'GET /api/collections' => __DIR__ . '/../api/collections.php',
 ];
 
 // Check if this is an API request

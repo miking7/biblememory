@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref, computed, toRaw } from 'vue';
 import { Verse } from '../db';
 import {
   addVerse as addVerseAction,
@@ -21,10 +21,29 @@ export function useVerses() {
   );
 
   // Add verse wizard state
-  const addVerseStep = ref<'paste' | 'form'>('paste');
+  const addVerseStep = ref<'paste' | 'form' | 'collections-list' | 'collections-detail' | 'collections-pace'>('paste');
   const pastedText = ref('');
   const parsingState = ref<'idle' | 'loading' | 'error' | 'success'>('idle');
   const parsingError = ref('');
+
+  // Collections state
+  const collectionsList = ref<Array<{id: string, name: string, description: string, verseCount?: number}>>([]);
+  const collectionsLoading = ref(false);
+  const collectionsError = ref('');
+  const selectedCollectionId = ref('');
+  const selectedCollectionName = ref('');
+  const selectedCollectionDescription = ref('');
+  const collectionVerses = ref<Array<{reference: string, refSort: string, content: string, translation: string, tags: Array<{key: string, value: string}>}>>([]);
+  const collectionVersesLoading = ref(false);
+  const collectionVersesError = ref('');
+  const selectedVerseIndices = ref<number[]>([]);
+  const selectedPace = ref('two-to-start-then-weekly');
+  const paceOptions = [
+    { value: 'two-to-start-then-weekly', label: 'Two to start, then weekly', description: '2 verses today, then 1 per week' },
+    { value: 'weekly', label: 'Weekly', description: '1 verse per week' },
+    { value: 'fortnightly', label: 'Every 2 weeks', description: '1 verse every 2 weeks' },
+    { value: 'monthly', label: 'Monthly', description: '1 verse per month' }
+  ];
 
   // Add verse form
   const newVerse = ref({
@@ -181,6 +200,7 @@ export function useVerses() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('API error response:', errorData);
         throw new Error(errorData.error || 'Server error');
       }
 
@@ -446,6 +466,217 @@ export function useVerses() {
     }
   };
 
+  // Collections methods
+  const openCollections = async () => {
+    addVerseStep.value = 'collections-list';
+    await loadCollections();
+  };
+
+  const cancelCollections = () => {
+    addVerseStep.value = 'paste';
+    // Reset state
+    collectionsList.value = [];
+    collectionsError.value = '';
+    selectedCollectionId.value = '';
+    selectedCollectionName.value = '';
+    selectedCollectionDescription.value = '';
+    collectionVerses.value = [];
+    selectedVerseIndices.value = [];
+    selectedPace.value = 'two-to-start-then-weekly';
+  };
+
+  const loadCollections = async () => {
+    collectionsLoading.value = true;
+    collectionsError.value = '';
+
+    try {
+      // Get auth token
+      const authStore = await import('../db').then(m => m.db.auth.toArray());
+      const token = authStore[0]?.token;
+
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const response = await fetch('/api/collections', {
+        headers: {
+          'X-Auth-Token': token
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load collections');
+      }
+
+      const data = await response.json();
+
+      // Fetch verse counts for each collection
+      const collectionsWithCounts = await Promise.all(
+        data.map(async (collection: any) => {
+          try {
+            const versesResponse = await fetch(`/api/collections?id=${collection.id}`, {
+              headers: {
+                'X-Auth-Token': token
+              }
+            });
+            if (versesResponse.ok) {
+              const verses = await versesResponse.json();
+              return { ...collection, verseCount: verses.length };
+            }
+          } catch (e) {
+            console.error(`Failed to fetch verse count for ${collection.id}:`, e);
+          }
+          return collection;
+        })
+      );
+
+      collectionsList.value = collectionsWithCounts;
+    } catch (error: any) {
+      console.error('Failed to load collections:', error);
+      collectionsError.value = error.message || 'Failed to load collections';
+    } finally {
+      collectionsLoading.value = false;
+    }
+  };
+
+  const selectCollection = async (collectionId: string) => {
+    const collection = collectionsList.value.find(c => c.id === collectionId);
+    if (!collection) return;
+
+    selectedCollectionId.value = collectionId;
+    selectedCollectionName.value = collection.name;
+    selectedCollectionDescription.value = collection.description;
+    addVerseStep.value = 'collections-detail';
+
+    collectionVersesLoading.value = true;
+    collectionVersesError.value = '';
+
+    try {
+      // Get auth token
+      const authStore = await import('../db').then(m => m.db.auth.toArray());
+      const token = authStore[0]?.token;
+
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const response = await fetch(`/api/collections?id=${collectionId}`, {
+        headers: {
+          'X-Auth-Token': token
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load collection verses');
+      }
+
+      const verses = await response.json();
+      collectionVerses.value = verses;
+
+      // Select all verses by default
+      selectedVerseIndices.value = verses.map((_: any, index: number) => index);
+    } catch (error: any) {
+      console.error('Failed to load collection verses:', error);
+      collectionVersesError.value = error.message || 'Failed to load verses';
+    } finally {
+      collectionVersesLoading.value = false;
+    }
+  };
+
+  const backToCollectionsList = () => {
+    addVerseStep.value = 'collections-list';
+    collectionVerses.value = [];
+    selectedVerseIndices.value = [];
+  };
+
+  const proceedToPaceSelection = () => {
+    if (selectedVerseIndices.value.length === 0) {
+      alert('Please select at least one verse');
+      return;
+    }
+    addVerseStep.value = 'collections-pace';
+  };
+
+  const backToCollectionDetail = () => {
+    addVerseStep.value = 'collections-detail';
+  };
+
+  const addCollectionVerses = async () => {
+    if (selectedVerseIndices.value.length === 0) {
+      alert('Please select at least one verse');
+      return;
+    }
+
+    // Get selected verses (use toRaw to unwrap Vue proxies for IndexedDB storage)
+    const selectedVerses = selectedVerseIndices.value
+      .sort((a, b) => a - b) // Ensure they're in original order
+      .map(index => toRaw(collectionVerses.value[index]));
+
+    // Calculate scheduled dates based on pace
+    const today = getTodayMidnight();
+    const scheduledVerses = selectedVerses.map((verse, index) => {
+      let startDate = today;
+
+      if (selectedPace.value === 'two-to-start-then-weekly') {
+        if (index >= 2) {
+          startDate = today + (index - 1) * 7 * 24 * 60 * 60 * 1000;
+        }
+      } else if (selectedPace.value === 'weekly') {
+        startDate = today + index * 7 * 24 * 60 * 60 * 1000;
+      } else if (selectedPace.value === 'fortnightly') {
+        startDate = today + index * 14 * 24 * 60 * 60 * 1000;
+      } else if (selectedPace.value === 'monthly') {
+        const date = new Date(today);
+        date.setMonth(date.getMonth() + index);
+        startDate = date.getTime();
+      }
+
+      return {
+        ...verse,
+        startedAt: startDate
+      };
+    });
+
+    // Add all verses
+    try {
+      for (const verse of scheduledVerses) {
+        await addVerseAction({
+          reference: verse.reference,
+          refSort: verse.refSort,
+          content: verse.content,
+          translation: verse.translation || '',
+          tags: verse.tags || [],
+          startedAt: verse.startedAt
+        });
+      }
+
+      // Reload verses
+      await loadVerses();
+
+      // Reset collections state
+      cancelCollections();
+
+      // Show success using existing success indicator (App.vue will show this)
+      showAddSuccess.value = true;
+      setTimeout(() => {
+        showAddSuccess.value = false;
+      }, 3000);
+
+      // Return success info
+      return {
+        success: true,
+        count: scheduledVerses.length
+      };
+    } catch (error) {
+      console.error('Failed to add collection verses:', error);
+      alert('Failed to add verses. Please try again.');
+      return {
+        success: false,
+        count: 0
+      };
+    }
+  };
+
   return {
     // State
     verses,
@@ -462,6 +693,20 @@ export function useVerses() {
     pastedText,
     parsingState,
     parsingError,
+
+    // Collections state
+    collectionsList,
+    collectionsLoading,
+    collectionsError,
+    selectedCollectionId,
+    selectedCollectionName,
+    selectedCollectionDescription,
+    collectionVerses,
+    collectionVersesLoading,
+    collectionVersesError,
+    selectedVerseIndices,
+    selectedPace,
+    paceOptions,
 
     // Computed
     filteredVerses,
@@ -483,6 +728,16 @@ export function useVerses() {
     resetAddVerseWizard,
     parseVerseWithAI,
     skipAIParsing,
-    goBackToPaste
+    goBackToPaste,
+
+    // Collections methods
+    openCollections,
+    cancelCollections,
+    loadCollections,
+    selectCollection,
+    backToCollectionsList,
+    proceedToPaceSelection,
+    backToCollectionDetail,
+    addCollectionVerses
   };
 }

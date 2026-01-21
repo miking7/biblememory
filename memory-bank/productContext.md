@@ -48,14 +48,39 @@ A modern Bible memory app that combines:
 ### Core User Flows
 
 #### Adding a Verse
+
+**Single Verse (Manual or AI-Assisted):**
 1. User clicks "Add Verse" tab
-2. Fills in reference (e.g., "John 3:16")
-3. Enters refSort for proper ordering (e.g., "bible.43003016")
-4. Pastes or types verse content (multi-paragraph supported)
-5. Optionally adds translation, tags, marks as favorite
-6. Clicks "Add Verse"
-7. Verse immediately available offline
-8. Syncs to server when online
+2. **Option A - AI Smart Fill:**
+   - Pastes verse text with reference
+   - Clicks "Smart Fill ✨"
+   - AI parses reference, refSort, content, translation
+   - Reviews parsed data, makes edits if needed
+   - Clicks "Add Verse"
+3. **Option B - Manual Entry:**
+   - Clicks "Skip AI"
+   - Fills in reference (e.g., "John 3:16")
+   - Enters refSort for proper ordering (e.g., "bible.43003016")
+   - Pastes or types verse content (multi-paragraph supported)
+   - Optionally adds translation, tags, marks as favorite
+   - Clicks "Add Verse"
+4. Verse immediately available offline
+5. Syncs to server when online
+
+**Multiple Verses (Collections) - NEW ✅:**
+1. User clicks "Browse Collections 📚" button on Add Verse tab
+2. Views list of curated collections with verse counts
+3. Clicks a collection to see all verses
+4. Reviews verses (all selected by default), deselects any unwanted
+5. Chooses memorization pace:
+   - Two to start, then weekly (default)
+   - Weekly
+   - Every 2 weeks
+   - Monthly
+6. Clicks "Add Verses"
+7. All selected verses added with automatic scheduling
+8. Success message displays, returns to My Verses tab
+9. Syncs to server when online
 
 #### Reviewing Verses (Basic - Phase 1)
 **Current Implementation:**

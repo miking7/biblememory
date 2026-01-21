@@ -287,6 +287,28 @@ export function bibleMemoryApp(reviewCardElement?: any) {
     skipAIParsing: versesLogic.skipAIParsing,
     goBackToPaste: versesLogic.goBackToPaste,
 
+    // Collections (from useVerses)
+    collectionsList: versesLogic.collectionsList,
+    collectionsLoading: versesLogic.collectionsLoading,
+    collectionsError: versesLogic.collectionsError,
+    selectedCollectionId: versesLogic.selectedCollectionId,
+    selectedCollectionName: versesLogic.selectedCollectionName,
+    selectedCollectionDescription: versesLogic.selectedCollectionDescription,
+    collectionVerses: versesLogic.collectionVerses,
+    collectionVersesLoading: versesLogic.collectionVersesLoading,
+    collectionVersesError: versesLogic.collectionVersesError,
+    selectedVerseIndices: versesLogic.selectedVerseIndices,
+    selectedPace: versesLogic.selectedPace,
+    paceOptions: versesLogic.paceOptions,
+    openCollections: versesLogic.openCollections,
+    cancelCollections: versesLogic.cancelCollections,
+    loadCollections: versesLogic.loadCollections,
+    selectCollection: versesLogic.selectCollection,
+    backToCollectionsList: versesLogic.backToCollectionsList,
+    proceedToPaceSelection: versesLogic.proceedToPaceSelection,
+    backToCollectionDetail: versesLogic.backToCollectionDetail,
+    addCollectionVerses: versesLogic.addCollectionVerses,
+
     // Review (from useReview)
     currentReviewIndex: reviewLogic.currentReviewIndex,
     showVerseText: reviewLogic.showVerseText,

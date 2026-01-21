@@ -114,11 +114,11 @@
 
       <!-- Add Verse Tab -->
       <div v-if="currentTab === 'add'" class="p-3 sm:p-8">
-        
+
         <!-- Step 1: Paste Verse with AI Parsing -->
         <div v-if="addVerseStep === 'paste'">
           <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-slate-800">Add New Verse</h2>
-          
+
           <!-- Paste Textarea -->
           <div class="mb-5">
             <textarea
@@ -162,7 +162,7 @@
           </div>
 
           <!-- Action Buttons (when not loading or error) -->
-          <div v-if="parsingState === 'idle'" class="flex gap-3 items-center">
+          <div v-if="parsingState === 'idle'" class="flex gap-3 items-center mb-8">
             <button
               type="button"
               @click="parseVerseWithAI()"
@@ -175,6 +175,35 @@
               class="px-5 py-2.5 text-slate-600 hover:text-slate-800 font-medium transition-all">
               Skip AI
             </button>
+          </div>
+
+          <!-- Divider -->
+          <div v-if="parsingState === 'idle'" class="relative my-8">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-slate-200"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-3 bg-white text-slate-500 font-medium">Or add multiple verses</span>
+            </div>
+          </div>
+
+          <!-- Collections Section -->
+          <div v-if="parsingState === 'idle'" class="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-100">
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Browse Verse Collections</h3>
+            <p class="text-slate-600 mb-4">Add curated sets of verses with automatic scheduling</p>
+            <button
+              type="button"
+              @click="openCollections()"
+              class="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold text-lg hover:shadow-lg transition-all flex items-center justify-center gap-2">
+              <span>📚</span>
+              <span>Browse Collections</span>
+            </button>
+          </div>
+
+          <!-- Success Message (shown after collections or manual add) -->
+          <div v-show="showAddSuccess"
+               class="mt-5 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 text-green-700 rounded-xl font-medium">
+            ✓ Verse(s) added successfully!
           </div>
         </div>
 
@@ -256,6 +285,176 @@
           <div v-show="showAddSuccess"
                class="mt-5 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 text-green-700 rounded-xl font-medium">
             ✓ Verse added successfully!
+          </div>
+        </div>
+
+        <!-- Step 3: Collections List -->
+        <div v-if="addVerseStep === 'collections-list'">
+          <button
+            type="button"
+            @click="cancelCollections()"
+            class="mb-4 flex items-center gap-2 text-slate-600 hover:text-slate-800 font-medium transition-all">
+            <span>←</span>
+            <span>Back</span>
+          </button>
+
+          <h2 class="text-2xl sm:text-3xl font-bold mb-3 text-slate-800">Verse Collections</h2>
+          <p class="text-slate-600 mb-6">Choose a curated collection to add multiple verses at once</p>
+
+          <!-- Loading State -->
+          <div v-if="collectionsLoading" class="text-center py-12">
+            <div class="inline-flex items-center gap-3 text-blue-600">
+              <svg class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span class="text-lg font-medium">Loading collections...</span>
+            </div>
+          </div>
+
+          <!-- Error State -->
+          <div v-if="collectionsError" class="p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+            <p class="text-red-700 font-medium mb-3">⚠️ Unable to load collections</p>
+            <p class="text-red-600 text-sm mb-4" v-text="collectionsError"></p>
+            <button
+              @click="loadCollections()"
+              class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all font-medium text-sm">
+              Retry
+            </button>
+          </div>
+
+          <!-- Collections Grid -->
+          <div v-if="!collectionsLoading && !collectionsError" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button
+              v-for="collection in collectionsList"
+              :key="collection.id"
+              @click="selectCollection(collection.id)"
+              class="text-left p-5 bg-white border-2 border-slate-200 rounded-xl hover:border-blue-400 hover:shadow-lg transition-all group">
+              <h3 class="text-lg font-bold text-slate-800 mb-2 group-hover:text-blue-600 transition-colors" v-text="collection.name"></h3>
+              <p class="text-sm text-slate-600 mb-3" v-text="collection.description"></p>
+              <div class="flex items-center gap-2 text-sm text-slate-500">
+                <i class="mdi mdi-book-open-variant"></i>
+                <span v-text="collection.verseCount + ' verses'"></span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 4: Collection Detail (Verse Selection) -->
+        <div v-if="addVerseStep === 'collections-detail'">
+          <button
+            type="button"
+            @click="backToCollectionsList()"
+            class="mb-4 flex items-center gap-2 text-slate-600 hover:text-slate-800 font-medium transition-all">
+            <span>←</span>
+            <span>Back</span>
+          </button>
+
+          <h2 class="text-2xl sm:text-3xl font-bold mb-2 text-slate-800" v-text="selectedCollectionName"></h2>
+          <p class="text-slate-600 mb-6" v-text="selectedCollectionDescription"></p>
+
+          <!-- Loading State -->
+          <div v-if="collectionVersesLoading" class="text-center py-12">
+            <div class="inline-flex items-center gap-3 text-blue-600">
+              <svg class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span class="text-lg font-medium">Loading verses...</span>
+            </div>
+          </div>
+
+          <!-- Error State -->
+          <div v-if="collectionVersesError" class="p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+            <p class="text-red-700 font-medium mb-3">⚠️ Unable to load verses</p>
+            <p class="text-red-600 text-sm mb-4" v-text="collectionVersesError"></p>
+            <button
+              @click="selectCollection(selectedCollectionId)"
+              class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all font-medium text-sm">
+              Retry
+            </button>
+          </div>
+
+          <!-- Verses List with Checkboxes -->
+          <div v-if="!collectionVersesLoading && !collectionVersesError">
+            <div class="mb-4 text-sm text-slate-600">
+              Select the verses you want to add (all selected by default)
+            </div>
+
+            <div class="space-y-3 mb-6">
+              <label
+                v-for="(verse, index) in collectionVerses"
+                :key="index"
+                class="flex items-start gap-3 p-4 bg-white border-2 border-slate-200 rounded-xl hover:border-blue-300 transition-all cursor-pointer">
+                <input
+                  type="checkbox"
+                  v-model="selectedVerseIndices"
+                  :value="index"
+                  class="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                <div class="flex-1">
+                  <div class="font-semibold text-slate-800 mb-1">
+                    <span v-text="verse.reference"></span>
+                    <span v-if="verse.translation" class="text-slate-500 font-normal"> (<span v-text="verse.translation"></span>)</span>
+                  </div>
+                  <div class="text-sm text-slate-600" v-text="verse.content"></div>
+                </div>
+              </label>
+            </div>
+
+            <div class="flex justify-between items-center">
+              <div class="text-sm text-slate-600">
+                <span v-text="selectedVerseIndices.length"></span> of <span v-text="collectionVerses.length"></span> verses selected
+              </div>
+              <button
+                @click="proceedToPaceSelection()"
+                :disabled="selectedVerseIndices.length === 0"
+                class="btn-premium px-8 py-3 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Pace Selection -->
+        <div v-if="addVerseStep === 'collections-pace'">
+          <button
+            type="button"
+            @click="backToCollectionDetail()"
+            class="mb-4 flex items-center gap-2 text-slate-600 hover:text-slate-800 font-medium transition-all">
+            <span>←</span>
+            <span>Back</span>
+          </button>
+
+          <h2 class="text-2xl sm:text-3xl font-bold mb-2 text-slate-800">Set Your Pace</h2>
+          <p class="text-slate-600 mb-6">Choose a memorization pace you can stick with</p>
+
+          <div class="space-y-3 mb-8">
+            <label
+              v-for="pace in paceOptions"
+              :key="pace.value"
+              class="flex items-start gap-3 p-4 bg-white border-2 rounded-xl cursor-pointer transition-all"
+              :class="selectedPace === pace.value ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300'">
+              <input
+                type="radio"
+                v-model="selectedPace"
+                :value="pace.value"
+                class="mt-1 w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500">
+              <div class="flex-1">
+                <div class="font-semibold text-slate-800 mb-1" v-text="pace.label"></div>
+                <div class="text-sm text-slate-600" v-text="pace.description"></div>
+              </div>
+            </label>
+          </div>
+
+          <div class="flex justify-between items-center">
+            <div class="text-sm text-slate-600">
+              <span v-text="selectedVerseIndices.length"></span> verses will be added
+            </div>
+            <button
+              @click="handleAddCollectionVerses()"
+              class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
+              Add Verses
+            </button>
           </div>
         </div>
 
@@ -1293,6 +1492,28 @@ const {
   skipAIParsing,
   goBackToPaste,
 
+  // Collections (from useVerses via app.ts)
+  collectionsList,
+  collectionsLoading,
+  collectionsError,
+  selectedCollectionId,
+  selectedCollectionName,
+  selectedCollectionDescription,
+  collectionVerses,
+  collectionVersesLoading,
+  collectionVersesError,
+  selectedVerseIndices,
+  selectedPace,
+  paceOptions,
+  openCollections,
+  cancelCollections,
+  loadCollections,
+  selectCollection,
+  backToCollectionsList,
+  proceedToPaceSelection,
+  backToCollectionDetail,
+  addCollectionVerses,
+
   // Review source selection handlers
   startReviewFromFiltered,
   startReviewAtVerse,
@@ -1333,6 +1554,15 @@ const viewVerseOnline = (verse: any) => {
   const version = verse.translation || 'NKJV'; // Default to NKJV if no version specified
   const url = `https://www.biblegateway.com/passage/?search=${reference}&version=${version}`;
   window.open(url, '_blank');
+};
+
+// Handle adding collection verses with success feedback
+const handleAddCollectionVerses = async () => {
+  const result = await addCollectionVerses();
+  if (result && result.success) {
+    // Switch to My Verses tab to see the newly added verses
+    currentTab.value = 'list';
+  }
 };
 
 // Set up swipe gesture detection

@@ -46,13 +46,14 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - **User Interface**: Glass-morphism design, responsive layout, tab navigation, modals
 - **Landing Page**: Professional marketing page for unauthenticated users (8 sections, SEO-optimized)
 - **Data Management**: Verse CRUD, multi-paragraph support, structured tags, IndexedDB storage
+- **Verse Collections**: Browse curated sets, select verses, automatic scheduling (4 pace options), 5 collections with 42 verses
 - **Review System (Basic)**: Spaced repetition algorithm (auto-categorization: 8→56→112 days), simple reveal flow
 - **Offline-First**: Full offline functionality, automatic sync when online
 - **Sync**: OpLog pattern, cursor-based pagination, LWW conflict resolution
 - **Offline Notifications**: Badge + auto-dismissing toast pattern (industry standard UX)
 - **Authentication**: Registration, login, token-based auth, secure storage
 - **Import/Export**: JSON export/import with smart ID handling
-- **Backend**: PHP 8.0+ REST API, SQLite with WAL mode, 5 endpoints
+- **Backend**: PHP 8.0+ REST API, SQLite with WAL mode, 6 endpoints
 - **Search**: Unicode-insensitive, tags search, context-aware empty states
 
 #### Landing Page Features (Phase 1 Complete ✅)
