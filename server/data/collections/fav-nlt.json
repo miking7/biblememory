@@ -1,32 +1,27 @@
-[
-  {
-    "reference": "Philippians 4:13",
-    "refSort": "bible.50004013",
-    "content": "For I can do everything through Christ, who gives me strength.",
+[{
+    "reference": "John 3:16",
+    "refSort": "bible.43003016",
+    "content": "For this is how God loved the world: He gave his one and only Son, so that everyone who believes in him will not perish but have eternal life.",
     "translation": "NLT",
     "tags": []
   },
-  {
-    "reference": "Jeremiah 29:11",
-    "refSort": "bible.24029011",
-    "content": "\"For I know the plans I have for you,\" says the Lord. \"They are plans for good and not for disaster, to give you a future and a hope.\"",
-    "translation": "NLT",
-    "tags": []
-  },
+
   {
     "reference": "Proverbs 3:5-6",
     "refSort": "bible.20003005",
-    "content": "Trust in the Lord with all your heart; do not depend on your own understanding. Seek his will in all you do, and he will show you which path to take.",
+    "content": "5 Trust in the Lord with all your heart; do not depend on your own understanding.\n6 Seek his will in all you do, and he will show you which path to take.",
     "translation": "NLT",
     "tags": []
   },
+
   {
-    "reference": "Psalm 23:1",
-    "refSort": "bible.19023001",
-    "content": "The Lord is my shepherd; I have all that I need.",
+    "reference": "Philippians 4:6-7",
+    "refSort": "bible.50004006",
+    "content": "6 Don't worry about anything; instead, pray about everything. Tell God what you need, and thank him for all he has done.\n7 Then you will experience God's peace, which exceeds anything we can understand. His peace will guard your hearts and minds as you live in Christ Jesus.",
     "translation": "NLT",
     "tags": []
   },
+
   {
     "reference": "Romans 8:28",
     "refSort": "bible.45008028",
@@ -34,11 +29,53 @@
     "translation": "NLT",
     "tags": []
   },
+
+  {
+    "reference": "Psalm 23",
+    "refSort": "bible.19023001",
+    "content": "1 The Lord is my shepherd; I have all that I need.\n2 He lets me rest in green meadows; he leads me beside peaceful streams.\n3 He renews my strength. He guides me along right paths, bringing honor to his name.\n4 Even when I walk through the darkest valley, I will not be afraid, for you are close beside me. Your rod and your staff protect and comfort me.\n5 You prepare a feast for me in the presence of my enemies. You honor me by anointing my head with oil. My cup overflows with blessings.\n6 Surely your goodness and unfailing love will pursue me all the days of my life, and I will live in the house of the Lord forever.",
+    "translation": "NLT",
+    "tags": []
+  },
+
+  {
+    "reference": "Isaiah 41:10",
+    "refSort": "bible.23041010",
+    "content": "Don't be afraid, for I am with you. Don't be discouraged, for I am your God. I will strengthen you and help you. I will hold you up with my victorious right hand.",
+    "translation": "NLT",
+    "tags": []
+  },
+
   {
     "reference": "Joshua 1:9",
     "refSort": "bible.06001009",
     "content": "This is my command—be strong and courageous! Do not be afraid or discouraged. For the Lord your God is with you wherever you go.",
     "translation": "NLT",
     "tags": []
+  },
+
+  {
+    "reference": "1 Corinthians 13:4-7",
+    "refSort": "bible.46013004",
+    "content": "4 Love is patient and kind. Love is not jealous or boastful or proud\n5 or rude. It does not demand its own way. It is not irritable, and it keeps no record of being wronged.\n6 It does not rejoice about injustice but rejoices whenever the truth wins out.\n7 Love never gives up, never loses faith, is always hopeful, and endures through every circumstance.",
+    "translation": "NLT",
+    "tags": []
+  },
+
+  {
+    "reference": "Matthew 11:28-30",
+    "refSort": "bible.40011028",
+    "content": "28 Then Jesus said, \"Come to me, all of you who are weary and carry heavy burdens, and I will give you rest.\n29 Take my yoke upon you. Let me teach you, because I am humble and gentle at heart, and you will find rest for your souls.\n30 For my yoke is easy to bear, and the burden I give you is light.\"",
+    "translation": "NLT",
+    "tags": []
+  },
+
+  {
+    "reference": "2 Timothy 1:7",
+    "refSort": "bible.55001007",
+    "content": "For God has not given us a spirit of fear and timidity, but of power, love, and self-discipline.",
+    "translation": "NLT",
+    "tags": []
   }
+
 ]

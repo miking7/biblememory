@@ -1,82 +1,62 @@
 [
   {
-    "reference": "Romans 3:23",
-    "refSort": "bible.45003023",
-    "content": "For all have sinned and fall short of the glory of God.",
-    "translation": "NIV",
+    "reference": "Jeremiah 31:3",
+    "refSort": "bible.24031003",
+    "content": "The LORD hath appeared of old unto me, saying, Yea, I have loved thee with an everlasting love: therefore with lovingkindness have I drawn thee.",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "survival-kit" }
+      {
+        "key": "fast.sk",
+        "value": "1"
+      }
     ]
   },
   {
-    "reference": "Romans 6:23",
-    "refSort": "bible.45006023",
-    "content": "For the wages of sin is death, but the gift of God is eternal life in Christ Jesus our Lord.",
-    "translation": "NIV",
+    "reference": "John 15:5",
+    "refSort": "bible.43015005",
+    "content": "I am the vine, ye are the branches: He that abideth in me, and I in him, the same bringeth forth much fruit: for without me ye can do nothing.",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "survival-kit" }
+      {
+        "key": "fast.sk",
+        "value": "2"
+      }
     ]
   },
   {
-    "reference": "John 3:16",
-    "refSort": "bible.43003016",
-    "content": "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.",
-    "translation": "NIV",
+    "reference": "1 John 1:9",
+    "refSort": "bible.62001009",
+    "content": "If we confess our sins, he is faithful and just to forgive us our sins, and to cleanse us from all unrighteousness.",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "survival-kit" }
+      {
+        "key": "fast.sk",
+        "value": "3"
+      }
     ]
   },
   {
-    "reference": "John 1:12",
-    "refSort": "bible.43001012",
-    "content": "Yet to all who did receive him, to those who believed in his name, he gave the right to become children of God.",
-    "translation": "NIV",
+    "reference": "Proverbs 3:5-6",
+    "refSort": "bible.20003005",
+    "content": "5 Trust in the LORD with all thine heart; and lean not unto thine own understanding.\n6 In all thy ways acknowledge him, and he shall direct thy paths.",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "survival-kit" }
+      {
+        "key": "fast.sk",
+        "value": "4"
+      }
     ]
   },
   {
-    "reference": "Ephesians 2:8-9",
-    "refSort": "bible.49002008",
-    "content": "For it is by grace you have been saved, through faith—and this is not from yourselves, it is the gift of God— not by works, so that no one can boast.",
-    "translation": "NIV",
+    "reference": "Hebrews 10:24-25",
+    "refSort": "bible.58010024",
+    "content": "24 And let us consider one another to provoke unto love and to good works:\n25 Not forsaking the assembling of ourselves together, as the manner of some is; but exhorting one another: and so much the more, as ye see the day approaching.",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "survival-kit" }
-    ]
-  },
-  {
-    "reference": "John 14:6",
-    "refSort": "bible.43014006",
-    "content": "Jesus answered, \"I am the way and the truth and the life. No one comes to the Father except through me.\"",
-    "translation": "NIV",
-    "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "survival-kit" }
-    ]
-  },
-  {
-    "reference": "1 John 5:11-12",
-    "refSort": "bible.62005011",
-    "content": "And this is the testimony: God has given us eternal life, and this life is in his Son. Whoever has the Son has life; whoever does not have the Son of God does not have life.",
-    "translation": "NIV",
-    "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "survival-kit" }
-    ]
-  },
-  {
-    "reference": "Revelation 3:20",
-    "refSort": "bible.66003020",
-    "content": "Here I am! I stand at the door and knock. If anyone hears my voice and opens the door, I will come in and eat with that person, and they with me.",
-    "translation": "NIV",
-    "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "survival-kit" }
+      {
+        "key": "fast.sk",
+        "value": "5"
+      }
     ]
   }
 ]

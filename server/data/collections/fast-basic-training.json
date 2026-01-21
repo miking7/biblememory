@@ -1,102 +1,218 @@
 [
   {
-    "reference": "2 Timothy 3:16",
-    "refSort": "bible.55003016",
-    "content": "All Scripture is God-breathed and is useful for teaching, rebuking, correcting and training in righteousness.",
-    "translation": "NIV",
+    "reference": "John 17:3",
+    "refSort": "bible.43017003",
+    "content": "And this is life eternal, that they might know thee the only true God, and Jesus Christ, whom thou hast sent.",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "basic-training" }
+      {
+        "key": "fast.bt",
+        "value": "1.1"
+      }
+    ]
+  },
+  {
+    "reference": "Philippians 4:13",
+    "refSort": "bible.50004013",
+    "content": "I can do all things through Christ which strengtheneth me.",
+    "translation": "KJV",
+    "tags": [
+      {
+        "key": "fast.bt",
+        "value": "1.2"
+      }
+    ]
+  },
+  {
+    "reference": "Deuteronomy 17:19",
+    "refSort": "bible.05017019",
+    "content": "And it shall be with him, and he shall read therein all the days of his life: that he may learn to fear the LORD his God, to keep all the words of this law and these statutes, to do them:",
+    "translation": "KJV",
+    "tags": [
+      {
+        "key": "fast.bt",
+        "value": "2.1"
+      }
+    ]
+  },
+  {
+    "reference": "Psalms 143:8",
+    "refSort": "bible.19143008",
+    "content": "Cause me to hear thy lovingkindness in the morning; for in thee do I trust: cause me to know the way wherein I should walk; for I lift up my soul unto thee.",
+    "translation": "KJV",
+    "tags": [
+      {
+        "key": "fast.bt",
+        "value": "2.2"
+      }
     ]
   },
   {
     "reference": "John 15:7",
     "refSort": "bible.43015007",
-    "content": "If you remain in me and my words remain in you, ask whatever you wish, and it will be done for you.",
-    "translation": "NIV",
+    "content": "If ye abide in me, and my words abide in you, ye shall ask what ye will, and it shall be done unto you.",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "basic-training" }
+      {
+        "key": "fast.bt",
+        "value": "3.1"
+      }
     ]
   },
   {
-    "reference": "1 John 1:9",
-    "refSort": "bible.62001009",
-    "content": "If we confess our sins, he is faithful and just and will forgive us our sins and purify us from all unrighteousness.",
-    "translation": "NIV",
+    "reference": "Romans 4:20",
+    "refSort": "bible.45004020",
+    "content": "He staggered not at the promise of God through unbelief; but was strong in faith, giving glory to God;",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "basic-training" }
+      {
+        "key": "fast.bt",
+        "value": "3.2"
+      }
     ]
   },
   {
-    "reference": "Proverbs 3:5-6",
-    "refSort": "bible.20003005",
-    "content": "Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.",
-    "translation": "NIV",
+    "reference": "Proverbs 13:4",
+    "refSort": "bible.20013004",
+    "content": "The soul of the sluggard desireth, and hath nothing: but the soul of the diligent shall be made fat.",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "basic-training" }
+      {
+        "key": "fast.bt",
+        "value": "4.1"
+      }
     ]
   },
   {
-    "reference": "Matthew 6:33",
-    "refSort": "bible.40006033",
-    "content": "But seek first his kingdom and his righteousness, and all these things will be given to you as well.",
-    "translation": "NIV",
+    "reference": "2 Corinthians 8:11",
+    "refSort": "bible.47008011",
+    "content": "Now therefore perform the doing of it; that as there was a readiness to will, so there may be a performance also out of that which ye have.",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "basic-training" }
+      {
+        "key": "fast.bt",
+        "value": "4.2"
+      }
     ]
   },
   {
-    "reference": "Romans 12:1",
-    "refSort": "bible.45012001",
-    "content": "Therefore, I urge you, brothers and sisters, in view of God's mercy, to offer your bodies as a living sacrifice, holy and pleasing to God—this is your true and proper worship.",
-    "translation": "NIV",
+    "reference": "Deuteronomy 6:6",
+    "refSort": "bible.05006006",
+    "content": "And these words, which I command thee this day, shall be in thine heart:",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "basic-training" }
+      {
+        "key": "fast.bt",
+        "value": "5.1"
+      }
     ]
   },
   {
-    "reference": "Hebrews 10:24-25",
-    "refSort": "bible.58010024",
-    "content": "And let us consider how we may spur one another on toward love and good deeds, not giving up meeting together, as some are in the habit of doing, but encouraging one another—and all the more as you see the Day approaching.",
-    "translation": "NIV",
+    "reference": "Proverbs 7:1,3",
+    "refSort": "bible.20007001",
+    "content": "My son, keep my words, and lay up my commandments with thee. ... Bind them upon thy fingers, write them upon the table of thine heart.",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "basic-training" }
+      {
+        "key": "fast.bt",
+        "value": "5.2"
+      }
     ]
   },
   {
-    "reference": "Matthew 4:19",
-    "refSort": "bible.40004019",
-    "content": "\"Come, follow me,\" Jesus said, \"and I will send you out to fish for people.\"",
-    "translation": "NIV",
+    "reference": "Romans 3:23",
+    "refSort": "bible.45003023",
+    "content": "For all have sinned, and come short of the glory of God;",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "basic-training" }
+      {
+        "key": "fast.bt",
+        "value": "6.1"
+      }
     ]
   },
   {
-    "reference": "2 Corinthians 5:17",
-    "refSort": "bible.47005017",
-    "content": "Therefore, if anyone is in Christ, the new creation has come: The old has gone, the new is here!",
-    "translation": "NIV",
+    "reference": "Romans 5:8",
+    "refSort": "bible.45005008",
+    "content": "But God commendeth his love toward us, in that, while we were yet sinners, Christ died for us.",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "basic-training" }
+      {
+        "key": "fast.bt",
+        "value": "6.2"
+      }
     ]
   },
   {
-    "reference": "Galatians 2:20",
-    "refSort": "bible.48002020",
-    "content": "I have been crucified with Christ and I no longer live, but Christ lives in me. The life I now live in the body, I live by faith in the Son of God, who loved me and gave himself for me.",
-    "translation": "NIV",
+    "reference": "Romans 8:14",
+    "refSort": "bible.45008014",
+    "content": "For as many as are led by the Spirit of God, they are the sons of God.",
+    "translation": "KJV",
     "tags": [
-      { "key": "course", "value": "fast" },
-      { "key": "level", "value": "basic-training" }
+      {
+        "key": "fast.bt",
+        "value": "6.3"
+      }
+    ]
+  },
+  {
+    "reference": "Hebrews 3:13-14",
+    "refSort": "bible.58003013",
+    "content": "13 But exhort one another daily, while it is called To day; lest any of you be hardened through the deceitfulness of sin.\n14 For we are made partakers of Christ, if we hold the beginning of our confidence stedfast unto the end;",
+    "translation": "KJV",
+    "tags": [
+      {
+        "key": "fast.bt",
+        "value": "7.1"
+      }
+    ]
+  },
+  {
+    "reference": "1 Corinthians 1:10",
+    "refSort": "bible.46001010",
+    "content": "Now I beseech you, brethren, by the name of our Lord Jesus Christ, that ye all speak the same thing, and that there be no divisions among you; but that ye be perfectly joined together in the same mind and in the same judgment.",
+    "translation": "KJV",
+    "tags": [
+      {
+        "key": "fast.bt",
+        "value": "7.2"
+      }
+    ]
+  },
+  {
+    "reference": "Isaiah 60:22",
+    "refSort": "bible.23060022",
+    "content": "A little one shall become a thousand, and a small one a strong nation: I the LORD will hasten it in his time.",
+    "translation": "KJV",
+    "tags": [
+      {
+        "key": "fast.bt",
+        "value": "8.1"
+      }
+    ]
+  },
+  {
+    "reference": "2 Timothy 2:2",
+    "refSort": "bible.55002002",
+    "content": "And the things that thou hast heard of me among many witnesses, the same commit thou to faithful men, who shall be able to teach others also.",
+    "translation": "KJV",
+    "tags": [
+      {
+        "key": "fast.bt",
+        "value": "8.2"
+      }
+    ]
+  },
+  {
+    "reference": "2 John 1:8",
+    "refSort": "bible.63001008",
+    "content": "Look to yourselves, that we lose not those things which we have wrought, but that we receive a full reward.",
+    "translation": "KJV",
+    "tags": [
+      {
+        "key": "fast.bt",
+        "value": "9.1"
+      }
     ]
   }
 ]

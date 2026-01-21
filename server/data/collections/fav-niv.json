@@ -1,32 +1,27 @@
-[
-  {
-    "reference": "Philippians 4:13",
-    "refSort": "bible.50004013",
-    "content": "I can do all this through him who gives me strength.",
+[{
+    "reference": "John 3:16",
+    "refSort": "bible.43003016",
+    "content": "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.",
     "translation": "NIV",
     "tags": []
   },
-  {
-    "reference": "Jeremiah 29:11",
-    "refSort": "bible.24029011",
-    "content": "\"For I know the plans I have for you,\" declares the Lord, \"plans to prosper you and not to harm you, plans to give you hope and a future.\"",
-    "translation": "NIV",
-    "tags": []
-  },
+
   {
     "reference": "Proverbs 3:5-6",
     "refSort": "bible.20003005",
-    "content": "Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.",
+    "content": "5 Trust in the Lord with all your heart and lean not on your own understanding;\n6 in all your ways submit to him, and he will make your paths straight.",
     "translation": "NIV",
     "tags": []
   },
+
   {
-    "reference": "Psalm 23:1",
-    "refSort": "bible.19023001",
-    "content": "The Lord is my shepherd, I lack nothing.",
+    "reference": "Philippians 4:6-7",
+    "refSort": "bible.50004006",
+    "content": "6 Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God.\n7 And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.",
     "translation": "NIV",
     "tags": []
   },
+
   {
     "reference": "Romans 8:28",
     "refSort": "bible.45008028",
@@ -34,27 +29,15 @@
     "translation": "NIV",
     "tags": []
   },
+
   {
-    "reference": "Joshua 1:9",
-    "refSort": "bible.06001009",
-    "content": "Have I not commanded you? Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go.",
+    "reference": "Psalm 23:1-6",
+    "refSort": "bible.19023001",
+    "content": "1 The Lord is my shepherd, I lack nothing.\n2 He makes me lie down in green pastures, he leads me beside quiet waters,\n3 he refreshes my soul. He guides me along the right paths for his name's sake.\n4 Even though I walk through the darkest valley, I will fear no evil, for you are with me; your rod and your staff, they comfort me.\n5 You prepare a table before me in the presence of my enemies. You anoint my head with oil; my cup overflows.\n6 Surely your goodness and love will follow me all the days of my life, and I will dwell in the house of the Lord forever.",
     "translation": "NIV",
     "tags": []
   },
-  {
-    "reference": "Philippians 4:6-7",
-    "refSort": "bible.50004006",
-    "content": "Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God. And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.",
-    "translation": "NIV",
-    "tags": []
-  },
-  {
-    "reference": "Matthew 11:28",
-    "refSort": "bible.40011028",
-    "content": "\"Come to me, all you who are weary and burdened, and I will give you rest.\"",
-    "translation": "NIV",
-    "tags": []
-  },
+
   {
     "reference": "Isaiah 41:10",
     "refSort": "bible.23041010",
@@ -62,11 +45,37 @@
     "translation": "NIV",
     "tags": []
   },
+
   {
-    "reference": "Psalm 46:1",
-    "refSort": "bible.19046001",
-    "content": "God is our refuge and strength, an ever-present help in trouble.",
+    "reference": "Joshua 1:9",
+    "refSort": "bible.06001009",
+    "content": "Have I not commanded you? Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go.",
+    "translation": "NIV",
+    "tags": []
+  },
+
+  {
+    "reference": "1 Corinthians 13:4-7",
+    "refSort": "bible.46013004",
+    "content": "4 Love is patient, love is kind. It does not envy, it does not boast, it is not proud.\n5 It does not dishonor others, it is not self-seeking, it is not easily angered, it keeps no record of wrongs.\n6 Love does not delight in evil but rejoices with the truth.\n7 It always protects, always trusts, always hopes, always perseveres.",
+    "translation": "NIV",
+    "tags": []
+  },
+
+  {
+    "reference": "Matthew 11:28-30",
+    "refSort": "bible.40011028",
+    "content": "28 Come to me, all you who are weary and burdened, and I will give you rest.\n29 Take my yoke upon you and learn from me, for I am gentle and humble in heart, and you will find rest for your souls.\n30 For my yoke is easy and my burden is light.",
+    "translation": "NIV",
+    "tags": []
+  },
+
+  {
+    "reference": "2 Timothy 1:7",
+    "refSort": "bible.55001007",
+    "content": "For the Spirit God gave us does not make us timid, but gives us power, love and self-discipline.",
     "translation": "NIV",
     "tags": []
   }
+
 ]

@@ -1,27 +1,37 @@
 [
   {
-    "id": "fav-niv",
-    "name": "Favourites (NIV)",
-    "description": "Popular memory verses in New International Version"
-  },
-  {
     "id": "fav-nlt",
     "name": "Favourites (NLT)",
     "description": "Popular memory verses in New Living Translation"
   },
   {
-    "id": "fav-esv",
-    "name": "Favourites (ESV)",
-    "description": "Popular memory verses in English Standard Version"
+    "id": "fav-nkjv",
+    "name": "Favourites (NKJV)",
+    "description": "Popular memory verses in New King James Version"
+  },
+  {
+    "id": "fav-kjv",
+    "name": "Favourites (KJV)",
+    "description": "Popular memory verses in King James Version"
+  },
+  {
+    "id": "fav-niv",
+    "name": "Favourites (NIV)",
+    "description": "Popular memory verses in New International Version"
+  },
+  {
+    "id": "fav-amp",
+    "name": "Favourites (AMP)",
+    "description": "Popular memory verses in Amplified Bible"
   },
   {
     "id": "fast-survival-kit",
     "name": "FAST Survival Kit",
-    "description": "Core gospel verses for sharing your faith"
+    "description": "Verses from the FAST Scripture Memory System - \"Survival Kit\" (learn to memorize scripture course)"
   },
   {
     "id": "fast-basic-training",
     "name": "FAST Basic Training",
-    "description": "Foundational verses for Christian living"
+    "description": "Verses from the FAST Scripture Memory System - \"Basic Training\" (learn how to study the Bible course)"
   }
 ]
