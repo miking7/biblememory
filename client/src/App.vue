@@ -927,7 +927,7 @@
             :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
             class="px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
             title="Hint (h)">
-            <i class="mdi mdi-tooltip-question-outline text-lg"></i>
+            <i class="mdi mdi mdi-help text-lg"></i>
             <span>Hint</span>
           </button>
 
@@ -945,7 +945,7 @@
             :class="reviewMode === 'content' ? 'mode-button-active' : 'mode-button-inactive'"
             class="px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
             title="Reveal verse (Space)">
-            <i class="mdi mdi-eye-outline text-lg"></i>
+            <i class="mdi mdi-text-long text-lg"></i>
             <span>Reveal</span>
           </button>
         </div>
@@ -990,7 +990,7 @@
             style="min-width: 3rem;"
             title="Reveal verse (Space)"
             aria-label="Reveal">
-            <i class="mdi mdi-eye-outline text-xl"></i>
+            <i class="mdi mdi-text-long text-xl"></i>
           </button>
           <button
             @click="handleGotIt"
@@ -1053,7 +1053,7 @@
             class="flex-1 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
             title="Hint (h)"
             aria-label="Hint">
-            <i class="mdi mdi-tooltip-question-outline text-xl"></i>
+            <i class="mdi mdi mdi-help text-xl"></i>
           </button>
 
           <button
