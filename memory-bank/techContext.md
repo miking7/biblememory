@@ -81,7 +81,7 @@ KEY QUESTION THIS FILE ANSWERS: "What technologies do we use and how?"
 **Configuration:**
 - Manifest: Auto-generated from vite.config.ts
 - Service Worker: Workbox with precaching strategy
-- Icons: 192x192, 512x512 (Android), 180x180 (iOS)
+- Icons: Dual-source system (styled 880px for favicons/social, PWA 1024px for home screens)
 - Runtime caching for external resources (Google Fonts, Material Design Icons)
 - No runtime API caching (app uses IndexedDB for data)
 - Dev mode: SW disabled for faster development
@@ -566,7 +566,7 @@ rm server/api/db.sqlite && cd server && php api/migrate.php  # Reset
 1. **Tailwind CSS Size** - Currently using CDN (~3.5MB), needs bundling and purging
 2. **SQLite Only** - No MySQL/PostgreSQL support
 3. **Single Server** - No load balancing or clustering
-4. **Icon Quality** - Icons generated from 57x57 source (should create 512x512+ source for production)
+4. **Icon Quality** - PWA icons now use 1024px master; styled icons use 880px master
 5. **No iOS Splash Screens** - Can be added later for better iOS experience
 
 ### Future Improvements

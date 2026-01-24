@@ -369,7 +369,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - [x] Auto-update strategy
 - [ ] Custom install prompt UI (optional enhancement)
 - [ ] iOS splash screens (optional enhancement)
-- [ ] High-res icons from 512x512+ source (currently using 57x57 upscaled)
+- [x] High-res PWA icons from 1024px source (dual-source system implemented)
 
 #### Dark Mode
 - [ ] Dark color scheme

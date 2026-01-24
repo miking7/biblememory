@@ -330,11 +330,12 @@ KEY QUESTION THIS FILE ANSWERS: "How is the system architectured and why?"
    - Auto-updates when new version deployed
    - Disabled in dev mode (enabled in production only)
 
-3. **App Icons** - Multiple sizes for different platforms
-   - Android: 192x192, 512x512 (standard + maskable)
-   - iOS: 180x180 (apple-touch-icon)
-   - Favicon: 16x16, 32x32 (PNG format, no .ico)
-   - Generated from source image using Sharp
+3. **App Icons** - Dual-source system for different purposes
+   - **PWA icons** (from 1024px master): pwa-icon-192, pwa-icon-512 (Android), pwa-apple-touch-icon (iOS)
+   - **Styled icons** (from 880px master): icon-192, icon-512 (social/README), favicons (browser tabs)
+   - PWA icons optimized for home screen display (square, no transparency)
+   - Styled icons preserve original artistic design (angled, with transparency)
+   - Generated using Sharp with dual-source configuration
 
 4. **PWA Meta Tags** - iOS and Android configurations
    - Theme color for Android status bar
@@ -400,21 +401,19 @@ iOS (Safari):
 **Trade-offs Accepted:**
 - No custom install prompt UI (relies on native browser prompts)
 - No iOS splash screens (can add later)
-- Icons generated from 57x57 source (acceptable for MVP, should recreate for production)
 - Auto-update without notification (could add update toast later)
 
 **Implementation Files:**
 - `client/vite.config.ts` - PWA plugin configuration
 - `client/index.html` - PWA meta tags
-- `client/public/icons/` - App icons (auto-generated)
-- `client/generate-icons.mjs` - Icon generation script
+- `client/public/icons/` - App icons (auto-generated from dual sources)
+- `client/generate-icons.mjs` - Dual-source icon generation script
 - Build output: `manifest.webmanifest`, `sw.js` (auto-generated)
 
 **Future Enhancements:**
 - Background Sync API for retry when connectivity restored
 - Push notifications for review reminders
 - iOS splash screens for better launch experience
-- High-resolution icons (512x512+ source)
 - Update notification toast
 - Share Target API for sharing verses to app
 

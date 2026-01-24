@@ -17,22 +17,19 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 **Status:** No active work - ready for next task
 
-**Recently Completed:** Review Category Chip Feature (#055)
+**Recently Completed:** PWA Dual-Source Icon System (#056)
 
-Implemented smart review category chips and inactive verse styling:
-- Chips now show computed value (learn/daily/weekly/monthly) instead of "auto"
-- Manual overrides display with inverted colors (white on dark blue)
-- Added "paused" category for temporarily disabling verse reviews
-- Removed "future" from manual options (it's computed-only now)
-- Grey card backgrounds for inactive verses (paused/future) in both tabs
+Implemented dual-source icon generation for optimized PWA home screen icons:
+- New 1024px PWA master for iOS/Android home screen icons
+- Preserved 880px styled master for favicons, README, social sharing
+- `pwa-` prefix naming convention for clarity
+- Updated manifest and HTML references
 
 **Key Design Decisions:**
-- Color inversion signals manual override without adding UI clutter
-- Semantic separation: "future" = not started, "paused" = intentionally stopped
-- Lowercase chip text (cleaner tag styling)
-- Card-level grey background more visible than chip-only styling when scanning lists
-- Hierarchy: reviewed (green/amber) > inactive (grey) > default (white)
-- No migration needed (existing "future" values left for manual cleanup)
+- Separate icon sources for different purposes (PWA vs styled)
+- PWA icons optimized for home screen display (square, solid background)
+- Styled icons preserve original artistic design (angled, transparency)
+- Deleted old `apple-touch-icon.png` (replaced by `pwa-apple-touch-icon.png`)
 
 ## Previous Work Index (Complete Archive)
 
@@ -98,3 +95,4 @@ This index provides titles and links for reference when needed.
 - **053** - Logout State Cleanup → [previous-work/053_logout_state_cleanup.md](previous-work/053_logout_state_cleanup.md)
 - **054** - Verse Collections Feature → [previous-work/054_verse_collections_feature.md](previous-work/054_verse_collections_feature.md)
 - **055** - Review Category Chip Feature → [previous-work/055_review_category_chip_feature.md](previous-work/055_review_category_chip_feature.md)
+- **056** - PWA Dual-Source Icon System → [previous-work/056_pwa_dual_source_icons.md](previous-work/056_pwa_dual_source_icons.md)
