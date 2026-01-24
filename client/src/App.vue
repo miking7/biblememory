@@ -663,7 +663,8 @@
                    class="review-card rounded-xl p-6 sm:p-8 min-h-[400px] flex flex-col justify-between bg-white border-2 border-slate-300 relative mb-200 sm:mb-0"
                    :class="{
                      'review-card-gotit': currentVerseReviewStatus?.lastReviewType === 'recall',
-                     'review-card-again': currentVerseReviewStatus?.lastReviewType === 'practice'
+                     'review-card-again': currentVerseReviewStatus?.lastReviewType === 'practice',
+                     'review-card-inactive': !currentVerseReviewStatus?.lastReviewType && isCurrentVerseInactive
                    }"
                    :style="{
                      transform: `translateX(${isSwiping ? swipeOffset : cardOffset}px)`,
@@ -811,7 +812,7 @@
               <!-- Metadata Footer (styled like My Verses cards) -->
               <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-medium mt-2">
                 <span v-text="getAbbreviatedAge(currentReviewVerse.startedAt || undefined)"></span>
-                <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded" v-text="getReviewCategory(currentReviewVerse)"></span>
+                <ReviewCategoryChip :verse="currentReviewVerse" />
                 <template v-if="currentReviewVerse.tags && currentReviewVerse.tags.length > 0">
                   <template v-for="tag in currentReviewVerse.tags" :key="tag.key">
                     <span class="px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs font-medium"
@@ -1131,11 +1132,11 @@
                     v-model="editingVerse.reviewCat"
                     class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
                     <option value="auto">Auto</option>
-                    <option value="future">Future (not started yet)</option>
                     <option value="learn">Learn (daily review)</option>
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
                     <option value="monthly">Monthly</option>
+                    <option value="paused">Paused</option>
                   </select>
                   <p class="text-xs text-slate-500 mt-1">How often to review this verse</p>
                 </div>
@@ -1354,10 +1355,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, type Ref } from 'vue';
+import { ref, computed, onMounted, onUnmounted, type Ref } from 'vue';
 import { bibleMemoryApp } from './app';
-import { getCachedReviewStatus } from './actions';
+import { getCachedReviewStatus, getEffectiveReviewCategory } from './actions';
 import VerseCard from './components/VerseCard.vue';
+import ReviewCategoryChip from './components/ReviewCategoryChip.vue';
 import LandingPage from './LandingPage.vue';
 import { useSwipeDetection } from './composables/useSwipeDetection';
 
@@ -1451,7 +1453,6 @@ const {
   nextVerse,
   previousVerse,
   getAbbreviatedAge,
-  getReviewCategory,
   getReferenceWords,
   getContentWordsStartIndex,
   returnToDailyReview,
@@ -1518,6 +1519,13 @@ const {
   startReviewFromFiltered,
   startReviewAtVerse,
 } = bibleMemoryApp(reviewCardElement);
+
+// Compute if current review verse is inactive (paused or future)
+const isCurrentVerseInactive = computed(() => {
+  if (!currentReviewVerse.value) return false;
+  const { category } = getEffectiveReviewCategory(currentReviewVerse.value);
+  return category === 'paused' || category === 'future';
+});
 
 // Local state for My Verses menu
 const showMyVersesMenu = ref(false);

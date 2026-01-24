@@ -17,25 +17,22 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 **Status:** No active work - ready for next task
 
-**Recently Completed:** Verse Collections Feature (#054)
+**Recently Completed:** Review Category Chip Feature (#055)
 
-Implemented comprehensive collections system for adding multiple verses at once:
-- 5 curated collections (Favourites NIV/NLT/ESV, FAST Survival Kit/Basic Training)
-- 5-step user flow (list → select → pace → add → success)
-- Automatic scheduling based on memorization pace (4 options)
-- JSON-based storage for easy curation
-- Full mobile-responsive UI with error handling
-- Found and fixed 3 critical issues during comprehensive review
+Implemented smart review category chips and inactive verse styling:
+- Chips now show computed value (learn/daily/weekly/monthly) instead of "auto"
+- Manual overrides display with inverted colors (white on dark blue)
+- Added "paused" category for temporarily disabling verse reviews
+- Removed "future" from manual options (it's computed-only now)
+- Grey card backgrounds for inactive verses (paused/future) in both tabs
 
 **Key Design Decisions:**
-- JSON files over database (simpler curation, git-friendly)
-- Frontend scheduling algorithm (no backend complexity)
-- Single API endpoint with query params (follows existing patterns)
-
-**Ready For:**
-- User testing of collections workflow
-- Addition of more curated collections
-- Production deployment
+- Color inversion signals manual override without adding UI clutter
+- Semantic separation: "future" = not started, "paused" = intentionally stopped
+- Lowercase chip text (cleaner tag styling)
+- Card-level grey background more visible than chip-only styling when scanning lists
+- Hierarchy: reviewed (green/amber) > inactive (grey) > default (white)
+- No migration needed (existing "future" values left for manual cleanup)
 
 ## Previous Work Index (Complete Archive)
 
@@ -100,3 +97,4 @@ This index provides titles and links for reference when needed.
 - **052** - Static Pages Phase 2 Implementation → [previous-work/052_static_pages_phase2_implementation.md](previous-work/052_static_pages_phase2_implementation.md)
 - **053** - Logout State Cleanup → [previous-work/053_logout_state_cleanup.md](previous-work/053_logout_state_cleanup.md)
 - **054** - Verse Collections Feature → [previous-work/054_verse_collections_feature.md](previous-work/054_verse_collections_feature.md)
+- **055** - Review Category Chip Feature → [previous-work/055_review_category_chip_feature.md](previous-work/055_review_category_chip_feature.md)

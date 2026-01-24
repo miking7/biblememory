@@ -5,8 +5,9 @@
       isCompact ? 'verse-card-compact rounded-t-xl' : 'verse-card-full rounded-xl',
       isExpanded ? 'verse-card-full-compact-mode-adjustment' : '',
       showMenu ? 'relative z-50' : 'relative',
-      reviewStatus === 'recall' ? 'review-card-gotit' : '',
-      reviewStatus === 'practice' ? 'review-card-again' : ''
+      reviewStatus === 'recall' ? 'review-card-gotit' :
+        reviewStatus === 'practice' ? 'review-card-again' :
+        isInactive ? 'review-card-inactive' : ''
     ]"
     @click="handleCardClick">
     
@@ -76,7 +77,7 @@
       <p class="verse-content text-sm sm:text-base text-slate-700 mb-3 leading-relaxed" v-text="verse.content"></p>
       <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-medium">
         <span><span class="hidden sm:inline">Started: </span><span v-text="verse.startedAt ? new Date(verse.startedAt).toLocaleDateString() : 'Not started'"></span></span>
-        <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded" v-text="verse.reviewCat"></span>
+        <ReviewCategoryChip :verse="verse" />
         <template v-if="verse.tags && verse.tags.length > 0">
           <template v-for="tag in verse.tags" :key="tag.key">
             <span class="px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs font-medium"
@@ -91,6 +92,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { Verse } from '../db';
+import { getEffectiveReviewCategory } from '../actions';
+import ReviewCategoryChip from './ReviewCategoryChip.vue';
 
 // Props
 const props = defineProps<{
@@ -101,6 +104,12 @@ const props = defineProps<{
 }>();
 
 const isCompact = computed(() => props.viewMode === 'compact' && !props.isExpanded);
+
+// Compute if verse is inactive (paused or future)
+const isInactive = computed(() => {
+  const { category } = getEffectiveReviewCategory(props.verse);
+  return category === 'paused' || category === 'future';
+});
 
 // Local state for three-dot menu
 const showMenu = ref(false);

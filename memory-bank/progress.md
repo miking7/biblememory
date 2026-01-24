@@ -47,7 +47,8 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - **Landing Page**: Professional marketing page for unauthenticated users (8 sections, SEO-optimized)
 - **Data Management**: Verse CRUD, multi-paragraph support, structured tags, IndexedDB storage
 - **Verse Collections**: Browse curated sets, select verses, automatic scheduling (4 pace options), 5 collections with 42 verses
-- **Review System (Basic)**: Spaced repetition algorithm (auto-categorization: 8→56→112 days), simple reveal flow
+- **Review Category Chips**: Show computed frequency (not "auto"), inverted colors for manual overrides, "paused" category for disabling reviews
+- **Review System (Basic)**: Spaced repetition algorithm (auto-categorization: 7→56→112 days), simple reveal flow
 - **Offline-First**: Full offline functionality, automatic sync when online
 - **Sync**: OpLog pattern, cursor-based pagination, LWW conflict resolution
 - **Offline Notifications**: Badge + auto-dismissing toast pattern (industry standard UX)

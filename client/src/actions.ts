@@ -32,6 +32,40 @@ export function getTodayMidnight(): number {
   return today.getTime();
 }
 
+// Compute effective review category for a verse
+// Returns the actual frequency that will be applied, plus whether it's manually set
+export function getEffectiveReviewCategory(verse: Verse): { category: string; isManual: boolean } {
+  const reviewCat = verse.reviewCat;
+
+  // If not 'auto', it's a manual override - return as-is
+  if (reviewCat !== 'auto') {
+    return { category: reviewCat, isManual: true };
+  }
+
+  // Auto-calculate based on days since start
+  const todayStart = getTodayMidnight();
+
+  // If not started yet or startedAt is in the future
+  if (!verse.startedAt || verse.startedAt > todayStart) {
+    return { category: 'future', isManual: false };
+  }
+
+  const daysSinceStart = Math.floor((todayStart - verse.startedAt) / (24 * 60 * 60 * 1000));
+
+  let category: string;
+  if (daysSinceStart < 7) {
+    category = 'learn';
+  } else if (daysSinceStart < 56) {
+    category = 'daily';
+  } else if (daysSinceStart < 112) {
+    category = 'weekly';
+  } else {
+    category = 'monthly';
+  }
+
+  return { category, isManual: false };
+}
+
 // Convert date string (yyyy-mm-dd) to midnight epoch ms
 export function dateToMidnightEpoch(dateString: string): number {
   const date = new Date(dateString + 'T00:00:00');
@@ -241,19 +275,24 @@ export async function getVersesForReview(): Promise<Verse[]> {
   const allVerses = await getAllVerses();
   const today = Date.now();
   const todayStart = new Date(today).setHours(0, 0, 0, 0);
-  
+
   const dueVerses: Verse[] = [];
-  
+
   for (const verse of allVerses) {
+    // Skip paused verses
+    if (verse.reviewCat === 'paused') {
+      continue;
+    }
+
     // Skip verses not started yet (future)
     if (!verse.startedAt || verse.startedAt > today) {
       continue;
     }
-    
+
     // Get review frequency
     const daysSinceStart = Math.floor((todayStart - verse.startedAt) / (24 * 60 * 60 * 1000));
     let freq = verse.reviewCat;
-    
+
     // Auto-calculate frequency if set to 'auto'
     if (freq === 'auto') {
       if (daysSinceStart < 0) freq = 'future';
@@ -262,7 +301,7 @@ export async function getVersesForReview(): Promise<Verse[]> {
       else if (daysSinceStart < 112) freq = 'weekly';
       else freq = 'monthly';
     }
-    
+
     // Determine if verse is due based on frequency
     if (freq === 'learn' || freq === 'daily') {
       dueVerses.push(verse);
@@ -278,7 +317,7 @@ export async function getVersesForReview(): Promise<Verse[]> {
       }
     }
   }
-  
+
   return dueVerses;
 }
 

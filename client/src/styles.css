@@ -442,6 +442,11 @@ input:focus, textarea:focus {
     border-color: rgb(252, 226, 182) !important;
 }
 
+.review-card-inactive {
+    background: linear-gradient(to bottom, rgb(229, 231, 235), white) !important;
+    border-color: rgb(209, 213, 219) !important;
+}
+
 /* Flash Cards underline alignment - sit at text baseline */
 .flashcard-underline {
     display: inline-block;
