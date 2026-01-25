@@ -49,13 +49,13 @@
               <span class="text-white">in Your Heart</span>
             </h1>
             <p class="text-lg sm:text-xl text-blue-100 mb-6 sm:mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-              Memorize Scripture effectively with proven spaced repetition, beautiful design, and offline-first access. Free and open source.
+              Digital flashcards with spaced repetition for Scripture memorization. Beautiful, offline-first, free and open source.
             </p>
             <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
               <button
                 @click="$emit('openAuth', 'register')"
                 class="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-2xl transition-all font-bold text-lg">
-                Get Started Free
+                Start Memorizing
               </button>
               <button
                 @click="$emit('openAuth', 'login')"
@@ -125,9 +125,9 @@
             <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
               <i class="mdi mdi-brain text-2xl text-white"></i>
             </div>
-            <h3 class="text-xl font-bold text-slate-800 mb-3">Proven Method</h3>
+            <h3 class="text-xl font-bold text-slate-800 mb-3">Smart Flashcards</h3>
             <p class="text-slate-600 leading-relaxed">
-              Built on spaced repetition science. Review verses at optimal intervals (8 days → 56 days → 112 days) for long-term retention.
+              Familiar flashcards made smarter with spaced repetition. Review at optimal intervals (8 → 56 → 112 days) for lasting memory.
             </p>
           </div>
 
@@ -363,7 +363,7 @@
         <button
           @click="$emit('openAuth', 'register')"
           class="px-10 py-5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-2xl transition-all font-bold text-xl">
-          Get Started Free
+          Start Memorizing
         </button>
       </div>
     </section>

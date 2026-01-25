@@ -6,7 +6,7 @@
 
 ### Hide God's Word in Your Heart
 
-*A modern, offline-first progressive web app for memorizing Scripture through proven spaced repetition*
+*A modern, offline-first PWA combining digital flashcards with proven spaced repetition for Scripture memorization*
 
 [![License](https://img.shields.io/badge/license-Open%20Source-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
@@ -21,14 +21,14 @@
 
 ## ✨ Overview
 
-Bible Memory helps you effectively memorize Scripture through scientifically-proven spaced repetition, beautiful design, and offline-first architecture. Whether you're starting your first verse or maintaining hundreds, our app makes it simple, joyful, and sustainable.
+Bible Memory combines the familiar simplicity of digital flashcards with scientifically-proven spaced repetition to help you memorize Scripture effectively. Beautiful design, offline-first architecture, works anywhere. Whether you're starting your first verse or maintaining hundreds, our app makes it simple, joyful, and sustainable.
 
 I built this app because I've experienced firsthand the power of hiding God's Word in my heart. When you memorize Scripture, it becomes a living resource that surfaces exactly when you need it most—bringing comfort, wisdom, and strength in moments of need.
 
 **Why Bible Memory?**
 - 🌐 **Works Everywhere** - Full offline functionality, syncs when online
-- 🧠 **Proven Method** - Spaced repetition algorithm (8→56→112 day intervals)
-- 🎯 **Flexible Practice** - Multiple review modes (Flash Cards, Hints, First Letters, Type It)
+- 🃏 **Familiar + Smart** - Digital flashcards enhanced with spaced repetition (8→56→112 day intervals)
+- 🎯 **Flexible Practice** - Multiple review modes (Hints, First Letters, Type It, Full Reveal)
 - ✨ **Beautiful Design** - Glass-morphism UI with distraction-free immersive mode
 - 🔄 **Seamless Sync** - Your progress stays in sync across all devices
 - 📱 **Native-Like** - Install to home screen, works like a native app

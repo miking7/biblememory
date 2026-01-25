@@ -17,19 +17,19 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 **Status:** No active work - ready for next task
 
-**Recently Completed:** PWA Dual-Source Icon System (#056)
+**Recently Completed:** Messaging Repositioning - Digital Flashcards (#057)
 
-Implemented dual-source icon generation for optimized PWA home screen icons:
-- New 1024px PWA master for iOS/Android home screen icons
-- Preserved 880px styled master for favicons, README, social sharing
-- `pwa-` prefix naming convention for clarity
-- Updated manifest and HTML references
+Repositioned all public-facing messaging to lead with "digital flashcards" as the familiar concept:
+- New formula: "Digital flashcards with spaced repetition"
+- Updated SEO meta tags, README, landing page, features page, about page
+- Changed CTA from "Get Started Free" → "Start Memorizing" (avoids freemium connotation)
+- Added flashcard-related keywords for SEO
 
 **Key Design Decisions:**
-- Separate icon sources for different purposes (PWA vs styled)
-- PWA icons optimized for home screen display (square, solid background)
-- Styled icons preserve original artistic design (angled, transparency)
-- Deleted old `apple-touch-icon.png` (replaced by `pwa-apple-touch-icon.png`)
+- Flash cards are universally familiar; spaced repetition is technical jargon
+- Lead with approachable concept, support with scientific credibility
+- "Smart Flashcards" bridges familiar format with enhanced functionality
+- One word "flashcards" used consistently throughout
 
 ## Previous Work Index (Complete Archive)
 
@@ -96,3 +96,4 @@ This index provides titles and links for reference when needed.
 - **054** - Verse Collections Feature → [previous-work/054_verse_collections_feature.md](previous-work/054_verse_collections_feature.md)
 - **055** - Review Category Chip Feature → [previous-work/055_review_category_chip_feature.md](previous-work/055_review_category_chip_feature.md)
 - **056** - PWA Dual-Source Icon System → [previous-work/056_pwa_dual_source_icons.md](previous-work/056_pwa_dual_source_icons.md)
+- **057** - Messaging Repositioning: Digital Flashcards → [previous-work/057_messaging_flashcards_repositioning.md](previous-work/057_messaging_flashcards_repositioning.md)
