@@ -14,103 +14,34 @@
     </div>
 
     <!-- Header - Hidden in immersive mode -->
-    <header v-show="!isImmersiveModeActive" class="mb-6 sm:mb-10 fade-in relative immersive-hideable">
-      <div class="text-left sm:text-center">
-        <h1 class="text-3xl sm:text-5xl font-bold text-white mb-3 tracking-tight flex items-center justify-start sm:justify-center gap-2 sm:gap-3">
-          <img src="/icons/favicon-32x32.png" alt="" class="w-8 h-8 sm:w-12 sm:h-12" />
-          <span class="gradient-text">Bible Memory</span>
-        </h1>
-        <p class="text-blue-200 text-lg font-light text-[clamp(0.6rem,4.7vw,1.125rem)]">Memorize Scripture, one verse at a time</p>
-      </div>
-
-      <!-- User Menu (Authenticated) -->
-      <div v-show="isAuthenticated"
-
-           class="absolute top-0 right-0"
-           v-click-outside="() => showUserMenu = false">
-        <button
-          @click="showUserMenu = !showUserMenu"
-          class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white hover:shadow-lg transition-all text-xl relative">
-          👤
-
-          <!-- Offline Badge -->
-          <span
-            v-show="hasSyncIssues"
-            @click.stop="triggerOfflineToast()"
-            class="offline-badge"
-            title="Click for details">
-          </span>
-        </button>
-
-        <!-- Dropdown Menu -->
-        <div v-show="showUserMenu"
-             class="absolute right-0 mt-2 glass-card rounded-xl shadow-2xl overflow-hidden z-50">
-          <div class="p-4 border-b border-slate-200">
-            <p class="text-xs text-slate-500 font-medium mb-1">Signed in as</p>
-            <p class="text-sm font-semibold text-slate-800 truncate" v-text="userEmail"></p>
-          </div>
-          <button
-            @click="showAboutModal = true; showUserMenu = false"
-            class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 border-b border-slate-100">
-            <span>ℹ️</span>
-            <span>About</span>
-          </button>
-          <button
-            @click="handleLogout(); showUserMenu = false"
-            class="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2">
-            <span>🚪</span>
-            <span>Logout</span>
-          </button>
-        </div>
-      </div>
-    </header>
+    <AppHeader
+      :is-authenticated="isAuthenticated"
+      :user-email="userEmail"
+      :has-sync-issues="hasSyncIssues"
+      :is-immersive-mode-active="isImmersiveModeActive"
+      @open-about="showAboutModal = true"
+      @logout="handleLogout()"
+      @trigger-offline-toast="triggerOfflineToast()"
+    />
 
     <!-- Stats Bar - Hidden in immersive mode -->
-    <div v-show="!isImmersiveModeActive" class="glass-card rounded-2xl shadow-2xl p-3 sm:p-6 mb-4 sm:mb-8 fade-in immersive-hideable">
-      <div class="grid grid-cols-3 gap-2 sm:gap-6">
-        <div class="stat-card rounded-xl p-3 sm:p-5 flex flex-col items-center justify-center h-full">
-          <div class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-1" v-text="verses.length"></div>
-          <div class="flex-1 flex items-center justify-center text-xs sm:text-sm text-slate-600 font-medium text-center">Total Verses</div>
-        </div>
-        <div class="stat-card rounded-xl p-3 sm:p-5 flex flex-col items-center justify-center h-full">
-          <div class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent mb-1" v-text="reviewedToday"></div>
-          <div class="flex-1 flex items-center justify-center text-xs sm:text-sm text-slate-600 font-medium text-center">Reviewed Today</div>
-        </div>
-        <div class="stat-card rounded-xl p-3 sm:p-5 flex flex-col items-center justify-center h-full">
-          <div class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent mb-1" v-text="currentStreak"></div>
-          <div class="flex-1 flex items-center justify-center text-xs sm:text-sm text-slate-600 font-medium text-center">Day Streak</div>
-        </div>
-      </div>
-    </div>
+    <StatsBar
+      :total-verses="verses.length"
+      :reviewed-today="reviewedToday"
+      :current-streak="currentStreak"
+      :is-immersive-mode-active="isImmersiveModeActive"
+    />
 
     <!-- Tab Navigation - Hidden in immersive mode -->
     <div class="-mx-4 sm:mx-0 glass-card rounded-none sm:rounded-2xl shadow-2xl overflow-hidden fade-in">
-      <div v-show="!isImmersiveModeActive" class="flex border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 immersive-hideable">
-        <button
-          @click="currentTab = 'list'"
-          :class="currentTab === 'list' ? 'active text-blue-700 font-semibold' : 'text-slate-600'"
-          class="tab-button flex-1 py-3 px-2 sm:py-5 sm:px-6 font-medium hover:bg-white/50 transition-all flex flex-col sm:flex-row items-center justify-center">
-          <span class="text-3xl sm:text-xl sm:mr-2">📚</span>
-          <span class="text-xs sm:text-base mt-1 sm:mt-0">My Verses</span>
-        </button>
-        <button
-          @click="currentTab = 'review'; returnToDailyReview(); loadReviewVerses()"
-          :class="currentTab === 'review' ? 'active text-blue-700 font-semibold' : 'text-slate-600'"
-          class="tab-button flex-1 py-3 px-2 sm:py-5 sm:px-6 font-medium hover:bg-white/50 transition-all relative flex flex-col sm:flex-row items-center justify-center">
-          <span class="text-3xl sm:text-xl sm:mr-2">🎯</span>
-          <span class="text-xs sm:text-base mt-1 sm:mt-0">Review</span>
-          <span v-show="reviewSource === 'daily' && dueForReview.length > 0"
-                class="badge-notification absolute top-3 right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-lg"
-                v-text="dueForReview.length"></span>
-        </button>
-        <button
-          @click="currentTab = 'add'"
-          :class="currentTab === 'add' ? 'active text-blue-700 font-semibold' : 'text-slate-600'"
-          class="tab-button flex-1 py-3 px-2 sm:py-5 sm:px-6 font-medium hover:bg-white/50 transition-all flex flex-col sm:flex-row items-center justify-center">
-          <span class="text-3xl sm:text-xl sm:mr-2">📝</span>
-          <span class="text-xs sm:text-base mt-1 sm:mt-0">Add Verse</span>
-        </button>
-      </div>
+      <TabNavigation
+        :current-tab="currentTab"
+        :is-immersive-mode-active="isImmersiveModeActive"
+        :show-badge="reviewSource === 'daily' && dueForReview.length > 0"
+        :badge-count="dueForReview.length"
+        @update:current-tab="currentTab = $event"
+        @select-review="currentTab = 'review'; returnToDailyReview(); loadReviewVerses()"
+      />
 
       <!-- Add Verse Tab -->
       <div v-if="currentTab === 'add'" class="p-3 sm:p-8">
@@ -1110,6 +1041,9 @@ import LandingPage from './LandingPage.vue';
 import EditVerseModal from './components/modals/EditVerseModal.vue';
 import AboutModal from './components/modals/AboutModal.vue';
 import AuthModal from './components/modals/AuthModal.vue';
+import AppHeader from './components/AppHeader.vue';
+import StatsBar from './components/StatsBar.vue';
+import TabNavigation from './components/TabNavigation.vue';
 import { useSwipeDetection } from './composables/useSwipeDetection';
 
 // Review card ref for swipe detection and card transitions
