@@ -48,7 +48,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - **Data Management**: Verse CRUD, multi-paragraph support, structured tags, IndexedDB storage
 - **Verse Collections**: Browse curated sets, select verses, automatic scheduling (4 pace options), 5 collections with 42 verses
 - **Review Category Chips**: Show computed frequency (not "auto"), inverted colors for manual overrides, "paused" category for disabling reviews
-- **Review System (Basic)**: Spaced repetition algorithm (auto-categorization: 7→56→112 days), simple reveal flow
+- **Review System (Basic)**: Spaced repetition algorithm (daily → weekly → monthly intervals), simple reveal flow
 - **Offline-First**: Full offline functionality, automatic sync when online
 - **Sync**: OpLog pattern, cursor-based pagination, LWW conflict resolution
 - **Offline Notifications**: Badge + auto-dismissing toast pattern (industry standard UX)
@@ -88,7 +88,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 
 ### ✅ Implemented in Modern App (Phase 1)
 - Verse CRUD (add, edit, delete)
-- Spaced repetition algorithm (auto-categorization: 8→56→112 day thresholds)
+- Spaced repetition algorithm (daily → weekly → monthly intervals)
 - Basic review flow (reference → content reveal)
 - Verse list display with search (reference, content, tags)
 - Statistics (total verses, reviewed today, current streak)

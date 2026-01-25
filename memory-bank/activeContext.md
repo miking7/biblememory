@@ -17,19 +17,23 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 **Status:** No active work - ready for next task
 
-**Recently Completed:** Messaging Repositioning - Digital Flashcards (#057)
+**Recently Completed:** Documentation Interval Descriptions (#058)
 
-Repositioned all public-facing messaging to lead with "digital flashcards" as the familiar concept:
-- New formula: "Digital flashcards with spaced repetition"
-- Updated SEO meta tags, README, landing page, features page, about page
-- Changed CTA from "Get Started Free" → "Start Memorizing" (avoids freemium connotation)
-- Added flashcard-related keywords for SEO
+Updated all public-facing documentation to describe spaced repetition intervals in human-friendly terms instead of specific day counts:
+- Changed "8→56→112 day intervals" → "daily → weekly → monthly"
+- Updated README.md, LandingPage.vue, features.html, productContext.md, systemPatterns.md, progress.md
 
-**Key Design Decisions:**
-- Flash cards are universally familiar; spaced repetition is technical jargon
-- Lead with approachable concept, support with scientific credibility
-- "Smart Flashcards" bridges familiar format with enhanced functionality
-- One word "flashcards" used consistently throughout
+**Key Changes:**
+- **First week**: Daily review (learning phase)
+- **First 2 months**: Daily review (establishing memory)
+- **2-4 months**: Weekly review (solidifying retention)
+- **4+ months**: Monthly review (long-term maintenance)
+
+**Rationale:**
+- Specific day counts (56, 112) seem arbitrary to users
+- Broader time periods are easier to understand and remember
+- No code changes needed - just documentation clarity
+- Thresholds (7, 56, 112 days) are actually clean multiples of 7 weeks
 
 ## Previous Work Index (Complete Archive)
 
@@ -97,3 +101,4 @@ This index provides titles and links for reference when needed.
 - **055** - Review Category Chip Feature → [previous-work/055_review_category_chip_feature.md](previous-work/055_review_category_chip_feature.md)
 - **056** - PWA Dual-Source Icon System → [previous-work/056_pwa_dual_source_icons.md](previous-work/056_pwa_dual_source_icons.md)
 - **057** - Messaging Repositioning: Digital Flashcards → [previous-work/057_messaging_flashcards_repositioning.md](previous-work/057_messaging_flashcards_repositioning.md)
+- **058** - Documentation Interval Descriptions → [previous-work/058_documentation_interval_descriptions.md](previous-work/058_documentation_interval_descriptions.md)

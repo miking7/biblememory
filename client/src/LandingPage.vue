@@ -127,7 +127,7 @@
             </div>
             <h3 class="text-xl font-bold text-slate-800 mb-3">Smart Flashcards</h3>
             <p class="text-slate-600 leading-relaxed">
-              Familiar flashcards made smarter with spaced repetition. Review at optimal intervals (8 → 56 → 112 days) for lasting memory.
+              Familiar flashcards made smarter with spaced repetition. Review at optimal intervals—daily at first, then weekly, then monthly—for lasting memory.
             </p>
           </div>
 

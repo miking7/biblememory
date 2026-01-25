@@ -835,16 +835,16 @@ Result: Device B's edit wins (Last-Write-Wins based on ts_server)
 7. Review stored locally + operation queued for sync
 ```
 
-**Algorithm Thresholds:**
-- Learn: 0-7 days (review daily)
-- Daily: 7-56 days (review daily)
-- Weekly: 56-112 days (1-in-7 probability per session)
-- Monthly: 112+ days (1-in-30 probability per session)
+**Algorithm Thresholds (in human terms):**
+- First week (0-7 days): Review daily — intensive learning
+- First 2 months (7-56 days): Review daily — establishing memory
+- 2-4 months (56-112 days): Review weekly — solidifying retention
+- 4+ months (112+ days): Review monthly — long-term maintenance
 
 **Why These Thresholds:**
 - Based on spaced repetition research
-- Clean multiples of 7 (weekly rhythm)
-- Probability approach for older verses (manageable review load)
+- Clean multiples of 7 (8 weeks, 16 weeks) align with weekly review rhythm
+- Probability approach for older verses (1-in-7, 1-in-30) keeps review load manageable
 - Per-session probability (not per-day) allows multiple reviews per day
 
 **See:** `client/src/composables/useReview.ts`, productContext.md for business logic details

@@ -113,11 +113,11 @@ For enhanced practice modes, users can access legacy app via "Legacy..." button:
 
 ### Spaced Repetition Schedule
 
-The app uses proven intervals:
-- **Learn** (< 7 days): Daily review for new verses
-- **Daily** (7-56 days): Daily review for established verses
-- **Weekly** (56-112 days): 1-in-7 probability review
-- **Monthly** (112+ days): 1-in-30 probability review
+The app uses proven intervals based on memory science:
+- **First week**: Daily review (learning phase)
+- **First 2 months**: Daily review (establishing memory)
+- **2-4 months**: Weekly review (solidifying retention)
+- **4+ months**: Monthly review (long-term maintenance)
 
 This ensures:
 - New verses get frequent reinforcement

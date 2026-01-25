@@ -27,7 +27,7 @@ I built this app because I've experienced firsthand the power of hiding God's Wo
 
 **Why Bible Memory?**
 - 🌐 **Works Everywhere** - Full offline functionality, syncs when online
-- 🃏 **Familiar + Smart** - Digital flashcards enhanced with spaced repetition (8→56→112 day intervals)
+- 🃏 **Familiar + Smart** - Digital flashcards enhanced with spaced repetition (daily → weekly → monthly)
 - 🎯 **Flexible Practice** - Multiple review modes (Hints, First Letters, Type It, Full Reveal)
 - ✨ **Beautiful Design** - Glass-morphism UI with distraction-free immersive mode
 - 🔄 **Seamless Sync** - Your progress stays in sync across all devices
@@ -186,13 +186,13 @@ See [techContext.md](memory-bank/techContext.md) for detailed technical informat
 
 ### Review Schedule
 
-The spaced repetition algorithm uses optimal intervals:
-- **Learn** (days 1-7): Review daily
-- **Daily** (days 8-56): Review daily
-- **Weekly** (days 57-112): 1-in-7 chance per session
-- **Monthly** (day 113+): 1-in-30 chance per session
+The spaced repetition algorithm uses optimal intervals based on memory science:
+- **First week**: Review daily (learning phase)
+- **First 2 months**: Review daily (establishing memory)
+- **2-4 months**: Review weekly (solidifying retention)
+- **4+ months**: Review monthly (long-term maintenance)
 
-This ensures new verses get frequent practice while maintaining long-term retention of established verses.
+This ensures new verses get frequent practice while gradually spacing out reviews as verses become firmly established in memory.
 
 ---
 
