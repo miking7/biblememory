@@ -10,7 +10,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - This file should answer "where are we in the project?"
 -->
 
-## Current Status: Phase 2+ Complete ✅ (Enhanced Review + Flexible Review Workflows + Landing Page + Static Pages)
+## Current Status: Phase 2+ Complete ✅ (Enhanced Review + Flexible Review Workflows + Landing Page + Static Pages + Component Architecture)
 
 ## What Works
 
@@ -66,6 +66,13 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - **Auth Integration**: All CTAs open existing auth modal via emits pattern
 - **Material Design Icons**: 15+ icons from existing CDN for visual elements
 - **Single Component**: Clean LandingPage.vue (no over-engineering)
+
+#### Component Architecture Refactoring (Phase 1 Complete ✅)
+- **Modal Extraction:** EditVerseModal, AboutModal, AuthModal extracted from App.vue
+- **App.vue Reduction:** 1,606 → 1,355 lines (~16% reduction)
+- **Architecture Strategy:** Documented in systemPatterns.md section 7
+- **Pattern Established:** Props/events for modal communication, composables as state source
+- **Future Phases:** Header components (Phase 2), Tab components (Phase 3)
 
 #### Static Pages (Phase 2 Complete ✅)
 - **4 Static Pages**: features.html, about.html, privacy.html, terms.html
