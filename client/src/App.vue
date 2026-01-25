@@ -1070,287 +1070,33 @@
     </div>
 
     <!-- Edit Modal -->
-    <div v-show="showEditModal"
-         class="fixed inset-0 z-50 overflow-y-auto">
-      <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <!-- Background overlay -->
-        <div class="fixed inset-0 transition-opacity bg-slate-900 bg-opacity-75" @click="showEditModal = false"></div>
-
-        <!-- Modal panel -->
-        <div class="inline-block align-bottom glass-card rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full">
-          <div class="p-4 sm:p-8">
-            <h3 class="text-2xl sm:text-3xl font-bold mb-6 text-slate-800">Edit Verse</h3>
-            <template v-if="editingVerse">
-              <form @submit.prevent="saveEditVerse()" class="space-y-5">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-2">Reference</label>
-                  <input
-                    type="text"
-                    v-model="editingVerse.reference"
-                    placeholder="e.g., John 3:16"
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all"
-                    required>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-2">Reference Sort</label>
-                  <input
-                    type="text"
-                    v-model="editingVerse.refSort"
-                    placeholder="e.g., bible.43003016"
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all"
-                    required>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-2">Verse Text</label>
-                  <textarea
-                    v-model="editingVerse.content"
-                    placeholder="Enter the verse text..."
-                    rows="5"
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all"
-                    required></textarea>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-2">Translation (optional)</label>
-                  <input
-                    type="text"
-                    v-model="editingVerse.translation"
-                    placeholder="e.g., NIV, ESV, KJV"
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-2">Started Date</label>
-                  <input
-                    type="date"
-                    v-model="editingVerse.startedAtInput"
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all"
-                    required>
-                  <p class="text-xs text-slate-500 mt-1">When you started memorizing this verse</p>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-2">Review Category</label>
-                  <select
-                    v-model="editingVerse.reviewCat"
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
-                    <option value="auto">Auto</option>
-                    <option value="learn">Learn (daily review)</option>
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="paused">Paused</option>
-                  </select>
-                  <p class="text-xs text-slate-500 mt-1">How often to review this verse</p>
-                </div>
-                <div class="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    v-model="editingVerse.favorite"
-                    id="edit-favorite"
-                    class="w-5 h-5 border-2 border-slate-200 rounded transition-all">
-                  <label for="edit-favorite" class="text-sm font-semibold text-slate-700">
-                    ⭐ Mark as Favorite
-                  </label>
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-2">Tags (optional)</label>
-                  <input
-                    type="text"
-                    v-model="editingVerse.tagsInput"
-                    placeholder="e.g., fast.sk=3, ss=2010.Q2.W01, personal"
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all">
-                </div>
-                <div class="flex gap-3 pt-2">
-                  <button
-                    type="submit"
-                    class="btn-premium flex-1 text-white py-3 rounded-xl font-semibold">
-                    Save Changes
-                  </button>
-                  <button
-                    type="button"
-                    @click="showEditModal = false"
-                    class="flex-1 py-3 rounded-xl font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all">
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </template>
-          </div>
-        </div>
-      </div>
-    </div>
+    <EditVerseModal
+      :show="showEditModal"
+      :verse="editingVerse"
+      @close="showEditModal = false"
+      @save="saveEditVerse()"
+      @update:verse="(v) => Object.assign(editingVerse, v)"
+    />
 
     <!-- About Modal -->
-    <div v-show="showAboutModal"
-         class="fixed inset-0 z-50 overflow-y-auto">
-      <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <!-- Background overlay -->
-        <div class="fixed inset-0 transition-opacity bg-slate-900 bg-opacity-75" @click="showAboutModal = false"></div>
-
-        <!-- Modal panel -->
-        <div class="inline-block align-bottom glass-card rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full">
-          <div class="p-4 sm:p-8">
-            <h3 class="text-2xl font-bold text-slate-800 mb-4">About Bible Memory</h3>
-
-            <p class="text-slate-600 mb-6">
-              A simple app to help you memorize Scripture, one verse at a time. Track your progress, review with spaced repetition, and hide your verses in your heart.
-            </p>
-
-            <div class="mb-6">
-              <a
-                href="https://github.com/miking7/biblememory"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all font-medium">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
-                </svg>
-                <span>View on GitHub</span>
-              </a>
-            </div>
-
-            <button
-              type="button"
-              @click="showAboutModal = false"
-              class="w-full py-3 bg-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-300 transition-all">
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <AboutModal
+      :show="showAboutModal"
+      @close="showAboutModal = false"
+    />
     </div><!-- End main app (v-else) -->
 
     <!-- Auth Modal (shared by landing page and main app) -->
-    <div v-show="showAuthModal"
-         class="fixed inset-0 z-50 overflow-y-auto">
-      <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <!-- Background overlay -->
-        <div class="fixed inset-0 transition-opacity bg-slate-900 bg-opacity-75" @click="closeAuthModal()"></div>
-
-        <!-- Modal panel -->
-        <div class="inline-block align-bottom glass-card rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full">
-          <div class="p-4 sm:p-8">
-            <!-- Toggle between Login and Register -->
-            <div class="flex gap-2 mb-6">
-              <button
-                @click="authMode = 'login'"
-                :class="authMode === 'login' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'"
-                class="flex-1 py-2 rounded-lg font-semibold transition-all">
-                Login
-              </button>
-              <button
-                @click="authMode = 'register'"
-                :class="authMode === 'register' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'"
-                class="flex-1 py-2 rounded-lg font-semibold transition-all">
-                Sign Up
-              </button>
-            </div>
-
-            <!-- Login Form -->
-            <form v-show="authMode === 'login'" @submit.prevent="handleLogin()" class="space-y-4">
-              <h3 class="text-2xl font-bold text-slate-800 mb-4">Welcome Back</h3>
-
-              <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Email</label>
-                <input
-                  type="email"
-                  v-model="authForm.email"
-                  placeholder="your@email.com"
-                  class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all focus:border-blue-500"
-                  required>
-              </div>
-
-              <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Password</label>
-                <input
-                  type="password"
-                  v-model="authForm.password"
-                  placeholder="••••••••"
-                  class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all focus:border-blue-500"
-                  required>
-              </div>
-
-              <!-- Error message -->
-              <div v-show="authForm.error"
-                   class="p-3 bg-red-50 border-2 border-red-200 text-red-700 rounded-lg text-sm font-medium"
-                   v-text="authForm.error"></div>
-
-              <div class="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  :disabled="authLoading"
-                  class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50">
-                  <span v-show="!authLoading">Login</span>
-                  <span v-show="authLoading">Logging in...</span>
-                </button>
-                <button
-                  type="button"
-                  @click="closeAuthModal()"
-                  class="px-6 py-3 bg-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-300 transition-all">
-                  Cancel
-                </button>
-              </div>
-            </form>
-
-            <!-- Register Form -->
-            <form v-show="authMode === 'register'" @submit.prevent="handleRegister()" class="space-y-4">
-              <h3 class="text-2xl font-bold text-slate-800 mb-4">Create Account</h3>
-
-              <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Email</label>
-                <input
-                  type="email"
-                  v-model="authForm.email"
-                  placeholder="your@email.com"
-                  class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all focus:border-blue-500"
-                  required>
-              </div>
-
-              <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Password</label>
-                <input
-                  type="password"
-                  v-model="authForm.password"
-                  placeholder="••••••••"
-                  class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all focus:border-blue-500"
-                  required>
-                <p class="text-xs text-slate-500 mt-1">Minimum 8 characters</p>
-              </div>
-
-              <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Confirm Password</label>
-                <input
-                  type="password"
-                  v-model="authForm.confirmPassword"
-                  placeholder="••••••••"
-                  class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl transition-all focus:border-blue-500"
-                  required>
-              </div>
-
-              <!-- Error message -->
-              <div v-show="authForm.error"
-                   class="p-3 bg-red-50 border-2 border-red-200 text-red-700 rounded-lg text-sm font-medium"
-                   v-text="authForm.error"></div>
-
-              <div class="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  :disabled="authLoading"
-                  class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50">
-                  <span v-show="!authLoading">Sign Up</span>
-                  <span v-show="authLoading">Creating account...</span>
-                </button>
-                <button
-                  type="button"
-                  @click="closeAuthModal()"
-                  class="px-6 py-3 bg-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-300 transition-all">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+    <AuthModal
+      :show="showAuthModal"
+      :mode="authMode"
+      :form="authForm"
+      :loading="authLoading"
+      @close="closeAuthModal()"
+      @login="handleLogin()"
+      @register="handleRegister()"
+      @update:mode="(m) => authMode = m"
+      @update:form="(f) => Object.assign(authForm, f)"
+    />
   </div>
 </template>
 
@@ -1361,6 +1107,9 @@ import { getCachedReviewStatus, getEffectiveReviewCategory } from './actions';
 import VerseCard from './components/VerseCard.vue';
 import ReviewCategoryChip from './components/ReviewCategoryChip.vue';
 import LandingPage from './LandingPage.vue';
+import EditVerseModal from './components/modals/EditVerseModal.vue';
+import AboutModal from './components/modals/AboutModal.vue';
+import AuthModal from './components/modals/AuthModal.vue';
 import { useSwipeDetection } from './composables/useSwipeDetection';
 
 // Review card ref for swipe detection and card transitions
