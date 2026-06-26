@@ -1,5 +1,5 @@
 import { ref, computed, toRaw } from 'vue';
-import { Verse } from '../db';
+import { db, Verse } from '../db';
 import {
   addVerse as addVerseAction,
   updateVerse as updateVerseAction,
@@ -175,7 +175,7 @@ export function useVerses() {
 
     try {
       // Get auth token
-      const authStore = await import('../db').then(m => m.db.auth.toArray());
+      const authStore = await db.auth.toArray();
       const token = authStore[0]?.token;
 
       if (!token) {
@@ -491,7 +491,7 @@ export function useVerses() {
 
     try {
       // Get auth token
-      const authStore = await import('../db').then(m => m.db.auth.toArray());
+      const authStore = await db.auth.toArray();
       const token = authStore[0]?.token;
 
       if (!token) {
@@ -553,7 +553,7 @@ export function useVerses() {
 
     try {
       // Get auth token
-      const authStore = await import('../db').then(m => m.db.auth.toArray());
+      const authStore = await db.auth.toArray();
       const token = authStore[0]?.token;
 
       if (!token) {
