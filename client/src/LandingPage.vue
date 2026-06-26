@@ -407,6 +407,7 @@
             <ul class="space-y-2 text-sm">
               <li><a href="/privacy.html" class="text-blue-200 hover:text-white transition-colors">Privacy Policy</a></li>
               <li><a href="/terms.html" class="text-blue-200 hover:text-white transition-colors">Terms of Service</a></li>
+              <li><a href="/bible-copyrights.html" class="text-blue-200 hover:text-white transition-colors">Bible Copyrights</a></li>
             </ul>
           </div>
         </div>
