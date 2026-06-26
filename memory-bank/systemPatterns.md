@@ -216,14 +216,115 @@ KEY QUESTION THIS FILE ANSWERS: "How is the system architectured and why?"
 
 **Current Composables:**
 - `client/src/composables/useAuth.ts` - Authentication state and operations
-- `client/src/composables/useVerses.ts` - Verse CRUD and filtering
+- `client/src/composables/useVerses.ts` - Verse CRUD, filtering, import/export (simplified after wizard extraction)
+- `client/src/composables/useAddVerseWizard.ts` - Add verse wizard (paste → AI parse → form → collections)
 - `client/src/composables/useReview.ts` - Review system logic, navigation, and animations
 - `client/src/composables/useSync.ts` - Sync scheduling and status tracking
 - `client/src/composables/useCardTransitions.ts` - Card animation primitives (used internally by useReview)
 - `client/src/composables/useSwipeDetection.ts` - Touch gesture detection
-- `client/src/app.ts` - Orchestrates composables (reduced from 694 to 141 lines)
+- `client/src/app.ts` - Orchestrates composables
 
-### 7. Mobile-First Responsive Design Pattern
+### 7. Vue 3 Component Architecture Strategy
+
+**Purpose:** Maintain manageable component sizes while avoiding premature abstraction and prop drilling fears
+
+**Philosophy:**
+- Extract components when files become hard to navigate (~500+ lines)
+- Fear of prop drilling should not prevent extraction - it's usually overblown
+- Composables remain the source of truth for state (not Pinia - overkill for this app)
+- Pass composable return values as props when needed (preserves reactivity + TypeScript)
+- Use provide/inject surgically (only for 3+ levels of nesting)
+
+**Component Extraction Strategy:**
+
+**Phase 1 - Modals (Low Risk, High Value):** ✅ Complete
+```
+components/modals/
+├── EditVerseModal.vue    (props: show, verse; events: close, save, update:verse)
+├── AboutModal.vue        (props: show; events: close)
+└── AuthModal.vue         (props: show, mode, form, loading; events: close, login, register, update:mode, update:form)
+```
+
+**Phase 2 - Header Components (Medium Risk):** Planned
+```
+components/
+├── AppHeader.vue         (user menu, offline badge)
+├── StatsBar.vue          (total verses, reviewed today, streak)
+└── TabNavigation.vue     (tab buttons with badge)
+```
+
+**Phase 3 - Tab Components (Highest Impact):** Planned
+```
+tabs/
+├── AddVerseTab.vue       (multi-step wizard)
+├── MyVersesTab.vue       (verse list with search/filter)
+└── ReviewTab.vue         (flashcard review with modes)
+```
+
+**Props vs Provide/Inject Decision Tree:**
+```
+Is data needed 3+ levels deep?
+├── Yes → Consider provide/inject
+└── No → Use props
+
+Is the component reusable across contexts?
+├── Yes → Use props (explicit API)
+└── No → Provide/inject is OK
+
+Is data flow complex (many properties)?
+├── Yes → Pass whole composable as prop
+└── No → Pass individual values
+```
+
+**Passing Composables as Props Pattern:**
+```typescript
+// App.vue
+<ReviewTab :review="reviewLogic" />
+
+// ReviewTab.vue
+const props = defineProps<{
+  review: ReturnType<typeof useReview>
+}>()
+// Template: props.review.currentReviewVerse
+```
+
+This pattern:
+- ✅ Preserves Vue reactivity
+- ✅ Full TypeScript support via ReturnType
+- ✅ Makes dependencies explicit
+- ✅ Avoids excessive individual prop definitions
+
+**Why NOT Pinia:**
+- Current composables work well and follow Vue 3 best practices
+- App is personal/single-user (no complex shared state)
+- Composables provide same benefits without migration overhead
+- DevTools work fine with Vue reactivity debugging
+
+**Implementation Results:**
+- App.vue reduced from 1,606 → 867 lines (~46% after Phase 2)
+- Clean modal APIs with props/events
+- Composables unchanged (still source of truth)
+- Build passes, no TypeScript errors
+
+**Component DOM Ownership Pattern:**
+When a component owns a DOM element that requires event handling (touch, swipe, animations, etc.):
+- The component should own related composable calls (e.g., `useSwipeDetection`, `useCardTransitions`)
+- Emit events for actions (e.g., `@navigate` with direction)
+- Handle animations internally (exit → emit event → parent navigates → watch prop change → entry animation)
+- Pass guard conditions as props (e.g., `:can-swipe-left="..."`)
+- Parent handles business logic via event handlers
+
+**Why:** Avoids convoluted ref-passing patterns (watchEffect sync, defineExpose, ref forwarding). Component encapsulates its DOM interactions, parent orchestrates behavior.
+
+**Applied In:** ReviewTab owns cardElement, useSwipeDetection, AND useCardTransitions - all DOM-related concerns stay in the component that owns the DOM element.
+
+**Key Files:**
+- `client/src/App.vue` - Main shell component
+- `client/src/components/modals/` - Extracted modal components
+- `client/src/components/tabs/` - Extracted tab components
+- `client/src/app.ts` - Composable orchestration
+
+### 8. Mobile-First Responsive Design Pattern
 
 **Purpose:** Optimize user experience across all device sizes, prioritizing mobile
 
@@ -276,7 +377,7 @@ KEY QUESTION THIS FILE ANSWERS: "How is the system architectured and why?"
 
 **Implementation:** See `client/src/App.vue` and `client/src/components/VerseCard.vue`
 
-### 8. Sync Status Tracking Pattern
+### 9. Sync Status Tracking Pattern
 
 **Purpose:** Provide accurate connectivity feedback based on actual network operations
 
@@ -307,7 +408,7 @@ KEY QUESTION THIS FILE ANSWERS: "How is the system architectured and why?"
 
 **Implementation:** See `client/src/composables/useSync.ts` and sync status tracking in `client/src/app.ts`
 
-### 9. Progressive Web App (PWA) Pattern
+### 10. Progressive Web App (PWA) Pattern
 
 **Purpose:** Enable app installation and offline access on mobile and desktop devices
 
@@ -419,7 +520,7 @@ iOS (Safari):
 
 **See:** techContext.md for PWA technology details and configuration examples
 
-### 10. Async External Resource Loading Pattern
+### 11. Async External Resource Loading Pattern
 
 **Purpose:** Prevent external stylesheet CDNs from blocking page rendering when offline
 
@@ -465,7 +566,7 @@ iOS (Safari):
 
 **See:** previous-work/031_pwa_offline_blank_screen_fix.md for detailed analysis
 
-### 11. Offline-First Sync Detection Pattern
+### 12. Offline-First Sync Detection Pattern
 
 **Purpose:** Prevent unnecessary network timeout attempts when user is offline
 
@@ -525,7 +626,7 @@ const syncAndReload = async () => {
 
 **See:** previous-work/031_pwa_offline_blank_screen_fix.md for detailed analysis
 
-### 12. Toast Notification Pattern
+### 13. Toast Notification Pattern
 
 **Purpose:** Provide temporary, non-intrusive notifications for status changes and user feedback
 
@@ -609,7 +710,7 @@ watch(hasSyncIssuesWithAuth, (newValue, oldValue) => {
 
 **See:** previous-work/031_offline_notification_redesign.md for full implementation details
 
-### 13. Unified Review Navigation Pattern
+### 14. Unified Review Navigation Pattern
 
 **Purpose:** Centralize navigation and animation logic within the review composable to eliminate duplication and awkward injection patterns
 
@@ -918,7 +1019,7 @@ Result: Device B's edit wins (Last-Write-Wins based on ts_server)
 - Smart retry with adaptive backoff (1s → 30s when failing)
 - Sync only when authenticated and online
 
-### 14. Logout State Cleanup Pattern
+### 15. Logout State Cleanup Pattern
 
 **Purpose:** Ensure complete cleanup of all local data on logout while providing appropriate warnings for data loss scenarios
 

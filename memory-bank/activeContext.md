@@ -15,25 +15,26 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** No active work - ready for next task
+**Status:** Pre-Push Code Review & Fixes Complete ✅
 
-**Recently Completed:** Documentation Interval Descriptions (#058)
+**Latest Work:** Reviewed the unpushed App.vue decomposition (059–064) for
+production-readiness and fixed the issues found before merge.
 
-Updated all public-facing documentation to describe spaced repetition intervals in human-friendly terms instead of specific day counts:
-- Changed "8→56→112 day intervals" → "daily → weekly → monthly"
-- Updated README.md, LandingPage.vue, features.html, productContext.md, systemPatterns.md, progress.md
+**What Changed:**
+- Fixed a red build (11 `tsc` errors): MyVersesTab emit types, `SortBy` union,
+  nullable `EditingVerse` guard, dead destructures
+- Restored uniform card animation — `navigate()` is the single orchestrator
+  again; `ReviewTab` registers transitions via `registerCardAnimators()`
+- Extracted `modals/BaseModal.vue` with dialog a11y (Escape, focus trap,
+  scroll lock, ARIA) + auth `autocomplete` hints
+- Polish: removed double `verse-added` emit, dead `formatTagForDisplay`,
+  cached ReviewTab reference-word `computed`s
 
-**Key Changes:**
-- **First week**: Daily review (learning phase)
-- **First 2 months**: Daily review (establishing memory)
-- **2-4 months**: Weekly review (solidifying retention)
-- **4+ months**: Monthly review (long-term maintenance)
+**Deferred (deliberate):** Retiring ReviewTab's prop relay. The composables are
+factory functions, NOT singletons, so `useReview()` in the child gives
+disconnected state. Recommended path = provide/inject; see 065 for gotchas.
 
-**Rationale:**
-- Specific day counts (56, 112) seem arbitrary to users
-- Broader time periods are easier to understand and remember
-- No code changes needed - just documentation clarity
-- Thresholds (7, 56, 112 days) are actually clean multiples of 7 weeks
+**See:** previous-work/065_prepush_code_review_fixes.md for details
 
 ## Previous Work Index (Complete Archive)
 
@@ -102,3 +103,10 @@ This index provides titles and links for reference when needed.
 - **056** - PWA Dual-Source Icon System → [previous-work/056_pwa_dual_source_icons.md](previous-work/056_pwa_dual_source_icons.md)
 - **057** - Messaging Repositioning: Digital Flashcards → [previous-work/057_messaging_flashcards_repositioning.md](previous-work/057_messaging_flashcards_repositioning.md)
 - **058** - Documentation Interval Descriptions → [previous-work/058_documentation_interval_descriptions.md](previous-work/058_documentation_interval_descriptions.md)
+- **059** - Modal Component Extraction → [previous-work/059_modal_component_extraction.md](previous-work/059_modal_component_extraction.md)
+- **060** - Header Component Extraction → [previous-work/060_header_component_extraction.md](previous-work/060_header_component_extraction.md)
+- **061** - ReviewTab Integration (Phase 3) → [previous-work/061_reviewtab_integration.md](previous-work/061_reviewtab_integration.md)
+- **062** - Card Slide Animation Re-enablement → [previous-work/062_card_animation_reenable.md](previous-work/062_card_animation_reenable.md)
+- **063** - AddVerse Wizard Extraction Refactor → [previous-work/063_addverse_wizard_refactor.md](previous-work/063_addverse_wizard_refactor.md)
+- **064** - ReviewTab Props Simplification → [previous-work/064_reviewtab_props_simplification.md](previous-work/064_reviewtab_props_simplification.md)
+- **065** - Pre-Push Code Review & Fixes → [previous-work/065_prepush_code_review_fixes.md](previous-work/065_prepush_code_review_fixes.md)

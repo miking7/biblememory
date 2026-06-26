@@ -11,8 +11,7 @@ import {
   getRecentReviewStatus,
   RecentReviewEntry
 } from '../actions';
-import { getFirstLettersChunks } from '../utils/firstLetters';
-import { useCardTransitions } from './useCardTransitions';
+import { getWords } from '../utils/reviewHelpers';
 
 // Review mode types
 export type ReviewMode =
@@ -23,9 +22,7 @@ export type ReviewMode =
   | 'flashcards'     // Random word hiding with difficulty levels
   | 'typeit';        // Type the verse from memory (coming soon)
 
-export function useReview(cardElement?: any) {
-  // Initialize card transitions (lazy - only if cardElement provided)
-  const transitions = cardElement ? useCardTransitions(cardElement) : null;
+export function useReview() {
 
   // State
   const currentReviewIndex = ref(0);
@@ -47,6 +44,16 @@ export function useReview(cardElement?: any) {
 
   // Immersive mode state
   const isImmersiveModeActive = ref(false);
+
+  // Card animation hooks. The card DOM (and its transitions) is owned by
+  // ReviewTab, so it registers these handlers and navigate() drives them.
+  // This keeps navigate() as the single orchestrator for every navigation
+  // source (arrows, swipe, keyboard, Got it/Again, card click).
+  type CardAnimator = (direction: 'left' | 'right' | 'up' | 'down', duration?: number) => Promise<void>;
+  let cardAnimators: { exit: CardAnimator; entry: CardAnimator; isAnimating: () => boolean } | null = null;
+  const registerCardAnimators = (animators: typeof cardAnimators) => {
+    cardAnimators = animators;
+  };
 
   // Stats
   const reviewedToday = ref(0);
@@ -268,110 +275,6 @@ export function useReview(cardElement?: any) {
     return levelNames[flashcardLevel.value] || 'Unknown';
   });
 
-  // Phase 2: Content transformation functions
-  const getHintedContent = (content: string, wordsToShow: number): string => {
-    // Split all words from entire content (across all lines)
-    const allWords = content.split(/\s+/).filter(w => w.length > 0);
-    const totalWordCount = allWords.length;
-
-    // If showing all words, return original content unchanged
-    if (wordsToShow >= totalWordCount) {
-      return content;
-    }
-
-    // Otherwise, reconstruct with only visible words + ellipsis
-    // Preserve paragraph structure by tracking newlines in original content
-    const lines = content.split('\n');
-    let wordsCollected = 0;
-    let result: string[] = [];
-
-    for (const line of lines) {
-      const words = line.split(' ').filter(w => w.length > 0);
-      const visibleWordsInLine: string[] = [];
-
-      for (const word of words) {
-        if (wordsCollected < wordsToShow) {
-          visibleWordsInLine.push(word);
-          wordsCollected++;
-        } else {
-          // We've reached the limit - add what we have plus ellipsis
-          result.push(visibleWordsInLine.join(' ') + '...');
-          return result.join('\n');
-        }
-      }
-
-      // Add this line to result if it has words
-      if (visibleWordsInLine.length > 0) {
-        result.push(visibleWordsInLine.join(' '));
-      } else {
-        // Empty line (paragraph break)
-        result.push('');
-      }
-    }
-
-    // If we get here, we've shown all requested words
-    // Add ellipsis to the last line (should always happen since wordsToShow < totalWordCount)
-    if (result.length > 0 && wordsCollected < totalWordCount) {
-      result[result.length - 1] += '...';
-    }
-
-    return result.join('\n');
-  };
-
-  // Helper function to replicate legacy wordSplit behavior
-  // Alternates between "word" and "non-word" segments
-  // This preserves punctuation+space combinations as single units
-  const wordSplit = (str: string): Array<{isWord: boolean, str: string}> => {
-    if (str.length === 0) return [];
-
-    const segments: Array<{isWord: boolean, str: string}> = [];
-    const rWordStart = /[A-Za-z]/;
-    const rWordStop = /[^A-Za-z0-9'\-]/;
-
-    let isWord = rWordStart.test(str[0]);
-
-    while (str.length > 0) {
-      let next: number;
-      if (isWord) {
-        next = str.search(rWordStop);
-      } else {
-        next = str.search(rWordStart);
-      }
-      if (next < 0) next = str.length;
-
-      segments.push({
-        isWord: isWord,
-        str: str.substring(0, next)
-      });
-
-      str = str.substring(next);
-      isWord = !isWord;
-    }
-
-    return segments;
-  };
-
-  const getFirstLettersContent = (content: string): string => {
-    // Process line by line to preserve paragraphs
-    const lines = content.split('\n');
-    return lines.map(line => {
-      const segments = wordSplit(line);
-      return segments.map(seg => {
-        if (seg.isWord) {
-          // Return first letter of words
-          return seg.str.charAt(0);
-        } else {
-          // Keep non-word segments UNLESS they're exactly a single space
-          // This preserves punctuation with trailing spaces (e.g., ", " or ": ")
-          // while removing standalone spaces between words
-          return seg.str !== ' ' ? seg.str : '';
-        }
-      }).join('');
-    }).join('\n');
-  };
-
-  // getFirstLettersChunks is now imported from utils/firstLetters.ts
-
   // Reveal a first-letters chunk by index
   const revealFirstLetterChunk = (index: number) => {
     firstLettersRevealedGroups.value.add(index);
@@ -412,70 +315,6 @@ export function useReview(cardElement?: any) {
 
   const revealWord = (index: number) => {
     flashcardRevealedWords.value.add(index);
-  };
-
-  // Word object type to match legacy pattern
-  interface WordItem {
-    isWord: boolean;
-    str: string;
-  }
-
-  const getWords = (content: string, allowNumbers: boolean = false): WordItem[] => {
-    // Matches legacy wordSplit() - returns objects with {isWord, str}
-    // This preserves ALL content including spaces and punctuation
-    const lines = content.split('\n');
-    const result: WordItem[] = [];
-
-    lines.forEach((line, lineIndex) => {
-      // Regex patterns matching legacy implementation
-      const wordStartPattern = allowNumbers
-        ? /[A-Za-z0-9]/          // Word can start with letter or number (for references)
-        : /[A-Za-z]/;             // Word must start with letter (for content)
-      const wordStopPattern = /[^A-Za-z0-9'\-]/;  // Word can contain letters, numbers, apostrophes, hyphens
-
-      let str = line;
-      let isWord = wordStartPattern.test(str.charAt(0));
-
-      // Main loop - alternates between words and non-words
-      while (str.length > 0) {
-        let nextIndex = -1;
-
-        if (isWord) {
-          // Search for end of word
-          const match = wordStopPattern.exec(str);
-          nextIndex = match ? match.index : -1;
-        } else {
-          // Search for start of next word
-          for (let i = 0; i < str.length; i++) {
-            if (wordStartPattern.test(str.charAt(i))) {
-              nextIndex = i;
-              break;
-            }
-          }
-        }
-
-        if (nextIndex < 0) {
-          nextIndex = str.length;  // Use rest of string
-        }
-
-        // Add this part to array
-        result.push({
-          isWord: isWord,
-          str: str.substring(0, nextIndex)
-        });
-
-        // Prepare for next part
-        str = str.substring(nextIndex);
-        isWord = !isWord;
-      }
-
-      // Add line break marker (except after last line)
-      if (lineIndex < lines.length - 1) {
-        result.push({ isWord: false, str: '\n' });
-      }
-    });
-
-    return result;
   };
 
   // Phase 2: Navigation that resets to reference mode
@@ -591,52 +430,11 @@ export function useReview(cardElement?: any) {
     return `${years} year${years > 1 ? 's' : ''}`;
   };
 
-  // Phase 2: Helper for abbreviated age (for review tab footer)
-  const getAbbreviatedAge = (startedAt: number | undefined): string => {
-    if (!startedAt) return '';
-    
-    const now = Date.now();
-    const days = Math.floor((now - startedAt) / (1000 * 60 * 60 * 24));
-    
-    if (days < 14) return `${days}d`;
-    if (days < 56) {
-      const weeks = Math.floor(days / 7);
-      return `${weeks}w`;
-    }
-    if (days < 336) { // < 11 months
-      const months = Math.floor(days / 30.4);
-      return `${months}m`;
-    }
-    const years = Math.floor(days / 365.25);
-    return `${years}y`;
-  };
-
   // Phase 2: Helper for review category display
   const getReviewCategory = (verse: Verse | null): string => {
     if (!verse || !verse.reviewCat) return '';
     return verse.reviewCat;
   };
-
-  // Phase 2: Helper for tag display formatting
-  const formatTagForDisplay = (tag: { key: string; value?: string }): string => {
-    if (tag.value) {
-      return `${tag.key} (${tag.value})`;
-    }
-    return tag.key;
-  };
-
-  // Phase 2: Helper to get reference words for Flash Cards rendering
-  const getReferenceWords = (): WordItem[] => {
-    if (!currentReviewVerse.value) return [];
-    return getWords(currentReviewVerse.value.reference, true);
-  };
-
-  // Phase 2: Helper to get content words starting index in combined array
-  const getContentWordsStartIndex = (): number => {
-    if (!currentReviewVerse.value) return 0;
-    return getWords(currentReviewVerse.value.reference, true).length;
-  };
-
 
   // Immersive mode functions
   const toggleImmersiveMode = () => {
@@ -684,8 +482,11 @@ export function useReview(cardElement?: any) {
   };
 
   /**
-   * Navigate to next or previous card with animation
-   * Coordinates review recording, exit/entry animations, and verse navigation
+   * Navigate to next or previous card. Single orchestrator for every
+   * navigation source. Sequence mirrors the pre-refactor behaviour:
+   * record review (400ms feedback) -> exit animation -> change verse ->
+   * entry animation. Animations are no-ops if ReviewTab hasn't registered
+   * its card animators (e.g. in tests).
    *
    * @param options.direction - 'next' or 'previous'
    * @param options.recordReview - Optional: true = "got it", false = "needs practice"
@@ -694,12 +495,8 @@ export function useReview(cardElement?: any) {
     direction: 'next' | 'previous';
     recordReview?: boolean;
   }) => {
-    // Guards
-    if (!transitions) {
-      console.error('Card transitions not initialized - cardElement not provided to useReview');
-      return;
-    }
-    if (transitions.isTransitioning.value) return;
+    // Ignore navigation requests while a transition is in flight
+    if (cardAnimators?.isAnimating()) return;
 
     // Can't go previous from first card
     if (options.direction === 'previous' && currentReviewIndex.value === 0) {
@@ -711,45 +508,37 @@ export function useReview(cardElement?: any) {
       await markReview(options.recordReview);
     }
 
-    // Exit animation
+    // Exit animation: card slides out opposite to the direction of travel
     const exitDir = options.direction === 'next' ? 'left' : 'right';
-    await transitions.exitTransition({ direction: exitDir, duration: 300 });
+    if (cardAnimators) await cardAnimators.exit(exitDir);
 
     // Navigate
     if (options.direction === 'next') {
       const isOnLastCard = currentReviewIndex.value === totalReviewCount.value - 1;
 
       if (isOnLastCard) {
-        // Reached end - show completion screen
+        // Reached end - show completion screen (no entry animation)
         completeReview();
-        // No entry animation for completion (screen just appears)
       } else {
-        // Normal next card
+        // Normal next card - slide the new card in from the right
         await nextVerse();
-        await transitions.entryTransition({ direction: 'right', duration: 150 });
+        if (cardAnimators) await cardAnimators.entry('right');
       }
     } else {
-      // Previous card
+      // Previous card - slide the new card in from the left
       await previousVerse();
-      await transitions.entryTransition({ direction: 'left', duration: 150 });
+      if (cardAnimators) await cardAnimators.entry('left');
     }
   };
 
   /**
    * View the last card from the completion screen
-   * Un-completes the review and shows the last card with animation
+   * Un-completes the review and shows the last card
    */
   const viewLastCard = async () => {
     if (!reviewComplete.value) return;
-    if (!transitions) {
-      console.error('Card transitions not initialized - cardElement not provided to useReview');
-      return;
-    }
-    if (transitions.isTransitioning.value) return;
-
     uncompleteReview();
-    // Slide in from top/bottom
-    await transitions.entryTransition({ direction: 'down', duration: 200 });
+    if (cardAnimators) await cardAnimators.entry('down', 200);
   };
 
   return {
@@ -779,12 +568,6 @@ export function useReview(cardElement?: any) {
     // Immersive mode state
     isImmersiveModeActive,
 
-    // Transition state (for template bindings - only if transitions initialized)
-    isTransitioning: transitions?.isTransitioning,
-    cardOffset: transitions?.cardOffset,
-    cardVisible: transitions?.cardVisible,
-    transitionDuration: transitions?.transitionDuration,
-
     // Computed
     currentReviewVerse,
     totalReviewCount,
@@ -813,31 +596,21 @@ export function useReview(cardElement?: any) {
     increaseFlashCardDifficulty,
     decreaseFlashCardDifficulty,
 
-    // Phase 2: Content transformation
-    getHintedContent,
-    getFirstLettersContent,
-    getFirstLettersChunks,
+    // Phase 2: Content transformation (internal use + events)
     revealFirstLetterChunk,
-    getWords,
     revealWord,
-    generateHiddenWords,
 
     // Navigation (with animations)
     navigate,
     viewLastCard,
-    nextVerse,
-    previousVerse,
+    registerCardAnimators,
 
     // Phase 2: Keyboard shortcuts
     handleKeyPress,
 
     // Phase 2: UI helpers
     getHumanReadableTime,
-    getAbbreviatedAge,
     getReviewCategory,
-    formatTagForDisplay,
-    getReferenceWords,
-    getContentWordsStartIndex,
 
     // Immersive mode
     toggleImmersiveMode,

@@ -5,7 +5,7 @@ import { useReview } from './composables/useReview';
 import { useSync } from './composables/useSync';
 
 // Vue.js app function using Composition API with composables
-export function bibleMemoryApp(reviewCardElement?: any) {
+export function bibleMemoryApp() {
   // Tab state (kept in main app for coordination)
   const currentTab = ref<'add' | 'list' | 'review'>('list');
 
@@ -16,7 +16,7 @@ export function bibleMemoryApp(reviewCardElement?: any) {
   // Use composables
   const auth = useAuth();
   const versesLogic = useVerses();
-  const reviewLogic = useReview(reviewCardElement);
+  const reviewLogic = useReview();
   const sync = useSync();
 
   // Combined hasSyncIssues that checks authentication
@@ -63,9 +63,6 @@ export function bibleMemoryApp(reviewCardElement?: any) {
   // Initialization
   const init = async () => {
     console.log("Initializing Bible Memory App...");
-
-    // Initialize verse form with today's date
-    versesLogic.initializeForm();
 
     // Check authentication
     await auth.checkAuth();
@@ -231,12 +228,6 @@ export function bibleMemoryApp(reviewCardElement?: any) {
       expandedVerseIds.value.clear();
       expandedVerseIds.value = new Set(); // Trigger reactivity
     }
-    
-    // Reset Add Verse wizard when switching to Add tab
-    if (newTab === 'add') {
-      versesLogic.resetAddVerseWizard();
-      versesLogic.initializeForm();
-    }
   });
 
   // Return everything for template
@@ -262,52 +253,17 @@ export function bibleMemoryApp(reviewCardElement?: any) {
     verses: versesLogic.verses,
     searchQuery: versesLogic.searchQuery,
     sortBy: versesLogic.sortBy,
-    newVerse: versesLogic.newVerse,
-    showAddSuccess: versesLogic.showAddSuccess,
     showEditModal: versesLogic.showEditModal,
     editingVerse: versesLogic.editingVerse,
-    importFileRef: versesLogic.importFileRef,
     filteredVerses: versesLogic.filteredVerses,
     hasVersesButNoSearchResults: versesLogic.hasVersesButNoSearchResults,
-    addVerse: versesLogic.addVerse,
+    loadVerses: versesLogic.loadVerses,
     startEditVerse: versesLogic.startEditVerse,
     saveEditVerse: saveEditVerseAndRefresh,
     deleteVerse: versesLogic.deleteVerse,
     setSortBy: versesLogic.setSortBy,
     exportVerses: versesLogic.exportVerses,
     importVerses: versesLogic.importVerses,
-
-    // Add verse wizard (from useVerses)
-    addVerseStep: versesLogic.addVerseStep,
-    pastedText: versesLogic.pastedText,
-    parsingState: versesLogic.parsingState,
-    parsingError: versesLogic.parsingError,
-    resetAddVerseWizard: versesLogic.resetAddVerseWizard,
-    parseVerseWithAI: versesLogic.parseVerseWithAI,
-    skipAIParsing: versesLogic.skipAIParsing,
-    goBackToPaste: versesLogic.goBackToPaste,
-
-    // Collections (from useVerses)
-    collectionsList: versesLogic.collectionsList,
-    collectionsLoading: versesLogic.collectionsLoading,
-    collectionsError: versesLogic.collectionsError,
-    selectedCollectionId: versesLogic.selectedCollectionId,
-    selectedCollectionName: versesLogic.selectedCollectionName,
-    selectedCollectionDescription: versesLogic.selectedCollectionDescription,
-    collectionVerses: versesLogic.collectionVerses,
-    collectionVersesLoading: versesLogic.collectionVersesLoading,
-    collectionVersesError: versesLogic.collectionVersesError,
-    selectedVerseIndices: versesLogic.selectedVerseIndices,
-    selectedPace: versesLogic.selectedPace,
-    paceOptions: versesLogic.paceOptions,
-    openCollections: versesLogic.openCollections,
-    cancelCollections: versesLogic.cancelCollections,
-    loadCollections: versesLogic.loadCollections,
-    selectCollection: versesLogic.selectCollection,
-    backToCollectionsList: versesLogic.backToCollectionsList,
-    proceedToPaceSelection: versesLogic.proceedToPaceSelection,
-    backToCollectionDetail: versesLogic.backToCollectionDetail,
-    addCollectionVerses: versesLogic.addCollectionVerses,
 
     // Review (from useReview)
     currentReviewIndex: reviewLogic.currentReviewIndex,
@@ -349,31 +305,16 @@ export function bibleMemoryApp(reviewCardElement?: any) {
     switchToFlashCards: reviewLogic.switchToFlashCards,
     increaseFlashCardDifficulty: reviewLogic.increaseFlashCardDifficulty,
     decreaseFlashCardDifficulty: reviewLogic.decreaseFlashCardDifficulty,
-    getHintedContent: reviewLogic.getHintedContent,
-    getFirstLettersContent: reviewLogic.getFirstLettersContent,
-    getFirstLettersChunks: reviewLogic.getFirstLettersChunks,
     revealFirstLetterChunk: reviewLogic.revealFirstLetterChunk,
-    getWords: reviewLogic.getWords,
     revealWord: reviewLogic.revealWord,
-    nextVerse: reviewLogic.nextVerse,
-    previousVerse: reviewLogic.previousVerse,
     getHumanReadableTime: reviewLogic.getHumanReadableTime,
-    getAbbreviatedAge: reviewLogic.getAbbreviatedAge,
     getReviewCategory: reviewLogic.getReviewCategory,
-    formatTagForDisplay: reviewLogic.formatTagForDisplay,
-    getReferenceWords: reviewLogic.getReferenceWords,
-    getContentWordsStartIndex: reviewLogic.getContentWordsStartIndex,
     handleKeyPress: reviewLogic.handleKeyPress,
 
-    // Navigation (with animations)
+    // Navigation
     navigate: reviewLogic.navigate,
     viewLastCard: reviewLogic.viewLastCard,
-
-    // Transition state (for template bindings)
-    isTransitioning: reviewLogic.isTransitioning,
-    cardOffset: reviewLogic.cardOffset,
-    cardVisible: reviewLogic.cardVisible,
-    transitionDuration: reviewLogic.transitionDuration,
+    registerCardAnimators: reviewLogic.registerCardAnimators,
 
     // Immersive mode
     isImmersiveModeActive: reviewLogic.isImmersiveModeActive,

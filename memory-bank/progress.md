@@ -10,7 +10,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - This file should answer "where are we in the project?"
 -->
 
-## Current Status: Phase 2+ Complete ✅ (Enhanced Review + Flexible Review Workflows + Landing Page + Static Pages)
+## Current Status: Phase 2+ Complete ✅ (Enhanced Review + Flexible Review Workflows + Landing Page + Static Pages + Component Architecture)
 
 ## What Works
 
@@ -66,6 +66,20 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - **Auth Integration**: All CTAs open existing auth modal via emits pattern
 - **Material Design Icons**: 15+ icons from existing CDN for visual elements
 - **Single Component**: Clean LandingPage.vue (no over-engineering)
+
+#### Component Architecture Refactoring (Phase 3 Complete ✅)
+- **Modal Extraction (Phase 1):** EditVerseModal, AboutModal, AuthModal extracted from App.vue
+- **Header Extraction (Phase 2):** AppHeader, StatsBar, TabNavigation extracted from App.vue
+- **Tab Extraction (Phase 3):** All tabs extracted and integrated:
+  - MyVersesTab.vue (163 lines)
+  - AddVerseTab.vue (350 lines)
+  - ReviewTab.vue (~400 lines) - with internal swipe detection + animations
+  - ReviewModeButtons.vue (220 lines)
+- **App.vue Reduction:** 1,606 → 867 → 442 lines (**72% reduction**, exceeded 75% target)
+- **Architecture Strategy:** Documented in systemPatterns.md section 7
+- **Pattern Established:** Props/events for component communication, composables as state source
+- **Component DOM Ownership:** ReviewTab owns cardElement ref, swipe detection, AND card transitions internally
+- **Card Animations Re-enabled:** ReviewTab manages animations internally following Component DOM Ownership pattern
 
 #### Static Pages (Phase 2 Complete ✅)
 - **4 Static Pages**: features.html, about.html, privacy.html, terms.html
