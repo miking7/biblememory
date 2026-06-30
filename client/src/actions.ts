@@ -332,30 +332,39 @@ export async function getTodayReviewCount(): Promise<number> {
   return reviews.length;
 }
 
-// Get current streak (consecutive days with reviews)
-export async function getCurrentStreak(): Promise<number> {
-  const allReviews = await db.reviews.orderBy('createdAt').reverse().toArray();
+// Local-calendar-day ordinal. Rounding absorbs the <=1h DST shift, so two
+// different calendar days never collapse to the same ordinal.
+const STREAK_DAY_MS = 24 * 60 * 60 * 1000;
+function dayOrdinal(epochMs: number): number {
+  return Math.round(dateToMidnightEpoch(epochToDateString(epochMs)) / STREAK_DAY_MS);
+}
 
-  if (allReviews.length === 0) return 0;
+// Current consecutive-day streak. Forgiving anchor: counts today if reviewed,
+// otherwise yesterday (a missed today doesn't break the streak until the whole
+// day passes). DST-safe and uncapped. Shared by the header tile (via
+// getCurrentStreak) and the stats modal (useStats) so they never disagree.
+export function currentStreakFromReviews(reviews: Array<{ createdAt: number }>): number {
+  if (reviews.length === 0) return 0;
+
+  const activeDays = new Set<number>();
+  for (const r of reviews) activeDays.add(dayOrdinal(r.createdAt));
+
+  const todayOrd = dayOrdinal(Date.now());
+  let cursor = activeDays.has(todayOrd) ? todayOrd : todayOrd - 1;
+  if (!activeDays.has(cursor)) return 0;
 
   let streak = 0;
-  let currentDate = new Date().setHours(0, 0, 0, 0);
-
-  for (let i = 0; i < 365; i++) { // Check up to 365 days back
-    const dayStart = currentDate - (i * 24 * 60 * 60 * 1000);
-    const dayEnd = dayStart + (24 * 60 * 60 * 1000);
-
-    const hasReview = allReviews.some(r => r.createdAt >= dayStart && r.createdAt < dayEnd);
-
-    if (hasReview) {
-      streak++;
-    } else if (i > 0) {
-      // If we're past today and there's no review, break the streak
-      break;
-    }
+  while (activeDays.has(cursor)) {
+    streak++;
+    cursor--;
   }
-
   return streak;
+}
+
+// Get current streak (consecutive days with reviews)
+export async function getCurrentStreak(): Promise<number> {
+  const allReviews = await db.reviews.toArray();
+  return currentStreakFromReviews(allReviews);
 }
 
 // ============================================================================

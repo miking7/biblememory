@@ -28,8 +28,10 @@
     <StatsBar
       :total-verses="verses.length"
       :reviewed-today="reviewedToday"
+      :review-target="dueForReview.length"
       :current-streak="currentStreak"
       :is-immersive-mode-active="isImmersiveModeActive"
+      @open="onOpenStats"
     />
 
     <!-- Tab Navigation - Hidden in immersive mode -->
@@ -139,6 +141,14 @@
       :show="showAboutModal"
       @close="showAboutModal = false"
     />
+
+    <!-- Stats / Progress Modal -->
+    <StatsModal
+      :show="showStatsModal"
+      :initial-tab="activeStatsTab"
+      :review-target="dueForReview.length"
+      @close="showStatsModal = false"
+    />
     </div><!-- End main app (v-else) -->
 
     <!-- Auth Modal (shared by landing page and main app) -->
@@ -164,6 +174,7 @@ import LandingPage from './LandingPage.vue';
 import EditVerseModal from './components/modals/EditVerseModal.vue';
 import AboutModal from './components/modals/AboutModal.vue';
 import AuthModal from './components/modals/AuthModal.vue';
+import StatsModal from './components/stats/StatsModal.vue';
 import AppHeader from './components/AppHeader.vue';
 import StatsBar from './components/StatsBar.vue';
 import TabNavigation from './components/TabNavigation.vue';
@@ -283,6 +294,14 @@ const isCurrentVerseInactive = computed(() => {
 
 // Local state for About modal
 const showAboutModal = ref(false);
+
+// Stats / Progress modal (deep-links to the tapped tile's tab)
+const showStatsModal = ref(false);
+const activeStatsTab = ref<'library' | 'today' | 'consistency'>('today');
+const onOpenStats = (tab: 'library' | 'today' | 'consistency') => {
+  activeStatsTab.value = tab;
+  showStatsModal.value = true;
+};
 
 // Copy verse to clipboard
 const copyVerseToClipboard = (verse: any) => {

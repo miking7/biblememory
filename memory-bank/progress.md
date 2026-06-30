@@ -272,9 +272,9 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 **Goal:** Surpass legacy with features it doesn't have
 
 - [x] PWA installation and service worker (✅ Complete)
-- [ ] Statistics dashboard with charts
+- [x] Statistics dashboard with charts (✅ Complete — tappable "Progress" modal, see previous-work/066)
 - [ ] Dark mode
-- [ ] Streak tracking with achievements
+- [x] Streak tracking & visualization (✅ heatmap + streak records; achievements/grace deliberately omitted)
 - [ ] Multiple sort options (date added, last reviewed, frequency)
 - [ ] Background sync API integration
 - [ ] Push notifications
@@ -345,20 +345,21 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - [ ] Hints/reveals (h/f/c keys)
 - [ ] Keyboard shortcut help overlay
 
-#### Statistics Dashboard
-- [ ] Review history charts
-- [ ] Verses by category breakdown
-- [ ] Review completion rate
-- [ ] Time spent reviewing
-- [ ] Verses added over time
-- [ ] Most reviewed verses
+#### Statistics Dashboard (✅ Complete — see previous-work/066)
+- [x] Review history charts (30-day activity bars + calendar heatmap)
+- [x] Verses by category breakdown (maturity funnel via effective category)
+- [x] Review completion ("Reviewed Today" progress tile vs live due target)
+- [ ] Time spent reviewing (not possible — no per-review duration is stored)
+- [x] Verses added over time (cumulative growth curve)
+- [ ] Most reviewed verses (deferred)
+- [x] Bible coverage grid (verses per book) — NEW signature visual
 
-#### Streak Tracking
-- [ ] Consecutive days counter
-- [ ] Streak visualization
-- [ ] Streak achievements/milestones
-- [ ] Streak recovery grace period
-- [ ] Historical streak data
+#### Streak Tracking (✅ Mostly Complete — see previous-work/066)
+- [x] Consecutive days counter (DST-safe, shared `currentStreakFromReviews`)
+- [x] Streak visualization (GitHub-style calendar heatmap)
+- [ ] Streak achievements/milestones (deferred)
+- [x] Streak recovery grace period — N/A (deliberately tough-love, no grace day)
+- [x] Historical streak data (current vs best, top-5 records, active-days windows)
 
 #### Sort Options
 - [ ] Sort by reference (biblical order) - default

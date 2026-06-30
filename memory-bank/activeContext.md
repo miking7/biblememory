@@ -15,26 +15,31 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Pre-Push Code Review & Fixes Complete ✅
+**Status:** Statistics / Progress Dashboard Complete ✅ (reviewed, ready to push)
 
-**Latest Work:** Reviewed the unpushed App.vue decomposition (059–064) for
-production-readiness and fixed the issues found before merge.
+**Latest Work:** Added a tappable "Progress" dashboard behind the three header
+tiles — one tabbed bottom-sheet modal (Library / Today / Consistency) plus a
+live progress-bar "Reviewed Today" tile. All charts hand-rolled SVG/CSS, no
+charting library.
 
 **What Changed:**
-- Fixed a red build (11 `tsc` errors): MyVersesTab emit types, `SortBy` union,
-  nullable `EditingVerse` guard, dead destructures
-- Restored uniform card animation — `navigate()` is the single orchestrator
-  again; `ReviewTab` registers transitions via `registerCardAnimators()`
-- Extracted `modals/BaseModal.vue` with dialog a11y (Escape, focus trap,
-  scroll lock, ARIA) + auth `autocomplete` hints
-- Polish: removed double `verse-added` emit, dead `formatTagForDisplay`,
-  cached ReviewTab reference-word `computed`s
+- New `useStats` engine: one lazy DB read → per-local-day map → streaks,
+  active-day windows, per-day averages, heatmap, maturity funnel, growth curve,
+  Bible coverage. DST-safe day bucketing.
+- New `components/stats/`: StatsModal shell (tabs, swipe, a11y) + 5 chart
+  components; new `utils/bibleBooks.ts`.
+- StatsBar tiles → buttons; middle tile is now a progress bar vs the live due
+  target.
+- Consolidated current-streak into one shared `currentStreakFromReviews`
+  (actions.ts) used by both header and modal, replacing the old 365-capped,
+  DST-fragile version.
 
-**Deferred (deliberate):** Retiring ReviewTab's prop relay. The composables are
-factory functions, NOT singletons, so `useReview()` in the child gives
-disconnected state. Recommended path = provide/inject; see 065 for gotchas.
+**Deferred (deliberate):** Deterministic "due today" target — the progress-bar
+denominator still rides `getVersesForReview()`'s `Math.random()` gating, so it
+can shift across reloads. Stable within a session; revisit with the target
+rework.
 
-**See:** previous-work/065_prepush_code_review_fixes.md for details
+**See:** previous-work/066_statistics_dashboard.md for details
 
 ## Previous Work Index (Complete Archive)
 
@@ -110,3 +115,4 @@ This index provides titles and links for reference when needed.
 - **063** - AddVerse Wizard Extraction Refactor → [previous-work/063_addverse_wizard_refactor.md](previous-work/063_addverse_wizard_refactor.md)
 - **064** - ReviewTab Props Simplification → [previous-work/064_reviewtab_props_simplification.md](previous-work/064_reviewtab_props_simplification.md)
 - **065** - Pre-Push Code Review & Fixes → [previous-work/065_prepush_code_review_fixes.md](previous-work/065_prepush_code_review_fixes.md)
+- **066** - Statistics / Progress Dashboard → [previous-work/066_statistics_dashboard.md](previous-work/066_statistics_dashboard.md)
