@@ -72,6 +72,18 @@ DST-fragile fixed-millisecond arithmetic.
 - Minor efficiency (fold the window-scan loops into one pass; cache `load()`
   across opens in a session) and a fuller `BaseModal` reuse — all low-value.
 
+## Visual refinements (post-review)
+
+- **Library growth axis:** 3–4 adaptive ticks (full years for multi-year spans,
+  month+year / day+month for shorter) with faint gridlines; dropped the
+  redundant right-hand count label (already shown big at the top).
+- **Activity heatmap:** month labels for orientation; a tap/hover readout line
+  below (reliable on mobile + desktop) replacing tooltip reliance; and a
+  fit-to-width window — `useStats` always emits a full 53-week year and
+  `HeatmapChart` shows as many recent weeks as fit, current week anchored right,
+  with faint empty cells for the pre-history span. No horizontal scroll (which
+  fought the swipe-to-change-tab gesture).
+
 ## Verification
 
 - `tsc && vite build` clean.

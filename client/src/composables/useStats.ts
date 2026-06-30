@@ -172,10 +172,10 @@ export function useStats() {
         .sort((a, b) => b.length - a.length || ordinalOfDate(b.endDate) - ordinalOfDate(a.endDate))
         .slice(0, 5);
 
-      // ---- Heatmap (adaptive window: grows from ~4 weeks to a full year) ----
-      const windowDays = sortedOrds.length
-        ? Math.min(365, Math.max(28, daysSinceFirstReview.value + 1))
-        : 28;
+      // ---- Heatmap: always provide a full year (53 weeks) of daily cells.
+      // HeatmapChart shows as many recent weeks as fit its width, anchored to
+      // today, so this must exceed the widest the modal can get (max-w-2xl). ----
+      const windowDays = 371;
       const cells: HeatCell[] = [];
       for (let i = windowDays - 1; i >= 0; i--) {
         const date = dateStringDaysAgo(i);
