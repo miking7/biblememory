@@ -37,12 +37,31 @@ $ops = array_map(function($row) {
   ];
 }, $rows);
 
-// Get current cursor for this user
+// Resume point for the next page: the last op in this page, or the incoming
+// `since` when the page is empty (nothing new).
+$op_count = count($ops);
+$next_cursor = $op_count > 0 ? (int)$ops[$op_count - 1]['seq'] : $since;
+
+// Whether more ops remain beyond this page. A short page is definitively the
+// last one; a full page needs an existence check.
+if ($op_count < $limit) {
+  $has_more = false;
+} else {
+  $stmt = $pdo->prepare('SELECT 1 FROM ops WHERE user_id = ? AND seq > ? LIMIT 1');
+  $stmt->execute([$user_id, $next_cursor]);
+  $has_more = $stmt->fetchColumn() !== false;
+}
+
+// Server head for this user. Informational only — this is NOT a "caught up"
+// marker; clients must page using next_cursor + has_more (trusting this as the
+// cursor after one page is what silently skipped ops before).
 $stmt = $pdo->prepare('SELECT COALESCE(MAX(seq), 0) FROM ops WHERE user_id = ?');
 $stmt->execute([$user_id]);
 $cursor = (int)$stmt->fetchColumn();
 
 json_out([
   'cursor' => $cursor,
+  'next_cursor' => $next_cursor,
+  'has_more' => $has_more,
   'ops' => $ops
 ]);

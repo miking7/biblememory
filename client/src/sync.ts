@@ -78,9 +78,8 @@ export async function pushOps(): Promise<void> {
 // Pull operations from the server.
 //
 // The op log can be far larger than one page, so we page through the whole
-// backlog: each request returns up to PULL_PAGE_SIZE ops with seq > cursor
-// (ascending), and we advance the cursor to the LAST op's seq before asking for
-// the next page, stopping when a page comes back short.
+// backlog: each request returns up to PULL_PAGE_SIZE ops with seq > cursor, and
+// we resume from the server's next_cursor until it reports has_more = false.
 //
 // This previously pulled a single page but advanced the cursor to the server's
 // global MAX(seq), so everything between the first page and the newest op was
@@ -114,11 +113,14 @@ export async function pullOps(): Promise<void> {
         break;
       }
 
-      // Advance by the last op's seq in this page (ops are ordered ascending).
-      const pageCursor = ops[ops.length - 1].seq;
-      if (typeof pageCursor !== "number" || pageCursor <= cursor) {
-        // Impossible under the server contract (seq > since, ascending); bail
-        // rather than risk an infinite loop.
+      // Resume point for the next page: prefer the server's explicit
+      // next_cursor, falling back to the last op's seq for older responses.
+      const nextCursor = typeof result.next_cursor === "number"
+        ? result.next_cursor
+        : ops[ops.length - 1].seq;
+      if (typeof nextCursor !== "number" || nextCursor <= cursor) {
+        // Shouldn't happen (returned ops have seq > since); bail rather than
+        // risk an infinite loop.
         console.error("Pull: page did not advance the cursor, stopping.", { cursor });
         break;
       }
@@ -187,13 +189,17 @@ export async function pullOps(): Promise<void> {
             await db.appliedOps.put({ op_id: op.op_id });
           }
 
-          // Advance the sync cursor by the last op we actually received.
-          await updateSyncState({ cursor: pageCursor, lastPullAt: Date.now() });
+          // Advance the sync cursor to the resume point for the next page.
+          await updateSyncState({ cursor: nextCursor, lastPullAt: Date.now() });
         }
       );
 
-      // A short page means we've reached the end of the backlog.
-      if (ops.length < PULL_PAGE_SIZE) break;
+      // Stop when the server reports no more ops (fall back to the page-size
+      // heuristic for older responses that omit has_more).
+      const hasMore = typeof result.has_more === "boolean"
+        ? result.has_more
+        : ops.length >= PULL_PAGE_SIZE;
+      if (!hasMore) break;
     }
   } catch (error) {
     console.error("Pull error:", error);
