@@ -16,6 +16,23 @@ async function getAuthHeaders(): Promise<HeadersInit> {
   };
 }
 
+// Merge a partial update into the singleton sync record without dropping the
+// other fields, so a caller can't accidentally clobber a field it didn't mean
+// to touch (the class of bug this consolidates — push used to wipe the cursor).
+async function updateSyncState(patch: {
+  cursor?: number;
+  lastPushAt?: number | null;
+  lastPullAt?: number | null;
+}): Promise<void> {
+  const current = await db.sync.get("default");
+  await db.sync.put({
+    id: "default",
+    cursor: patch.cursor ?? current?.cursor ?? 0,
+    lastPushAt: patch.lastPushAt !== undefined ? patch.lastPushAt : (current?.lastPushAt ?? null),
+    lastPullAt: patch.lastPullAt !== undefined ? patch.lastPullAt : (current?.lastPullAt ?? null)
+  });
+}
+
 // Push operations to server
 export async function pushOps(): Promise<void> {
   try {
@@ -48,13 +65,9 @@ export async function pushOps(): Promise<void> {
       await db.outbox.bulkDelete(result.acked_ids);
     }
 
-    // Update sync cursor
-    await db.sync.put({
-      id: "default",
-      cursor: result.cursor || 0,
-      lastPushAt: Date.now(),
-      lastPullAt: null
-    });
+    // Record the push time only — the pull cursor is owned by pullOps and must
+    // not be clobbered here (doing so used to make the next pull skip ops).
+    await updateSyncState({ lastPushAt: Date.now() });
 
   } catch (error) {
     console.error("Push error:", error);
@@ -62,132 +75,156 @@ export async function pushOps(): Promise<void> {
   }
 }
 
-// Pull operations from server
+// Pull operations from the server.
+//
+// The op log can be far larger than one page, so we page through the whole
+// backlog: each request returns up to PULL_PAGE_SIZE ops with seq > cursor
+// (ascending), and we advance the cursor to the LAST op's seq before asking for
+// the next page, stopping when a page comes back short.
+//
+// This previously pulled a single page but advanced the cursor to the server's
+// global MAX(seq), so everything between the first page and the newest op was
+// silently skipped on a fresh sync.
+const PULL_PAGE_SIZE = 2000; // server caps at 2000; bigger pages = fewer round-trips
+
 export async function pullOps(): Promise<void> {
   try {
-    // Get current sync state
-    const syncState = await db.sync.get("default");
-    const cursor = syncState?.cursor || 0;
-
     const headers = await getAuthHeaders();
-    const response = await fetch(
-      `${API_BASE}/pull?since=${cursor}&limit=500`,
-      { headers }
-    );
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Pull failed: ${response.status} ${error}`);
-    }
+    while (true) {
+      const syncState = await db.sync.get("default");
+      const cursor = syncState?.cursor || 0;
 
-    const result = await response.json();
-    const { cursor: newCursor, ops } = result;
+      const response = await fetch(
+        `${API_BASE}/pull?since=${cursor}&limit=${PULL_PAGE_SIZE}`,
+        { headers }
+      );
 
-    if (!ops || ops.length === 0) {
-      // Update lastPullAt even if no new ops
-      if (syncState) {
-        await db.sync.put({
-          ...syncState,
-          lastPullAt: Date.now()
-        });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Pull failed: ${response.status} ${error}`);
       }
-      return;
-    }
 
-    // Apply operations in a transaction
-    await db.transaction(
-      'rw',
-      db.verses,
-      db.reviews,
-      db.settings,
-      db.appliedOps,
-      db.sync,
-      async () => {
-        for (const op of ops) {
-          // Check if already applied (deduplication)
-          const already = await db.appliedOps.get(op.op_id);
-          if (already) continue;
+      const result = await response.json();
+      const ops = (result.ops || []) as any[];
 
-          // Apply operation based on entity and action
-          if (op.entity === "verse") {
-            if (op.action === "add" || op.action === "set") {
-              // For verses, use LWW (Last-Write-Wins)
-              const existing = await db.verses.get(op.data.id);
+      if (ops.length === 0) {
+        // Up to date — just stamp the pull time.
+        await updateSyncState({ lastPullAt: Date.now() });
+        break;
+      }
+
+      // Advance by the last op's seq in this page (ops are ordered ascending).
+      const pageCursor = ops[ops.length - 1].seq;
+      if (typeof pageCursor !== "number" || pageCursor <= cursor) {
+        // Impossible under the server contract (seq > since, ascending); bail
+        // rather than risk an infinite loop.
+        console.error("Pull: page did not advance the cursor, stopping.", { cursor });
+        break;
+      }
+
+      // Apply this page in a transaction, then advance the cursor.
+      await db.transaction(
+        'rw',
+        db.verses,
+        db.reviews,
+        db.settings,
+        db.appliedOps,
+        db.sync,
+        async () => {
+          for (const op of ops) {
+            // Check if already applied (deduplication)
+            const already = await db.appliedOps.get(op.op_id);
+            if (already) continue;
+
+            // Apply operation based on entity and action
+            if (op.entity === "verse") {
+              if (op.action === "add" || op.action === "set") {
+                // For verses, use LWW (Last-Write-Wins)
+                const existing = await db.verses.get(op.data.id);
+                const opTimestamp = op.ts_server || op.ts_client;
+
+                if (!existing || (existing.updatedAt || 0) < opTimestamp) {
+                  await db.verses.put({
+                    ...op.data,
+                    updatedAt: opTimestamp
+                  });
+                }
+              } else if (op.action === "delete") {
+                await db.verses.delete(op.data.id);
+              }
+            } else if (op.entity === "review" && op.action === "add") {
+              // Reviews are append-only
+              const reviewTimestamp = op.data.createdAt || op.ts_server || op.ts_client;
+              await db.reviews.put({
+                id: op.data.id || op.op_id,
+                verseId: op.data.verseId,
+                reviewType: op.data.reviewType,
+                createdAt: reviewTimestamp
+              });
+
+              // Update review cache for visual feedback (if review is from today)
+              updateReviewCache(
+                op.data.verseId,
+                op.data.reviewType as 'recall' | 'practice',
+                reviewTimestamp
+              );
+            } else if (op.entity === "setting" && op.action === "set") {
+              // Settings use LWW
+              const existing = await db.settings.get(op.data.key);
               const opTimestamp = op.ts_server || op.ts_client;
-              
-              if (!existing || (existing.updatedAt || 0) < opTimestamp) {
-                await db.verses.put({
-                  ...op.data,
+
+              if (!existing || existing.updatedAt < opTimestamp) {
+                await db.settings.put({
+                  key: op.data.key,
+                  value: op.data.value,
                   updatedAt: opTimestamp
                 });
               }
-            } else if (op.action === "delete") {
-              await db.verses.delete(op.data.id);
             }
-          } else if (op.entity === "review" && op.action === "add") {
-            // Reviews are append-only
-            const reviewTimestamp = op.data.createdAt || op.ts_server || op.ts_client;
-            await db.reviews.put({
-              id: op.data.id || op.op_id,
-              verseId: op.data.verseId,
-              reviewType: op.data.reviewType,
-              createdAt: reviewTimestamp
-            });
 
-            // Update review cache for visual feedback (if review is from today)
-            updateReviewCache(
-              op.data.verseId,
-              op.data.reviewType as 'recall' | 'practice',
-              reviewTimestamp
-            );
-          } else if (op.entity === "setting" && op.action === "set") {
-            // Settings use LWW
-            const existing = await db.settings.get(op.data.key);
-            const opTimestamp = op.ts_server || op.ts_client;
-            
-            if (!existing || existing.updatedAt < opTimestamp) {
-              await db.settings.put({
-                key: op.data.key,
-                value: op.data.value,
-                updatedAt: opTimestamp
-              });
-            }
+            // Mark operation as applied
+            await db.appliedOps.put({ op_id: op.op_id });
           }
 
-          // Mark operation as applied
-          await db.appliedOps.put({ op_id: op.op_id });
+          // Advance the sync cursor by the last op we actually received.
+          await updateSyncState({ cursor: pageCursor, lastPullAt: Date.now() });
         }
+      );
 
-        // Update sync state
-        await db.sync.put({
-          id: "default",
-          cursor: newCursor,
-          lastPushAt: syncState?.lastPushAt || null,
-          lastPullAt: Date.now()
-        });
-      }
-    );
-
+      // A short page means we've reached the end of the backlog.
+      if (ops.length < PULL_PAGE_SIZE) break;
+    }
   } catch (error) {
     console.error("Pull error:", error);
     throw error;
   }
 }
 
+// Guards against overlapping syncs — a long paginated pull can still be running
+// when the next periodic tick or a fresh outbox push fires.
+let syncInFlight = false;
+
 // Sync now (push then pull)
 export async function syncNow(): Promise<void> {
+  if (syncInFlight) return; // a sync is already running; don't run two at once
+  syncInFlight = true;
   try {
-    await pushOps();
-  } catch (error) {
-    console.error("Push failed during sync:", error);
-    // Continue to pull even if push fails
-  }
+    try {
+      await pushOps();
+    } catch (error) {
+      console.error("Push failed during sync:", error);
+      // Continue to pull even if push fails
+    }
 
-  try {
-    await pullOps();
-  } catch (error) {
-    console.error("Pull failed during sync:", error);
-    throw error;
+    try {
+      await pullOps();
+    } catch (error) {
+      console.error("Pull failed during sync:", error);
+      throw error;
+    }
+  } finally {
+    syncInFlight = false;
   }
 }
 
