@@ -15,7 +15,7 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Apostrophe/Unicode Handling Fixed ✅ (awaiting Herd test, then push)
+**Status:** Apostrophe/Unicode Handling Fixed ✅ (Herd-tested, pushed to production — 777ef65)
 
 **Latest Work:** Fixed apostrophe handling in both text-splitting utilities.
 Root cause: `isApostrophe` in firstLetters.ts compared three **identical**
@@ -34,13 +34,13 @@ repo. `npm test` runs 60 tests covering firstLetters + getWords.
 
 **See:** previous-work/068_apostrophe_unicode_handling.md for details
 
-**Also pending push:**
-- Review card visibility fix (previous-work/067_review_card_visibility_fix.md).
-  Invariant: every card exit animation must be followed by an entry animation
-  or a `reset` — flows that re-present a card without one render it invisible.
-- Statistics / Progress dashboard (previous-work/066_statistics_dashboard.md).
-  Deferred from that work: deterministic "due today" target (progress-bar
-  denominator still rides `getVersesForReview()`'s `Math.random()` gating).
+**Standing notes from recent work (all pushed to production):**
+- Card animation invariant: every card exit animation must be followed by an
+  entry animation or a `reset` — flows that re-present a card without one
+  render it invisible (previous-work/067_review_card_visibility_fix.md).
+- Stats dashboard deferred item: deterministic "due today" target (progress-bar
+  denominator still rides `getVersesForReview()`'s `Math.random()` gating)
+  (previous-work/066_statistics_dashboard.md).
 
 **Next:** User-driven thorough code review to identify further bugs.
 
