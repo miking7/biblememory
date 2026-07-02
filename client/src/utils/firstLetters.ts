@@ -23,6 +23,9 @@ interface Word {
  * Features:
  * - Unicode-aware letter detection (supports accented letters, all languages)
  * - Smart hyphen handling: regular hyphens and en-dashes keep words together, em-dashes split chunks
+ * - Positional apostrophe handling: an apostrophe-family char (' ‘ ’ ʼ) between letters
+ *   is part of the word ("Satan’s" → "S"); elsewhere it's a quote mark kept as a
+ *   separator — either way it never breaks a chunk
  * - Preserves punctuation, numbers, and newlines as separators
  * - Handles multiple consecutive whitespace correctly
  *
@@ -33,14 +36,23 @@ export function getFirstLettersChunks(content: string): FirstLetterChunk[] {
   // Character classification helpers
   const isLetter = (char: string) => /\p{L}/u.test(char)
   const isWhitespace = (char: string) => /\s/u.test(char)
-  const isApostrophe = (char: string) => char === "'" || char === "'" || char === "'"
+  // Apostrophe-family characters, compared by code point so quote-normalizing
+  // editors/tools can never silently rewrite them:
+  //   U+0027 apostrophe, U+2018 left single quote, U+2019 right single quote
+  //   (the standard typographic apostrophe), U+02BC modifier letter apostrophe.
+  // Position decides meaning: between letters = apostrophe (part of the word);
+  // anywhere else = quotation mark (separator).
+  const isApostropheChar = (char: string) => {
+    const cp = char.codePointAt(0)
+    return cp === 0x0027 || cp === 0x2018 || cp === 0x2019 || cp === 0x02BC
+  }
   const isHyphen = (char: string) => char === '-' || char === '–' // hyphen and en-dash (not em-dash)
 
   // Determines if a character should break chunks
   // Chunk breakers: punctuation, numbers, newlines, em-dash, and other non-word characters
-  // NOT chunk breakers: letters, apostrophes, hyphens, whitespace
+  // NOT chunk breakers: letters, apostrophe-family chars, hyphens, whitespace
   const isChunkBreaker = (char: string) => {
-    return !isLetter(char) && !isApostrophe(char) && !isWhitespace(char) && !isHyphen(char)
+    return !isLetter(char) && !isApostropheChar(char) && !isWhitespace(char) && !isHyphen(char)
   }
 
   // Phase 1: Build words array using state machine
@@ -55,13 +67,15 @@ export function getFirstLettersChunks(content: string): FirstLetterChunk[] {
   for (let i = 0; i < content.length; i++) {
     const char = content[i]
 
-    // Determine new mode based on current character
-    let newMode: 'word' | 'separator'
-    if (mode === 'separator') {
-      newMode = isLetter(char) ? 'word' : 'separator'
-    } else { // mode === 'word'
-      newMode = (isLetter(char) || isApostrophe(char)) ? 'word' : 'separator'
-    }
+    // Determine new mode based on current character.
+    // Positional apostrophe rule: an apostrophe-family char stays inside a word
+    // only when it sits between letters (we're in a word and a letter follows);
+    // anywhere else it's a quotation mark and belongs to the separators.
+    // The apostrophe branch must come first: U+02BC is itself a Unicode letter.
+    const nextChar = content[i + 1] ?? ''
+    const newMode: 'word' | 'separator' = isApostropheChar(char)
+      ? ((mode === 'word' && isLetter(nextChar)) ? 'word' : 'separator')
+      : (isLetter(char) ? 'word' : 'separator')
 
     // Handle mode transition from 'separator' to 'word'
     if (mode === 'separator' && newMode === 'word') {

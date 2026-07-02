@@ -15,27 +15,32 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Review Card Visibility Bug Fixed ✅ (awaiting Herd test, then push)
+**Status:** Apostrophe/Unicode Handling Fixed ✅ (awaiting Herd test, then push)
 
-**Latest Work:** Fixed the invisible-card bug — after completing a review,
-"Review More" / "Return to Daily Review" / re-tapping the Review tab showed a
-blank (but still clickable!) card until the user navigated next+prev. Root
-cause: card opacity is owned by `useCardTransitions` state, and the completion
-branch of `navigate()` ran an exit animation with no matching entry, stranding
-`cardVisible = false`. Fix restores the resting state at that single break
-point via a new `resetCard()` primitive; `resetReview()` now also awaits queue
-regeneration before un-completing (avoids old-card flash).
+**Latest Work:** Fixed apostrophe handling in both text-splitting utilities.
+Root cause: `isApostrophe` in firstLetters.ts compared three **identical**
+straight quotes (0x27) — the intended curly variants were never in the file
+(quote normalization stripped them at authoring time) — so typographic
+apostrophes (U+2019) in real verse text broke first-letter chunks and split
+flash-card words. Both utils now share a positional rule: apostrophe-family
+char (U+0027/U+2018/U+2019/U+02BC) between letters = part of the word,
+anywhere else = quotation mark; never a chunk breaker. `getWords` is now also
+Unicode-aware (accented letters no longer split flash-card words). Characters
+are encoded corruption-proof (code points / escapes / String.fromCharCode) —
+never replace with literal glyphs.
 
-**Invariant to preserve:** every card exit animation must be followed by an
-entry animation or a `reset` — flows that re-present a card without one will
-render it invisible.
+**Testing (NEW):** Vitest infrastructure added — first automated tests in the
+repo. `npm test` runs 60 tests covering firstLetters + getWords.
 
-**See:** previous-work/067_review_card_visibility_fix.md for details
+**See:** previous-work/068_apostrophe_unicode_handling.md for details
 
-**Also pending push:** Statistics / Progress dashboard (see
-previous-work/066_statistics_dashboard.md). Deferred from that work:
-deterministic "due today" target (progress-bar denominator still rides
-`getVersesForReview()`'s `Math.random()` gating).
+**Also pending push:**
+- Review card visibility fix (previous-work/067_review_card_visibility_fix.md).
+  Invariant: every card exit animation must be followed by an entry animation
+  or a `reset` — flows that re-present a card without one render it invisible.
+- Statistics / Progress dashboard (previous-work/066_statistics_dashboard.md).
+  Deferred from that work: deterministic "due today" target (progress-bar
+  denominator still rides `getVersesForReview()`'s `Math.random()` gating).
 
 **Next:** User-driven thorough code review to identify further bugs.
 
@@ -115,3 +120,4 @@ This index provides titles and links for reference when needed.
 - **065** - Pre-Push Code Review & Fixes → [previous-work/065_prepush_code_review_fixes.md](previous-work/065_prepush_code_review_fixes.md)
 - **066** - Statistics / Progress Dashboard → [previous-work/066_statistics_dashboard.md](previous-work/066_statistics_dashboard.md)
 - **067** - Review Card Visibility Fix → [previous-work/067_review_card_visibility_fix.md](previous-work/067_review_card_visibility_fix.md)
+- **068** - Apostrophe & Unicode Handling Fix (First Letters + Flash Cards) → [previous-work/068_apostrophe_unicode_handling.md](previous-work/068_apostrophe_unicode_handling.md)

@@ -12,7 +12,15 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 
 ## Current Testing Approach
 
-**Phase 1:** Manual testing only
+**Unit tests (Vitest):** Pure text-processing utilities are covered by
+automated tests — run `npm test` (root or client), `npm run test:watch` for
+development. Config: `client/vitest.config.ts` (standalone; does not load the
+Vue/PWA build plugins). Current suites: `firstLetters.test.ts` and
+`reviewHelpers.test.ts` (60 tests). Convention: apostrophe/newline characters
+in tests are built via String.fromCharCode so quote-normalizing editors can't
+silently rewrite what the tests assert (see previous-work/068).
+
+**Everything else:** Manual testing
 
 We're using manual testing with an ad-hoc approach for Phase 1 to reach MVP faster. Testing is performed by:
 - Using the app during development to verify features work

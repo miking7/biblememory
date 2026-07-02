@@ -446,7 +446,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 ### Technical Improvements (Ongoing)
 
 #### Testing
-- [ ] Unit tests (Vitest)
+- [x] Unit tests (Vitest) — infrastructure + first suites (firstLetters, getWords; 60 tests, `npm test`)
 - [ ] Integration tests
 - [ ] E2E tests (Playwright)
 - [ ] Test coverage reporting

@@ -50,6 +50,9 @@ export function formatTagForDisplay(tag: Tag): string {
  * Parse content into word items for flash cards mode
  * Returns objects with {isWord, str} preserving ALL content including spaces and punctuation
  *
+ * Apostrophes between letters ("Satan’s", "God's") stay inside the word; apostrophe-family
+ * chars in any other position (quote marks, trailing possessives) are punctuation.
+ *
  * @param content - Text to parse
  * @param allowNumbers - If true, numbers can start words (for references like "1 John")
  */
@@ -58,11 +61,16 @@ export function getWords(content: string, allowNumbers: boolean = false): WordIt
   const result: WordItem[] = []
 
   lines.forEach((line, lineIndex) => {
-    // Regex patterns matching legacy implementation
+    // Unicode-aware word boundaries (accented letters are word characters)
     const wordStartPattern = allowNumbers
-      ? /[A-Za-z0-9]/          // Word can start with letter or number (for references)
-      : /[A-Za-z]/             // Word must start with letter (for content)
-    const wordStopPattern = /[^A-Za-z0-9'\-]/  // Word can contain letters, numbers, apostrophes, hyphens
+      ? /[\p{L}\p{N}]/u        // Word can start with letter or number (for references)
+      : /\p{L}/u               // Word must start with letter (for content)
+    // A word stops at any char outside letters/numbers/hyphen/apostrophe-family,
+    // OR at an apostrophe-family char not followed by a letter — position decides:
+    // "Satan’s" stays one word; the ’ in "disciples’ feet" or a closing quote is
+    // punctuation. Apostrophes written as \u escapes (' U+0027, ‘ U+2018, ’ U+2019,
+    // ʼ U+02BC) so quote-normalizing editors/tools can't silently rewrite them.
+    const wordStopPattern = /[^\p{L}\p{N}\u0027\u2018\u2019\u02BC\-]|[\u0027\u2018\u2019\u02BC](?!\p{L})/u
 
     let str = line
     let isWord = wordStartPattern.test(str.charAt(0))
