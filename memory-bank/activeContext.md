@@ -15,24 +15,28 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Apostrophe/Unicode Handling Fixed ✅ (Herd-tested, pushed to production — 777ef65)
+**Status:** Navigation Race Fixed ✅ (awaiting Herd test) — architecture
+review remediation in progress
 
-**Latest Work:** Fixed apostrophe handling in both text-splitting utilities.
-Root cause: `isApostrophe` in firstLetters.ts compared three **identical**
-straight quotes (0x27) — the intended curly variants were never in the file
-(quote normalization stripped them at authoring time) — so typographic
-apostrophes (U+2019) in real verse text broke first-letter chunks and split
-flash-card words. Both utils now share a positional rule: apostrophe-family
-char (U+0027/U+2018/U+2019/U+02BC) between letters = part of the word,
-anywhere else = quotation mark; never a chunk breaker. `getWords` is now also
-Unicode-aware (accented letters no longer split flash-card words). Characters
-are encoded corruption-proof (code points / escapes / String.fromCharCode) —
-never replace with literal glyphs.
+**Latest Work:** Added an `isNavigating` guard covering the entire
+`navigate()` sequence. Previously only `isAnimating()` was checked, but the
+400ms review-feedback delay runs before animations start — so double-tapping
+"Got it!" recorded two reviews and skipped a card. All controls (buttons,
+arrows, swipe, keyboard, card click) now share the one guard. Includes the
+repo's first composable-level tests (useReview.test.ts, verified red without
+the fix). See previous-work/069_navigation_race_fix.md.
 
-**Testing (NEW):** Vitest infrastructure added — first automated tests in the
-repo. `npm test` runs 60 tests covering firstLetters + getWords.
+**In progress (from the state/transitions/animations review):**
+1. ✅ Navigation race guard (069)
+2. ⏳ Agent entry-point restructure (AGENTS.md canonical) + doc-drift purge
+3. ⏸ Swipe→exit animation continuity; animator registration lifecycle
+4. ⏸ Migrate review card to Vue `<Transition>` (removes hand-rolled
+   useCardTransitions invariant)
+5. ⏸ Consolidate ReviewTab wiring to single `review` prop (matches
+   systemPatterns §7 documented pattern)
 
-**See:** previous-work/068_apostrophe_unicode_handling.md for details
+**Recent shipped work:** Apostrophe/Unicode handling in text splitters +
+Vitest infrastructure (068, pushed — 777ef65).
 
 **Standing notes from recent work (all pushed to production):**
 - Card animation invariant: every card exit animation must be followed by an
@@ -121,3 +125,4 @@ This index provides titles and links for reference when needed.
 - **066** - Statistics / Progress Dashboard → [previous-work/066_statistics_dashboard.md](previous-work/066_statistics_dashboard.md)
 - **067** - Review Card Visibility Fix → [previous-work/067_review_card_visibility_fix.md](previous-work/067_review_card_visibility_fix.md)
 - **068** - Apostrophe & Unicode Handling Fix (First Letters + Flash Cards) → [previous-work/068_apostrophe_unicode_handling.md](previous-work/068_apostrophe_unicode_handling.md)
+- **069** - Navigation Race Fix (isNavigating guard) → [previous-work/069_navigation_race_fix.md](previous-work/069_navigation_race_fix.md)

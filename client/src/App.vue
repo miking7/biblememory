@@ -81,6 +81,7 @@
         :total-review-count="totalReviewCount"
         :review-complete="reviewComplete"
         :current-review-index="currentReviewIndex"
+        :is-navigating="isNavigating"
         :current-review-verse="currentReviewVerse"
         :current-verse-review-status="currentVerseReviewStatus"
         :is-current-verse-inactive="isCurrentVerseInactive"
@@ -115,6 +116,7 @@
       :can-increase-flash-card-difficulty="canIncreaseFlashCardDifficulty"
       :can-decrease-flash-card-difficulty="canDecreaseFlashCardDifficulty"
       :flash-card-level-name="getFlashCardLevelName"
+      :is-navigating="isNavigating"
       @switch-to-type-it="switchToTypeIt()"
       @switch-to-flash-cards="switchToFlashCards()"
       @switch-to-hints="switchToHints()"
@@ -279,6 +281,7 @@ const {
   navigate,
   viewLastCard,
   registerCardAnimators,
+  isNavigating,
 
   // Review source selection handlers
   startReviewFromFiltered,

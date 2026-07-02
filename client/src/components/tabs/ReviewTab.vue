@@ -38,7 +38,7 @@
           <!-- Left Arrow (Previous) -->
           <button
             @click="$emit('navigate', { direction: 'previous' })"
-            :disabled="currentReviewIndex === 0 || transitions.isTransitioning.value"
+            :disabled="currentReviewIndex === 0 || isNavigating || transitions.isTransitioning.value"
             class="no-zoom absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 sm:-translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
             title="Previous verse (p)">
             <i class="mdi mdi-chevron-left text-2xl"></i>
@@ -47,7 +47,7 @@
           <!-- Right Arrow (Next) -->
           <button
             @click="$emit('navigate', { direction: 'next' })"
-            :disabled="currentReviewIndex >= totalReviewCount - 1 || transitions.isTransitioning.value"
+            :disabled="currentReviewIndex >= totalReviewCount - 1 || isNavigating || transitions.isTransitioning.value"
             class="no-zoom absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
             title="Next verse (n)">
             <i class="mdi mdi-chevron-right text-2xl"></i>
@@ -296,6 +296,7 @@ const props = defineProps<{
   totalReviewCount: number
   reviewComplete: boolean
   currentReviewIndex: number
+  isNavigating: boolean
   currentReviewVerse: Verse | null
   currentVerseReviewStatus: ReviewStatus | null
   isCurrentVerseInactive: boolean
@@ -319,9 +320,15 @@ const props = defineProps<{
   }) => void
 }>()
 
-// Compute swipe boundaries internally
-const canSwipeLeft = computed(() => props.currentReviewIndex < props.totalReviewCount - 1)
-const canSwipeRight = computed(() => props.currentReviewIndex > 0)
+// Compute swipe boundaries internally. Swiping is also blocked while a
+// navigation is in flight, so a drag can't hijack the card transform
+// mid-animation (the release would be dropped by navigate()'s guard anyway).
+const canSwipeLeft = computed(() =>
+  props.currentReviewIndex < props.totalReviewCount - 1 && !props.isNavigating
+)
+const canSwipeRight = computed(() =>
+  props.currentReviewIndex > 0 && !props.isNavigating
+)
 
 // Verse-dependent helpers, cached per verse (re-parsing the reference on
 // every render/reactive tick was wasteful — these only change with the verse).

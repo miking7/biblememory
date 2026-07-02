@@ -81,7 +81,7 @@
       <div class="flex gap-3 justify-center">
         <button
           @click="$emit('again')"
-          :disabled="reviewMode !== 'content'"
+          :disabled="reviewMode !== 'content' || isNavigating"
           class="action-button-again px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
           :title="reviewMode === 'content' ? 'Need more practice (a)' : 'Available after revealing verse'">
           <i class="mdi mdi-refresh text-lg"></i>
@@ -89,7 +89,7 @@
         </button>
         <button
           @click="$emit('gotIt')"
-          :disabled="reviewMode !== 'content'"
+          :disabled="reviewMode !== 'content' || isNavigating"
           class="action-button-gotit px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
           :title="reviewMode === 'content' ? 'I remembered it! (g)' : 'Available after revealing verse'">
           <i class="mdi mdi-check text-lg"></i>
@@ -104,7 +104,7 @@
       <div class="flex gap-3">
         <button
           @click="$emit('again')"
-          :disabled="reviewMode !== 'content'"
+          :disabled="reviewMode !== 'content' || isNavigating"
           class="action-button-again flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
           :title="reviewMode === 'content' ? 'Need more practice (a)' : 'Available after revealing verse'">
           <i class="mdi mdi-refresh text-lg"></i>
@@ -121,7 +121,7 @@
         </button>
         <button
           @click="$emit('gotIt')"
-          :disabled="reviewMode !== 'content'"
+          :disabled="reviewMode !== 'content' || isNavigating"
           class="action-button-gotit flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
           :title="reviewMode === 'content' ? 'I remembered it! (g)' : 'Available after revealing verse'">
           <i class="mdi mdi-check text-lg"></i>
@@ -202,6 +202,7 @@ defineProps<{
   canIncreaseFlashCardDifficulty: boolean
   canDecreaseFlashCardDifficulty: boolean
   flashCardLevelName: string
+  isNavigating: boolean
 }>()
 
 defineEmits<{

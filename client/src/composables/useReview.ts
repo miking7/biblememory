@@ -30,6 +30,11 @@ export function useReview() {
   const reviewComplete = ref(false);
   const dueForReview = ref<Verse[]>([]);
 
+  // True for the entire navigate() sequence, including the review-recording
+  // feedback delay that runs BEFORE any animation starts. UI controls bind
+  // to this for their disabled state.
+  const isNavigating = ref(false);
+
   // Review source selection state
   const reviewSource = ref<'daily' | 'filtered'>('daily');
   const filteredReviewVerses = ref<Verse[]>([]);
@@ -498,45 +503,53 @@ export function useReview() {
     direction: 'next' | 'previous';
     recordReview?: boolean;
   }) => {
-    // Ignore navigation requests while a transition is in flight
-    if (cardAnimators?.isAnimating()) return;
+    // One navigation at a time. Checking isAnimating() alone is not
+    // enough: the review-recording feedback delay runs before any
+    // animation starts, and a second trigger in that window would record
+    // the review twice and advance two cards.
+    if (isNavigating.value || cardAnimators?.isAnimating()) return;
 
     // Can't go previous from first card
     if (options.direction === 'previous' && currentReviewIndex.value === 0) {
       return;
     }
 
-    // Record review if requested (includes 400ms visual feedback)
-    if (options.recordReview !== undefined) {
-      await markReview(options.recordReview);
-    }
-
-    // Exit animation: card slides out opposite to the direction of travel
-    const exitDir = options.direction === 'next' ? 'left' : 'right';
-    if (cardAnimators) await cardAnimators.exit(exitDir);
-
-    // Navigate
-    if (options.direction === 'next') {
-      const isOnLastCard = currentReviewIndex.value === totalReviewCount.value - 1;
-
-      if (isOnLastCard) {
-        // Reached end - show completion screen (no entry animation)
-        completeReview();
-        // The exit animation left the card hidden, and the completion
-        // screen now covers it. Restore the resting state here — flows
-        // that re-present a card without an entry animation (Review More,
-        // Return to Daily Review, re-selecting the Review tab) would
-        // otherwise render the card at opacity 0.
-        cardAnimators?.reset();
-      } else {
-        // Normal next card - slide the new card in from the right
-        await nextVerse();
-        if (cardAnimators) await cardAnimators.entry('right');
+    isNavigating.value = true;
+    try {
+      // Record review if requested (includes 400ms visual feedback)
+      if (options.recordReview !== undefined) {
+        await markReview(options.recordReview);
       }
-    } else {
-      // Previous card - slide the new card in from the left
-      await previousVerse();
-      if (cardAnimators) await cardAnimators.entry('left');
+
+      // Exit animation: card slides out opposite to the direction of travel
+      const exitDir = options.direction === 'next' ? 'left' : 'right';
+      if (cardAnimators) await cardAnimators.exit(exitDir);
+
+      // Navigate
+      if (options.direction === 'next') {
+        const isOnLastCard = currentReviewIndex.value === totalReviewCount.value - 1;
+
+        if (isOnLastCard) {
+          // Reached end - show completion screen (no entry animation)
+          completeReview();
+          // The exit animation left the card hidden, and the completion
+          // screen now covers it. Restore the resting state here — flows
+          // that re-present a card without an entry animation (Review More,
+          // Return to Daily Review, re-selecting the Review tab) would
+          // otherwise render the card at opacity 0.
+          cardAnimators?.reset();
+        } else {
+          // Normal next card - slide the new card in from the right
+          await nextVerse();
+          if (cardAnimators) await cardAnimators.entry('right');
+        }
+      } else {
+        // Previous card - slide the new card in from the left
+        await previousVerse();
+        if (cardAnimators) await cardAnimators.entry('left');
+      }
+    } finally {
+      isNavigating.value = false;
     }
   };
 
@@ -613,6 +626,7 @@ export function useReview() {
     navigate,
     viewLastCard,
     registerCardAnimators,
+    isNavigating,
 
     // Phase 2: Keyboard shortcuts
     handleKeyPress,

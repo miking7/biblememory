@@ -315,6 +315,7 @@ export function bibleMemoryApp() {
     navigate: reviewLogic.navigate,
     viewLastCard: reviewLogic.viewLastCard,
     registerCardAnimators: reviewLogic.registerCardAnimators,
+    isNavigating: reviewLogic.isNavigating,
 
     // Immersive mode
     isImmersiveModeActive: reviewLogic.isImmersiveModeActive,
