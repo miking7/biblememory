@@ -761,8 +761,15 @@ const handlePreviousClick = () => review.navigate({
 4. Navigate (update index, handle completion)
    ↓
 5. Entry animation (new card slides in)
-   OR show completion screen
+   OR show completion screen + reset card state
 ```
+
+**Critical Invariant:** Card visibility is owned by `useCardTransitions` state
+(`cardVisible`), and only an entry animation restores it after an exit. Any
+path that ends an exit without an entry MUST call the registered `reset`
+animator (the completion branch does this behind the completion screen).
+Violating this renders subsequently-presented cards invisible but interactive.
+(See previous-work/067_review_card_visibility_fix.md)
 
 **Why This Pattern:**
 - ✅ **Simple architecture:** Clean 2-layer design (App.vue → useReview)

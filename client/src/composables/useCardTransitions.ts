@@ -117,10 +117,26 @@ export function useCardTransitions(_element: Ref<HTMLElement | null>) {
     isTransitioning.value = false;
   }
 
+  /**
+   * Instantly restore the card to its resting state (centered, visible).
+   *
+   * exitTransition intentionally leaves the card hidden on the assumption
+   * that an entryTransition follows. Flows that re-present a card without
+   * an entry animation (e.g. restarting from the completion screen) must
+   * call this, or the card renders at opacity 0. Callers must ensure no
+   * transition is in flight.
+   */
+  function resetCard(): void {
+    transitionDuration.value = '0s';
+    cardOffset.value = 0;
+    cardVisible.value = true;
+  }
+
   return {
     // Transition methods
     exitTransition,
     entryTransition,
+    resetCard,
 
     // Readonly state for template binding
     isTransitioning: readonly(isTransitioning),

@@ -314,6 +314,7 @@ const props = defineProps<{
   registerCardAnimators: (animators: {
     exit: (direction: 'left' | 'right' | 'up' | 'down', duration?: number) => Promise<void>
     entry: (direction: 'left' | 'right' | 'up' | 'down', duration?: number) => Promise<void>
+    reset: () => void
     isAnimating: () => boolean
   }) => void
 }>()
@@ -360,6 +361,7 @@ const transitions = useCardTransitions(cardElement)
 props.registerCardAnimators({
   exit: (direction, duration = 300) => transitions.exitTransition({ direction, duration }),
   entry: (direction, duration = 150) => transitions.entryTransition({ direction, duration }),
+  reset: () => transitions.resetCard(),
   isAnimating: () => transitions.isTransitioning.value,
 })
 

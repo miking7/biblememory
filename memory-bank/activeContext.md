@@ -15,31 +15,29 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Statistics / Progress Dashboard Complete ✅ (reviewed, ready to push)
+**Status:** Review Card Visibility Bug Fixed ✅ (awaiting Herd test, then push)
 
-**Latest Work:** Added a tappable "Progress" dashboard behind the three header
-tiles — one tabbed bottom-sheet modal (Library / Today / Consistency) plus a
-live progress-bar "Reviewed Today" tile. All charts hand-rolled SVG/CSS, no
-charting library.
+**Latest Work:** Fixed the invisible-card bug — after completing a review,
+"Review More" / "Return to Daily Review" / re-tapping the Review tab showed a
+blank (but still clickable!) card until the user navigated next+prev. Root
+cause: card opacity is owned by `useCardTransitions` state, and the completion
+branch of `navigate()` ran an exit animation with no matching entry, stranding
+`cardVisible = false`. Fix restores the resting state at that single break
+point via a new `resetCard()` primitive; `resetReview()` now also awaits queue
+regeneration before un-completing (avoids old-card flash).
 
-**What Changed:**
-- New `useStats` engine: one lazy DB read → per-local-day map → streaks,
-  active-day windows, per-day averages, heatmap, maturity funnel, growth curve,
-  Bible coverage. DST-safe day bucketing.
-- New `components/stats/`: StatsModal shell (tabs, swipe, a11y) + 5 chart
-  components; new `utils/bibleBooks.ts`.
-- StatsBar tiles → buttons; middle tile is now a progress bar vs the live due
-  target.
-- Consolidated current-streak into one shared `currentStreakFromReviews`
-  (actions.ts) used by both header and modal, replacing the old 365-capped,
-  DST-fragile version.
+**Invariant to preserve:** every card exit animation must be followed by an
+entry animation or a `reset` — flows that re-present a card without one will
+render it invisible.
 
-**Deferred (deliberate):** Deterministic "due today" target — the progress-bar
-denominator still rides `getVersesForReview()`'s `Math.random()` gating, so it
-can shift across reloads. Stable within a session; revisit with the target
-rework.
+**See:** previous-work/067_review_card_visibility_fix.md for details
 
-**See:** previous-work/066_statistics_dashboard.md for details
+**Also pending push:** Statistics / Progress dashboard (see
+previous-work/066_statistics_dashboard.md). Deferred from that work:
+deterministic "due today" target (progress-bar denominator still rides
+`getVersesForReview()`'s `Math.random()` gating).
+
+**Next:** User-driven thorough code review to identify further bugs.
 
 ## Previous Work Index (Complete Archive)
 
@@ -116,3 +114,4 @@ This index provides titles and links for reference when needed.
 - **064** - ReviewTab Props Simplification → [previous-work/064_reviewtab_props_simplification.md](previous-work/064_reviewtab_props_simplification.md)
 - **065** - Pre-Push Code Review & Fixes → [previous-work/065_prepush_code_review_fixes.md](previous-work/065_prepush_code_review_fixes.md)
 - **066** - Statistics / Progress Dashboard → [previous-work/066_statistics_dashboard.md](previous-work/066_statistics_dashboard.md)
+- **067** - Review Card Visibility Fix → [previous-work/067_review_card_visibility_fix.md](previous-work/067_review_card_visibility_fix.md)

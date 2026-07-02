@@ -50,7 +50,7 @@ export function useReview() {
   // This keeps navigate() as the single orchestrator for every navigation
   // source (arrows, swipe, keyboard, Got it/Again, card click).
   type CardAnimator = (direction: 'left' | 'right' | 'up' | 'down', duration?: number) => Promise<void>;
-  let cardAnimators: { exit: CardAnimator; entry: CardAnimator; isAnimating: () => boolean } | null = null;
+  let cardAnimators: { exit: CardAnimator; entry: CardAnimator; reset: () => void; isAnimating: () => boolean } | null = null;
   const registerCardAnimators = (animators: typeof cardAnimators) => {
     cardAnimators = animators;
   };
@@ -164,17 +164,20 @@ export function useReview() {
     }
   };
 
-  const resetReview = () => {
+  const resetReview = async () => {
     currentReviewIndex.value = 0;
     showVerseText.value = false;
-    reviewComplete.value = false;
     switchToReference();
 
-    // Only regenerate daily review if in daily mode
+    // Only regenerate daily review if in daily mode. Await it before
+    // clearing reviewComplete — flipping it first would briefly show the
+    // old queue's first card until the new queue swaps in.
     if (reviewSource.value === 'daily') {
-      loadReviewVerses(true); // Force regenerate
+      await loadReviewVerses(true); // Force regenerate
     }
     // For filtered mode, just restart same list (no regeneration)
+
+    reviewComplete.value = false;
   };
 
   const completeReview = () => {
@@ -519,6 +522,12 @@ export function useReview() {
       if (isOnLastCard) {
         // Reached end - show completion screen (no entry animation)
         completeReview();
+        // The exit animation left the card hidden, and the completion
+        // screen now covers it. Restore the resting state here — flows
+        // that re-present a card without an entry animation (Review More,
+        // Return to Daily Review, re-selecting the Review tab) would
+        // otherwise render the card at opacity 0.
+        cardAnimators?.reset();
       } else {
         // Normal next card - slide the new card in from the right
         await nextVerse();
