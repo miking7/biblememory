@@ -1,7 +1,7 @@
 # Project Brief
 
 <!-- 
-MAINTENANCE PRINCIPLES (from .clinerules):
+MAINTENANCE PRINCIPLES (see AGENTS.md → Documentation maintenance):
 - Foundation document that shapes all other memory bank files
 - Defines core requirements, goals, and project scope
 - High-level only - details go in other files

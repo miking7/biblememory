@@ -1,7 +1,7 @@
 # Active Context
 
 <!--
-MAINTENANCE PRINCIPLES (from .clinerules):
+MAINTENANCE PRINCIPLES (see AGENTS.md → Documentation maintenance):
 - This file tracks ONLY current work - what we're working on RIGHT NOW
 - Keep this file under 200 lines
 - ALL completed work must be archived to previous-work/ with numeric filenames (001-999)
@@ -15,20 +15,24 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Navigation Race Fixed ✅ (awaiting Herd test) — architecture
-review remediation in progress
+**Status:** Architecture review remediation — items 1-2 complete (both
+awaiting Herd test / user review before push)
 
-**Latest Work:** Added an `isNavigating` guard covering the entire
-`navigate()` sequence. Previously only `isAnimating()` was checked, but the
-400ms review-feedback delay runs before animations start — so double-tapping
-"Got it!" recorded two reviews and skipped a card. All controls (buttons,
-arrows, swipe, keyboard, card click) now share the one guard. Includes the
-repo's first composable-level tests (useReview.test.ts, verified red without
-the fix). See previous-work/069_navigation_race_fix.md.
+**Latest Work:**
+- **069:** `isNavigating` guard covering the entire `navigate()` sequence —
+  double-tapping "Got it!" no longer records two reviews and skips a card.
+  Includes the repo's first composable-level tests (verified red without the
+  fix).
+- **070:** Agent entry-point restructure — new canonical **AGENTS.md** (repo
+  root) with commands/architecture/invariants/doc-map; CLAUDE.md and
+  .clinerules are now thin pointers to it. Memory-bank reading is now
+  SELECTIVE (activeContext first, others per the map). Doc drift purged
+  (legacy-app sections, versions, sync interval, endpoint/test counts,
+  line-number refs).
 
-**In progress (from the state/transitions/animations review):**
+**Remediation list (from the state/transitions/animations review):**
 1. ✅ Navigation race guard (069)
-2. ⏳ Agent entry-point restructure (AGENTS.md canonical) + doc-drift purge
+2. ✅ Agent entry-point restructure + doc-drift purge (070)
 3. ⏸ Swipe→exit animation continuity; animator registration lifecycle
 4. ⏸ Migrate review card to Vue `<Transition>` (removes hand-rolled
    useCardTransitions invariant)
@@ -126,3 +130,4 @@ This index provides titles and links for reference when needed.
 - **067** - Review Card Visibility Fix → [previous-work/067_review_card_visibility_fix.md](previous-work/067_review_card_visibility_fix.md)
 - **068** - Apostrophe & Unicode Handling Fix (First Letters + Flash Cards) → [previous-work/068_apostrophe_unicode_handling.md](previous-work/068_apostrophe_unicode_handling.md)
 - **069** - Navigation Race Fix (isNavigating guard) → [previous-work/069_navigation_race_fix.md](previous-work/069_navigation_race_fix.md)
+- **070** - Agent Entry-Point Restructure (AGENTS.md) + Doc-Drift Purge → [previous-work/070_agent_entrypoint_restructure.md](previous-work/070_agent_entrypoint_restructure.md)

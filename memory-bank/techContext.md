@@ -1,7 +1,7 @@
 # Technical Context
 
 <!--
-MAINTENANCE PRINCIPLES (from .clinerules):
+MAINTENANCE PRINCIPLES (see AGENTS.md → Documentation maintenance):
 - Document technologies used, development setup, and tool usage
 - Focus on current tech stack and setup - NOT extensive future plans
 - Configuration examples and common commands belong here
@@ -14,10 +14,13 @@ KEY QUESTION THIS FILE ANSWERS: "What technologies do we use and how?"
 
 ## Technology Stack
 
+> **Versions:** `client/package.json` is the source of truth for exact
+> dependency versions — this file deliberately names only major versions.
+
 ### Frontend Technologies
 
 #### Core Framework
-- **Vue.js 3.4.0** - Progressive JavaScript framework
+- **Vue.js 3** - Progressive JavaScript framework
   - Composition API for reactive state management
   - Single File Components (.vue files)
   - Build-time template compilation
@@ -25,15 +28,13 @@ KEY QUESTION THIS FILE ANSWERS: "What technologies do we use and how?"
   - Vue DevTools support
 
 #### Styling
-- **Tailwind CSS v4.1.16** - Utility-first CSS framework
-  - Loaded from Play CDN in Phase 1
-  - Latest stable version with new architecture
+- **Tailwind CSS v4** - Utility-first CSS framework
+  - Bundled and purged at build time via `@tailwindcss/postcss`
   - Uses `@import "tailwindcss"` syntax (v4 change)
   - No config file needed in v4
-  - Will be bundled and purged in Phase 2
 
 #### Build Tool
-- **Vite 5.4.11** - Modern build tool
+- **Vite** - Modern build tool
   - Fast HMR (Hot Module Replacement)
   - TypeScript compilation
   - Dev server with proxy support
@@ -41,7 +42,7 @@ KEY QUESTION THIS FILE ANSWERS: "What technologies do we use and how?"
   - ES modules native support
 
 #### Language
-- **TypeScript 5.x** - Type-safe JavaScript
+- **TypeScript** - Type-safe JavaScript
   - Strict mode enabled
   - Target: ES2020
   - Module: ES modules
@@ -49,7 +50,7 @@ KEY QUESTION THIS FILE ANSWERS: "What technologies do we use and how?"
   - Better IDE support
 
 #### Storage
-- **Dexie.js 4.0.10** - IndexedDB wrapper
+- **Dexie.js 4** - IndexedDB wrapper
   - Promise-based API
   - Schema versioning
   - Compound indexes
@@ -57,13 +58,13 @@ KEY QUESTION THIS FILE ANSWERS: "What technologies do we use and how?"
   - TypeScript definitions included
 
 #### CSS Processing
-- **PostCSS 8.4.49** - CSS transformation
+- **PostCSS** - CSS transformation
   - Processes Tailwind directives
   - Autoprefixer for browser compatibility
   - Minification in production
 
 #### PWA (Progressive Web App)
-- **vite-plugin-pwa 1.2.0** - PWA plugin for Vite
+- **vite-plugin-pwa** - PWA plugin for Vite
   - Auto-generates web app manifest
   - Auto-generates service worker with Workbox
   - Supports auto-update strategy
@@ -268,25 +269,16 @@ npm run build
 
 ### Package Management
 
-#### Frontend Dependencies (package.json)
-```json
-{
-  "dependencies": {
-    "vue": "^3.4.0",
-    "dexie": "^3.2.4",
-    "uuid": "^9.0.1"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.16",
-    "@vitejs/plugin-vue": "^5.0.0",
-    "@types/uuid": "^10.0.0",
-    "typescript": "^5.3.3",
-    "vite": "^5.0.8",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.16"
-  }
-}
-```
+#### Frontend Dependencies
+See `client/package.json` (source of truth — do not restate versions here).
+Runtime: vue, dexie, uuid. Dev: vite + @vitejs/plugin-vue, typescript,
+tailwindcss + @tailwindcss/postcss, vite-plugin-pwa, vitest, sharp (icons).
+
+#### Testing
+- **Vitest** - Unit test runner (`npm test`)
+  - Standalone config `client/vitest.config.ts` (node environment,
+    `src/**/*.test.ts`) — deliberately does not load the Vue/PWA build plugins
+  - Suites: text utilities (firstLetters, getWords) + review navigation guard
 
 #### Backend Dependencies
 - No package manager (Composer not used)
@@ -494,6 +486,7 @@ The project uses a **root-level package.json with wrapper scripts** for convenie
 # Frontend development
 npm run dev              # Start Vite dev server (port 3000)
 npm run build            # Install deps + build for production
+npm test                 # Run unit tests (Vitest)
 npm run preview          # Preview production build
 npm run install:client   # Install client dependencies
 
@@ -528,8 +521,8 @@ rm server/api/db.sqlite && cd server && php api/migrate.php  # Reset
 ## Performance Considerations
 
 ### Frontend Optimization
-- **Phase 1** - Vue.js 3 bundled and optimized
-- **Phase 2** - Bundle and purge Tailwind CSS (smaller bundle size)
+- Vue.js 3 bundled and optimized
+- Tailwind CSS bundled and purged at build time
 - **Lazy Loading** - Load components on demand (future)
 - **Code Splitting** - Separate vendor and app code (future)
 
@@ -563,11 +556,10 @@ rm server/api/db.sqlite && cd server && php api/migrate.php  # Reset
 ## Known Technical Limitations
 
 ### Current Limitations
-1. **Tailwind CSS Size** - Currently using CDN (~3.5MB), needs bundling and purging
-2. **SQLite Only** - No MySQL/PostgreSQL support
-3. **Single Server** - No load balancing or clustering
-4. **Icon Quality** - PWA icons now use 1024px master; styled icons use 880px master
-5. **No iOS Splash Screens** - Can be added later for better iOS experience
+1. **SQLite Only** - No MySQL/PostgreSQL support
+2. **Single Server** - No load balancing or clustering
+3. **Icon Quality** - PWA icons now use 1024px master; styled icons use 880px master
+4. **No iOS Splash Screens** - Can be added later for better iOS experience
 
 ### Future Improvements
 - Bundle and optimize dependencies

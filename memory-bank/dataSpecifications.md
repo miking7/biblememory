@@ -1,7 +1,7 @@
 # Data Specifications
 
 <!-- 
-MAINTENANCE PRINCIPLES (from .clinerules):
+MAINTENANCE PRINCIPLES (see AGENTS.md → Documentation maintenance):
 - Document data model concepts, field purposes, and validation rules - NOT complete code definitions
 - Focus on WHY fields exist and WHAT they represent
 - NO code duplication - reference actual schema files instead of recreating interfaces/SQL

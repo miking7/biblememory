@@ -1,7 +1,7 @@
 # System Patterns
 
 <!--
-MAINTENANCE PRINCIPLES (from .clinerules):
+MAINTENANCE PRINCIPLES (see AGENTS.md → Documentation maintenance):
 - Document architectural decisions, patterns, and "why" - NOT implementation details
 - Focus on high-level architecture, flowcharts, and design patterns
 - NO code duplication - reference actual code files instead of recreating code
@@ -294,6 +294,11 @@ This pattern:
 - ✅ Makes dependencies explicit
 - ✅ Avoids excessive individual prop definitions
 
+**Current status:** ReviewTab presently receives individual props/events
+instead (a deliberate simplification — see previous-work/064). Consolidating
+back to the single-composable prop shown above is a planned cleanup from the
+July 2026 architecture review.
+
 **Why NOT Pinia:**
 - Current composables work well and follow Vue 3 best practices
 - App is personal/single-user (no complex shared state)
@@ -562,7 +567,7 @@ iOS (Safari):
 - Material Design Icons CDN
 
 **Implementation Files:**
-- `client/index.html` lines 23-33 - Async stylesheet loading
+- `client/index.html` (preload `<link>` tags for fonts/icons) - Async stylesheet loading
 
 **See:** previous-work/031_pwa_offline_blank_screen_fix.md for detailed analysis
 
@@ -622,7 +627,7 @@ const syncAndReload = async () => {
 - Outbox-triggered sync when pending operations exist
 
 **Implementation Files:**
-- `client/src/composables/useSync.ts` lines 34-68 - Offline detection and timeout
+- `client/src/composables/useSync.ts` (`syncAndReload`) - Offline detection and timeout
 
 **See:** previous-work/031_pwa_offline_blank_screen_fix.md for detailed analysis
 
@@ -704,9 +709,9 @@ watch(hasSyncIssuesWithAuth, (newValue, oldValue) => {
 - Auto-dismiss means user can't read at their own pace (can add click-to-dismiss later)
 
 **Implementation Files:**
-- `client/src/app.ts` lines 27-61 - Toast state and watch logic
-- `client/src/App.vue` lines 31-34 - Toast component
-- `client/src/styles.css` lines 228-254 - Toast styling with animations
+- `client/src/app.ts` (`showOfflineToast`, `showToast`, connectivity watcher) - Toast state and logic
+- `client/src/App.vue` (`.offline-toast` element) - Toast component
+- `client/src/styles.css` (`.offline-toast`, `slideInFromTop`) - Toast styling with animations
 
 **See:** previous-work/031_offline_notification_redesign.md for full implementation details
 

@@ -1,7 +1,7 @@
 # Progress
 
 <!-- 
-MAINTENANCE PRINCIPLES (from .clinerules):
+MAINTENANCE PRINCIPLES (see AGENTS.md → Documentation maintenance):
 - Document what works, what's left to build, and current status
 - Focus on feature status (complete/incomplete/planned) - NOT implementation details
 - High-level progress tracking only
@@ -91,10 +91,8 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - **SEO Ready**: All 5 pages (index + 4 static) included in sitemap.xml
 - **Ready for Phase 3**: Visual assets (og-image.png, screenshots), content refinement
 
-**Legacy App Status:**
-- Remains accessible via "Legacy..." button for advanced review features
-- Provides 5 review modes (vs modern's 1): Flash Cards, Hints, First Letters, etc.
-- Will be phased out once Phase 2/3 features implemented in modern app
+**Legacy App Status:** Fully removed — all review modes are now native (see
+previous-work/043_legacy_codebase_removal.md).
 
 **Details:** See productContext.md for feature descriptions and techContext.md for technical implementation
 
@@ -370,7 +368,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 
 #### Bundle Optimization
 - [x] Vue.js 3 bundled and optimized (69KB gzipped total)
-- [ ] Bundle and purge Tailwind CSS (~10-20KB vs 3.5MB)
+- [x] Bundle and purge Tailwind CSS (via @tailwindcss/postcss at build time)
 - [ ] Tree-shaking for unused code
 - [ ] Code splitting for lazy loading
 - [ ] Asset optimization
@@ -446,7 +444,7 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 ### Technical Improvements (Ongoing)
 
 #### Testing
-- [x] Unit tests (Vitest) — infrastructure + first suites (firstLetters, getWords; 60 tests, `npm test`)
+- [x] Unit tests (Vitest) — infrastructure + first suites (firstLetters, getWords, useReview navigation; `npm test`)
 - [ ] Integration tests
 - [ ] E2E tests (Playwright)
 - [ ] Test coverage reporting
@@ -507,28 +505,15 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 ## Current Status
 
 ### Version
-**1.2.0-alpha** - Phase 2 Refinements Complete
+See `package.json` (source of truth — currently 1.0.0).
 
 ### Production Readiness
-⚠️ **NOT Ready for Production** (but much closer!)
+✅ **In Production** — live at https://bible-memory.app. Deployed by pushing
+to GitHub `master`; releases are tested locally on Laravel Herd first.
 - Phase 1 & Phase 2 complete (all features functional)
-- Layout matches legacy app (polished and tested)
-- Keyboard shortcuts fully integrated
-- Paragraph/newline preservation working
-- Comprehensive testing needed (mobile, edge cases)
-- Mobile optimization needs thorough testing
-- Documentation comprehensive and up-to-date
+- Ongoing hardening: mobile edge cases, broader automated test coverage
 
 ### Known Issues
-**Resolved This Session:**
-- ✅ Review card styling aligned to match My Verses cards
-- ✅ Back button removed from navigation (cleaner layout)
-- ✅ Progress indicator moved to top-right corner
-- ✅ Font sizes matched across all review modes (text-sm sm:text-base)
-- ✅ Flash Cards underlines refined (thinner, baseline-aligned)
-- ✅ Visual consistency achieved across entire app
-- ✅ First Letters mode spacing fixed (now matches legacy with spaces after punctuation)
-
 **Testing Needed:**
 - Mobile touch targets and responsive design
 - Multi-paragraph verses in all review modes
@@ -581,10 +566,9 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 ## Metrics
 
 ### Code Statistics
-- **Total Lines**: ~2000+ (client + server)
-- **Files Created**: 15+ core files
-- **Features Implemented**: 20+ features
-- **API Endpoints**: 5 endpoints
+- **API Endpoints**: 8 (register, login, logout, push, pull, migrate,
+  parse-verse, collections — see `server/public/index.php`)
+- Other size metrics: see the repository (hardcoded counts rot quickly)
 
 ### Performance
 - **Load Time**: < 300ms (localhost)
@@ -592,10 +576,9 @@ MAINTENANCE PRINCIPLES (from .clinerules):
 - **Sync Speed**: < 500ms typical
 
 ### Testing
-- **Manual Tests**: 30+ test cases
-- **Browsers Tested**: Chrome, Firefox, Safari, Mobile
-- **Devices Tested**: Desktop, tablet, mobile
-- **Automated Tests**: 0 (planned for Phase 2)
+- **Automated Tests**: Vitest unit suites (`npm test`) — text utilities +
+  review navigation guard
+- **Manual Testing**: Chrome, Firefox, Safari, mobile; desktop/tablet/phone
 
 ## Next Milestone
 

@@ -1,7 +1,7 @@
 # Product Context
 
 <!--
-MAINTENANCE PRINCIPLES (from .clinerules):
+MAINTENANCE PRINCIPLES (see AGENTS.md → Documentation maintenance):
 - Document WHY the project exists and WHAT problems it solves
 - Focus on user experience goals and product vision
 - Business logic and user workflows belong here
@@ -82,25 +82,18 @@ A modern Bible memory app that combines:
 8. Success message displays, returns to My Verses tab
 9. Syncs to server when online
 
-#### Reviewing Verses (Basic - Phase 1)
-**Current Implementation:**
+#### Reviewing Verses
 1. User clicks "Review" tab
 2. App shows verses due for review based on spaced repetition
 3. User sees reference, tries to recall content
-4. Clicks "Reveal Verse" to check accuracy
-5. Marks as "Got it!" or "Need Practice"
-6. Review recorded, next verse appears
-7. Algorithm adjusts future review schedule
-
-**Advanced Features (Legacy App - Phase 2+):**
-For enhanced practice modes, users can access legacy app via "Legacy..." button:
-- Flash Cards mode (5 difficulty levels for graduated practice)
-- First Letters mode (first letter + punctuation memory aids)
-- Progressive Hints mode (incremental word reveal)
-- Keyboard shortcuts for efficient navigation (n/p/h/f/Space)
-- Meditation and Application prompts for deeper engagement
-
-**Roadmap:** Phase 2 will integrate these advanced modes into modern app
+4. Practice modes (all native): Reveal, Progressive Hints, First Letters,
+   Flash Cards (5 difficulty levels); Type It planned
+5. Marks "Got it!" or "Again" — review recorded, next verse appears with
+   card slide animation
+6. Keyboard shortcuts (n/p/g/a/h/f/c/Space/i/Escape), swipe navigation,
+   and immersive (distraction-free) mode
+7. Filtered review available from My Verses ("Review These" / "Review This")
+8. Algorithm adjusts future review schedule
 
 #### Managing Verses
 1. User clicks "My Verses" tab
@@ -134,7 +127,8 @@ This ensures:
 - No functionality is lost
 
 **When Online:**
-- Automatic sync every 60 seconds
+- Automatic sync every 30 seconds (within ~1 second when local changes are
+  pending)
 - Push local operations to server
 - Pull server operations to local
 - Conflicts resolved via last-write-wins
@@ -151,36 +145,13 @@ This ensures:
 6. Both sync when online
 7. Last edit wins (based on server timestamp)
 
-### Legacy App Integration
+### Legacy App Heritage
 
-**During Transition Period:**
-Users have access to both modern and legacy apps:
-
-**Modern App (Primary):**
-- All verse management (add, edit, delete, import, export)
-- Multi-device sync with cloud backup
-- Basic review flow (reference → content reveal)
-- Mobile-optimized responsive design
-
-**Legacy App (Temporary - Advanced Features):**
-- 5 review modes (Flash Cards, Hints, First Letters, etc.)
-- Meditation and Application reflection prompts
-- Keyboard shortcuts for power users
-- BibleGateway chapter lookup
-
-**Switching Between Apps:**
-1. Click "Legacy..." button in modern app
-2. Verses automatically export to legacy format
-3. Browser redirects to `/legacy/index.html`
-4. Return to modern app via "Link back to new app" in legacy menu
-
-**Data Consistency:**
-- Modern app is source of truth (IndexedDB + server sync)
-- Legacy reads from localStorage (exported by modern app)
-- Legacy operates in read-only mode
-- Changes in legacy don't sync back to modern app
-
-**Timeline:** Legacy app will be phased out once Phase 2/3 features implemented in modern app
+The original Laravel app's proven review modes and spaced-repetition
+algorithm are fully integrated into this app. The legacy codebase itself has
+been removed (see projectbrief.md and previous-work/043). Still pending from
+the legacy feature set: Meditation/Application reflection prompts and
+BibleGateway chapter lookup (Phase 3).
 
 ## User Experience Goals
 

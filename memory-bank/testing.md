@@ -1,7 +1,7 @@
 # Testing & Quality Assurance
 
 <!-- 
-MAINTENANCE PRINCIPLES (from .clinerules):
+MAINTENANCE PRINCIPLES (see AGENTS.md → Documentation maintenance):
 - Document current testing approach - NOT extensive future test plans
 - Keep only what's relevant NOW
 - Brief mention of future testing strategy
