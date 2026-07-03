@@ -15,23 +15,22 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Architecture review remediation — items 1-4 complete (069-071
-tested on Herd through item 2; items 3-4 awaiting Herd test)
+**Status:** Architecture review remediation COMPLETE (items 1-5) — items
+3-5 (commits for 071, 072) awaiting Herd test before push
 
-**Latest Work (071):** Migrated card animations to Vue `<Transition>` —
-`useCardTransitions` deleted along with the exit/entry/reset invariant and
-the `registerCardAnimators` handshake. `navigate()` is now animation-free
-(sets `navDirection`, mutates state; Vue owns enter/leave). Swipe releases
-hand off to the leave animation via `--swipe-x` (exit continues from under
-the finger). Completion is now an animated block swap.
+**Latest Work (071 + 072):** Migrated card animations to Vue `<Transition>`
+(`useCardTransitions` deleted along with the exit/entry/reset invariant and
+the animator handshake; swipe releases hand off via `--swipe-x`; completion
+is an animated block swap). Then consolidated ReviewTab (15 props/14 events
+→ 1/3) and ReviewModeButtons (5/10 → 1/0) onto a single `review` composable
+prop per systemPatterns §7; `handleCardClick` moved into useReview.
 
 **Remediation list (from the state/transitions/animations review):**
 1. ✅ Navigation race guard (069)
 2. ✅ Agent entry-point restructure + doc-drift purge (070)
 3. ✅ Absorbed into 4 (swipe continuity + registration lifecycle)
 4. ✅ Vue `<Transition>` migration (071)
-5. ⏳ Consolidate ReviewTab wiring to single `review` prop (matches
-   systemPatterns §7 documented pattern)
+5. ✅ Single `review` prop consolidation (072)
 
 **Standing notes:**
 - Stats dashboard deferred item: deterministic "due today" target (progress-bar
@@ -122,3 +121,4 @@ This index provides titles and links for reference when needed.
 - **069** - Navigation Race Fix (isNavigating guard) → [previous-work/069_navigation_race_fix.md](previous-work/069_navigation_race_fix.md)
 - **070** - Agent Entry-Point Restructure (AGENTS.md) + Doc-Drift Purge → [previous-work/070_agent_entrypoint_restructure.md](previous-work/070_agent_entrypoint_restructure.md)
 - **071** - Vue Transition Migration (Card Animations) → [previous-work/071_vue_transition_migration.md](previous-work/071_vue_transition_migration.md)
+- **072** - Single `review` Prop Consolidation → [previous-work/072_review_prop_consolidation.md](previous-work/072_review_prop_consolidation.md)

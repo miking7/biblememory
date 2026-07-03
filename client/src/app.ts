@@ -137,28 +137,6 @@ export function bibleMemoryApp() {
     }
   };
 
-  // Click-anywhere card handler
-  const handleCardClick = () => {
-    switch (reviewLogic.reviewMode.value) {
-      case 'reference':
-        reviewLogic.switchToContent();
-        break;
-      case 'content':
-        // Got it! - navigate with review recording
-        reviewLogic.navigate({ direction: 'next', recordReview: true });
-        break;
-      case 'hints':
-        reviewLogic.addHint();
-        break;
-      case 'flashcards':
-        reviewLogic.switchToFlashCards();
-        break;
-      case 'firstletters':
-        reviewLogic.switchToContent(); // Reveal verse instead of reset
-        break;
-    }
-  };
-
   // Review source selection handlers
   const startReviewFromFiltered = () => {
     // Capture current filtered verses and switch to Review tab
@@ -265,62 +243,20 @@ export function bibleMemoryApp() {
     exportVerses: versesLogic.exportVerses,
     importVerses: versesLogic.importVerses,
 
-    // Review (from useReview)
-    currentReviewIndex: reviewLogic.currentReviewIndex,
-    showVerseText: reviewLogic.showVerseText,
+    // Review (from useReview) — the whole composable is passed to the
+    // review components as a single prop (systemPatterns §7); App.vue
+    // additionally binds only the pieces its own template uses.
+    review: reviewLogic,
     reviewComplete: reviewLogic.reviewComplete,
     dueForReview: reviewLogic.dueForReview,
     reviewedToday: reviewLogic.reviewedToday,
     currentStreak: reviewLogic.currentStreak,
-    currentVerseReviewStatus: reviewLogic.currentVerseReviewStatus,
-    currentReviewVerse: reviewLogic.currentReviewVerse,
     totalReviewCount: reviewLogic.totalReviewCount,
     reviewSource: reviewLogic.reviewSource,
-    filteredReviewVerses: reviewLogic.filteredReviewVerses,
     loadReviewVerses: reviewLogic.loadReviewVerses,
-    markReview: reviewLogic.markReview,
-    resetReview: reviewLogic.resetReview,
-    completeReview: reviewLogic.completeReview,
-    uncompleteReview: reviewLogic.uncompleteReview,
-    startFilteredReview: reviewLogic.startFilteredReview,
     returnToDailyReview: reviewLogic.returnToDailyReview,
-    refreshCurrentVerse: reviewLogic.refreshCurrentVerse,
-
-    // Phase 2: Review modes
-    reviewMode: reviewLogic.reviewMode,
-    hintsShown: reviewLogic.hintsShown,
-    flashcardLevel: reviewLogic.flashcardLevel,
-    flashcardHiddenWords: reviewLogic.flashcardHiddenWords,
-    flashcardRevealedWords: reviewLogic.flashcardRevealedWords,
-    firstLettersRevealedGroups: reviewLogic.firstLettersRevealedGroups,
-    canIncreaseFlashCardDifficulty: reviewLogic.canIncreaseFlashCardDifficulty,
-    canDecreaseFlashCardDifficulty: reviewLogic.canDecreaseFlashCardDifficulty,
-    getFlashCardLevelName: reviewLogic.getFlashCardLevelName,
-    switchToReference: reviewLogic.switchToReference,
-    switchToContent: reviewLogic.switchToContent,
-    switchToHints: reviewLogic.switchToHints,
-    addHint: reviewLogic.addHint,
-    switchToFirstLetters: reviewLogic.switchToFirstLetters,
-    switchToTypeIt: reviewLogic.switchToTypeIt,
-    switchToFlashCards: reviewLogic.switchToFlashCards,
-    increaseFlashCardDifficulty: reviewLogic.increaseFlashCardDifficulty,
-    decreaseFlashCardDifficulty: reviewLogic.decreaseFlashCardDifficulty,
-    revealFirstLetterChunk: reviewLogic.revealFirstLetterChunk,
-    revealWord: reviewLogic.revealWord,
-    getHumanReadableTime: reviewLogic.getHumanReadableTime,
-    getReviewCategory: reviewLogic.getReviewCategory,
     handleKeyPress: reviewLogic.handleKeyPress,
-
-    // Navigation
-    navigate: reviewLogic.navigate,
-    viewLastCard: reviewLogic.viewLastCard,
-    isNavigating: reviewLogic.isNavigating,
-    navDirection: reviewLogic.navDirection,
-
-    // Immersive mode
     isImmersiveModeActive: reviewLogic.isImmersiveModeActive,
-    toggleImmersiveMode: reviewLogic.toggleImmersiveMode,
-    exitImmersiveMode: reviewLogic.exitImmersiveMode,
 
     // Sync (from useSync)
     lastSyncSuccess: sync.lastSyncSuccess,
@@ -338,9 +274,6 @@ export function bibleMemoryApp() {
     expandedVerseIds,
     toggleViewMode,
     toggleVerseExpansion,
-
-    // Card click handler
-    handleCardClick,
 
     // Review source selection handlers
     startReviewFromFiltered,

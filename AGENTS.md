@@ -58,7 +58,9 @@ client/src/
   db.ts              Dexie schema (verses, reviews, settings, auth, outbox,
                      appliedOps, sync)
   sync.ts            push/pull + auth API calls
-  components/        tabs/, modals/, stats/ — props down, events up
+  components/        tabs/, modals/, stats/ — props down, events up;
+                     review components receive the whole review composable
+                     as ONE prop and call its actions directly
 server/
   public/index.php   router — 8 API endpoints (register, login, logout,
                      push, pull, migrate, parse-verse, collections)

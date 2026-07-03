@@ -27,6 +27,10 @@ export type ReviewMode =
 // gesture (next slides left, previous slides right, etc).
 export type NavDirection = 'next' | 'previous' | 'restart' | 'view-last';
 
+// The whole composable, passed as a single prop to the review components
+// (see systemPatterns §7 "Passing Composables as Props").
+export type ReviewComposable = ReturnType<typeof useReview>;
+
 export function useReview() {
 
   // State
@@ -447,6 +451,29 @@ export function useReview() {
     return verse.reviewCat;
   };
 
+  // Click-anywhere card handler: what a tap on the card means depends on
+  // the active mode (reveal, advance, hint, reshuffle, reveal).
+  const handleCardClick = () => {
+    switch (reviewMode.value) {
+      case 'reference':
+        switchToContent();
+        break;
+      case 'content':
+        // Got it! - navigate with review recording
+        navigate({ direction: 'next', recordReview: true });
+        break;
+      case 'hints':
+        addHint();
+        break;
+      case 'flashcards':
+        switchToFlashCards();
+        break;
+      case 'firstletters':
+        switchToContent(); // Reveal verse instead of reset
+        break;
+    }
+  };
+
   // Immersive mode functions
   const toggleImmersiveMode = () => {
     isImmersiveModeActive.value = !isImmersiveModeActive.value;
@@ -618,6 +645,7 @@ export function useReview() {
     viewLastCard,
     isNavigating,
     navDirection,
+    handleCardClick,
 
     // Phase 2: Keyboard shortcuts
     handleKeyPress,

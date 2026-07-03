@@ -75,58 +75,21 @@
         @import-verses="importVerses($event)"
       />
 
-      <!-- Review Tab -->
+      <!-- Review Tab (receives the whole review composable as one prop;
+           only non-review concerns emit back to App) -->
       <ReviewTab
         v-if="currentTab === 'review'"
-        :total-review-count="totalReviewCount"
-        :review-complete="reviewComplete"
-        :current-review-index="currentReviewIndex"
-        :is-navigating="isNavigating"
-        :nav-direction="navDirection"
-        :current-review-verse="currentReviewVerse"
-        :current-verse-review-status="currentVerseReviewStatus"
-        :is-current-verse-inactive="isCurrentVerseInactive"
-        :review-source="reviewSource"
-        :is-immersive-mode-active="isImmersiveModeActive"
-        :review-mode="reviewMode"
-        :hints-shown="hintsShown"
-        :flashcard-hidden-words="flashcardHiddenWords"
-        :flashcard-revealed-words="flashcardRevealedWords"
-        :first-letters-revealed-groups="firstLettersRevealedGroups"
-        @return-to-daily-review="returnToDailyReview()"
-        @toggle-immersive-mode="toggleImmersiveMode()"
-        @exit-immersive-mode="exitImmersiveMode()"
-        @navigate="handleNavigate"
-        @card-click="handleCardClick"
+        :review="review"
         @copy-verse="copyVerseToClipboard"
         @view-online="viewVerseOnline"
         @edit-verse="startEditVerse"
-        @add-hint="addHint()"
-        @reveal-word="revealWord"
-        @reveal-first-letter-chunk="revealFirstLetterChunk"
-        @view-last-card="viewLastCard()"
-        @reset-review="resetReview()"
       />
     </div>
 
     <!-- Review Mode Buttons -->
     <ReviewModeButtons
       v-if="currentTab === 'review' && totalReviewCount > 0 && !reviewComplete"
-      :review-mode="reviewMode"
-      :can-increase-flash-card-difficulty="canIncreaseFlashCardDifficulty"
-      :can-decrease-flash-card-difficulty="canDecreaseFlashCardDifficulty"
-      :flash-card-level-name="getFlashCardLevelName"
-      :is-navigating="isNavigating"
-      @switch-to-type-it="switchToTypeIt()"
-      @switch-to-flash-cards="switchToFlashCards()"
-      @switch-to-hints="switchToHints()"
-      @switch-to-first-letters="switchToFirstLetters()"
-      @switch-to-content="switchToContent()"
-      @increase-flash-card-difficulty="increaseFlashCardDifficulty()"
-      @decrease-flash-card-difficulty="decreaseFlashCardDifficulty()"
-      @add-hint="addHint()"
-      @again="handleAgain"
-      @got-it="handleGotIt"
+      :review="review"
     />
 
     <!-- Edit Modal -->
@@ -169,9 +132,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { bibleMemoryApp } from './app';
-import { getEffectiveReviewCategory } from './actions';
 import LandingPage from './LandingPage.vue';
 import EditVerseModal from './components/modals/EditVerseModal.vue';
 import AboutModal from './components/modals/AboutModal.vue';
@@ -194,13 +156,6 @@ const {
   sortBy,
   editingVerse,
   showEditModal,
-  dueForReview,
-  currentReviewIndex,
-  currentReviewVerse,
-  reviewComplete,
-  reviewedToday,
-  currentStreak,
-  currentVerseReviewStatus,
   isAuthenticated,
   userEmail,
   showAuthModal,
@@ -212,21 +167,24 @@ const {
   showOfflineToast,
   triggerOfflineToast,
 
-  // Phase 2: Review mode state
-  reviewMode,
-  hintsShown,
-  flashcardHiddenWords,
-  flashcardRevealedWords,
-  firstLettersRevealedGroups,
-
-  // Review source selection state
+  // Review: the whole composable (passed to review components as one prop)
+  // plus the pieces App's own template binds directly
+  review,
+  reviewComplete,
+  dueForReview,
+  reviewedToday,
+  currentStreak,
+  totalReviewCount,
   reviewSource,
+  loadReviewVerses,
+  returnToDailyReview,
+  handleKeyPress,
+  isImmersiveModeActive,
 
   // Computed
   filteredVerses,
   hasVersesButNoSearchResults,
   hasSyncIssues,
-  totalReviewCount,
 
   // Methods
   loadVerses,
@@ -234,8 +192,6 @@ const {
   saveEditVerse,
   deleteVerse,
   setSortBy,
-  loadReviewVerses,
-  resetReview,
   exportVerses,
   importVerses,
   openAuthModal,
@@ -244,56 +200,16 @@ const {
   handleRegister,
   handleLogout,
 
-  // Phase 2: Review mode methods
-  canIncreaseFlashCardDifficulty,
-  canDecreaseFlashCardDifficulty,
-  getFlashCardLevelName,
-  switchToContent,
-  switchToHints,
-  addHint,
-  switchToFirstLetters,
-  switchToTypeIt,
-  switchToFlashCards,
-  increaseFlashCardDifficulty,
-  decreaseFlashCardDifficulty,
-  revealFirstLetterChunk,
-  revealWord,
-  returnToDailyReview,
-
-  // Phase 2: Keyboard shortcuts
-  handleKeyPress,
-
-  // Immersive mode
-  isImmersiveModeActive,
-  toggleImmersiveMode,
-  exitImmersiveMode,
-
   // Deck-style view mode
   verseViewMode,
   expandedVerseIds,
   toggleViewMode,
   toggleVerseExpansion,
 
-  // Card click handler (accepts optional animation callback)
-  handleCardClick,
-
-  // Navigation
-  navigate,
-  viewLastCard,
-  isNavigating,
-  navDirection,
-
   // Review source selection handlers
   startReviewFromFiltered,
   startReviewAtVerse,
 } = bibleMemoryApp();
-
-// Compute if current review verse is inactive (paused or future)
-const isCurrentVerseInactive = computed(() => {
-  if (!currentReviewVerse.value) return false;
-  const { category } = getEffectiveReviewCategory(currentReviewVerse.value);
-  return category === 'paused' || category === 'future';
-});
 
 // Local state for About modal
 const showAboutModal = ref(false);
@@ -337,15 +253,6 @@ const handleVerseAdded = async () => {
   // Switch to My Verses tab to see the newly added verses
   currentTab.value = 'list';
 };
-
-// Navigation handler (receives events from ReviewTab after animation)
-const handleNavigate = (payload: { direction: 'next' | 'previous' }) => {
-  navigate({ direction: payload.direction });
-};
-
-// Review button handlers (Got it / Again)
-const handleGotIt = () => navigate({ direction: 'next', recordReview: true });
-const handleAgain = () => navigate({ direction: 'next', recordReview: false });
 
 // Set up keyboard shortcuts
 onMounted(() => {

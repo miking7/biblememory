@@ -25,7 +25,7 @@
             </h2>
             <button
               v-if="reviewSource === 'filtered'"
-              @click="$emit('returnToDailyReview')"
+              @click="returnToDailyReview()"
               class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:bg-blue-50 px-3 py-1 rounded transition-all flex items-center gap-1">
               <i class="mdi mdi-arrow-left"></i>
               <span>back</span>
@@ -33,7 +33,7 @@
           </div>
 
           <button
-            @click="$emit('toggleImmersiveMode')"
+            @click="toggleImmersiveMode()"
             title="Immersive mode (i)"
             class="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
             <i class="mdi mdi-fullscreen text-2xl"></i>
@@ -45,7 +45,7 @@
           <div class="relative">
             <!-- Left Arrow (Previous) -->
             <button
-              @click="$emit('navigate', { direction: 'previous' })"
+              @click="navigate({ direction: 'previous' })"
               :disabled="currentReviewIndex === 0 || isNavigating"
               class="no-zoom absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 sm:-translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
               title="Previous verse (p)">
@@ -54,7 +54,7 @@
 
             <!-- Right Arrow (Next) -->
             <button
-              @click="$emit('navigate', { direction: 'next' })"
+              @click="navigate({ direction: 'next' })"
               :disabled="currentReviewIndex >= totalReviewCount - 1 || isNavigating"
               class="no-zoom absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
               title="Next verse (n)">
@@ -64,7 +64,7 @@
             <!-- Exit Button (X) - Only visible in immersive mode -->
             <button
               v-show="isImmersiveModeActive"
-              @click.stop="$emit('exitImmersiveMode')"
+              @click.stop="exitImmersiveMode()"
               class="no-zoom absolute top-0 left-0 -translate-y-2.5 -translate-x-2.5 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg hover:bg-slate-200 text-slate-600 hover:text-slate-800 flex items-center justify-center transition-all z-10"
               title="Exit immersive mode (Esc)">
               <i class="mdi mdi-close text-xl"></i>
@@ -89,7 +89,7 @@
                      'review-card-inactive': !currentVerseReviewStatus?.lastReviewType && isCurrentVerseInactive
                    }"
                    :style="cardStyle"
-                   @click="$emit('cardClick')">
+                   @click="handleCardClick()">
 
               <!-- Header: Reference, Translation, and Edit Icon -->
               <div class="mb-3">
@@ -101,7 +101,7 @@
                         <br v-if="word.str === '\n'">
                         <span
                           v-else-if="flashcardHiddenWords.has(index)"
-                          @click.stop="$emit('revealWord', index)"
+                          @click.stop="revealWord(index)"
                           :class="[
                             'flashcard-underline',
                             flashcardRevealedWords.has(index) ? 'text-red-600 cursor-default' : 'cursor-pointer'
@@ -169,7 +169,7 @@
                 </div>
 
                 <!-- Hints Mode: Progressive word revelation -->
-                <div v-if="reviewMode === 'hints'" @click="$emit('addHint')" class="cursor-pointer">
+                <div v-if="reviewMode === 'hints'" @click="addHint()" class="cursor-pointer">
                   <p class="verse-content text-sm sm:text-base text-slate-800 leading-relaxed font-mono"
                      v-text="getHintedContent(currentReviewVerse.content, hintsShown)"></p>
                 </div>
@@ -181,7 +181,7 @@
                       <!-- Clickable word group (if exists) -->
                       <span
                         v-if="chunk.fullText"
-                        @click.stop="$emit('revealFirstLetterChunk', index)"
+                        @click.stop="revealFirstLetterChunk(index)"
                         :class="[
                           firstLettersRevealedGroups.has(index)
                             ? 'text-red-600 cursor-default'
@@ -202,7 +202,7 @@
                       <br v-if="word.str === '\n'">
                       <span
                         v-else-if="flashcardHiddenWords.has(index + contentWordsStartIndex)"
-                        @click.stop="$emit('revealWord', index + contentWordsStartIndex)"
+                        @click.stop="revealWord(index + contentWordsStartIndex)"
                         :class="[
                           'flashcard-underline',
                           flashcardRevealedWords.has(index + contentWordsStartIndex) ? 'text-red-600 cursor-default' : 'cursor-pointer'
@@ -256,12 +256,12 @@
           <p class="text-slate-500 mb-6 text-lg">Great job reviewing today's verses.</p>
           <div class="flex gap-3 justify-center flex-wrap">
             <button
-              @click="$emit('viewLastCard')"
+              @click="viewLastCard()"
               class="px-6 py-3 rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all">
               View Last Card
             </button>
             <button
-              @click="$emit('resetReview')"
+              @click="resetReview()"
               class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
               Review More
             </button>
@@ -275,12 +275,12 @@
           <p class="text-slate-500 mb-6 text-lg">You've reviewed all {{ totalReviewCount }} cards in this filtered set.</p>
           <div class="flex gap-3 justify-center flex-wrap">
             <button
-              @click="$emit('viewLastCard')"
+              @click="viewLastCard()"
               class="px-6 py-3 rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all">
               View Last Card
             </button>
             <button
-              @click="$emit('returnToDailyReview')"
+              @click="returnToDailyReview()"
               class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
               Return to Daily Review
             </button>
@@ -296,42 +296,58 @@
 import { ref, computed, type Ref } from 'vue'
 import ReviewCategoryChip from '../ReviewCategoryChip.vue'
 import { useSwipeDetection } from '../../composables/useSwipeDetection'
-import type { NavDirection } from '../../composables/useReview'
+import type { ReviewComposable } from '../../composables/useReview'
 import type { Verse } from '../../db'
+import { getEffectiveReviewCategory } from '../../actions'
 import { getAbbreviatedAge, formatTagForDisplay, getWords, getHintedContent } from '../../utils/reviewHelpers'
 import { getFirstLettersChunks } from '../../utils/firstLetters'
 
-// Types
-interface ReviewStatus {
-  lastReviewType: 'recall' | 'practice' | null
-}
-
 const props = defineProps<{
-  // Review state
-  totalReviewCount: number
-  reviewComplete: boolean
-  currentReviewIndex: number
-  isNavigating: boolean
-  navDirection: NavDirection
-  currentReviewVerse: Verse | null
-  currentVerseReviewStatus: ReviewStatus | null
-  isCurrentVerseInactive: boolean
-  reviewSource: 'daily' | 'filtered'
-  isImmersiveModeActive: boolean
-
-  // Review mode state
-  reviewMode: 'reference' | 'content' | 'hints' | 'firstletters' | 'flashcards' | 'typeit'
-  hintsShown: number
-  flashcardHiddenWords: Set<number>
-  flashcardRevealedWords: Set<number>
-  firstLettersRevealedGroups: Set<number>
+  // The whole review composable as one prop (systemPatterns §7): state is
+  // read via destructured refs, review actions are called directly. Only
+  // non-review concerns (clipboard, browser, edit modal) emit to App.
+  review: ReviewComposable
 }>()
+
+const {
+  totalReviewCount,
+  reviewComplete,
+  currentReviewIndex,
+  isNavigating,
+  navDirection,
+  currentReviewVerse,
+  currentVerseReviewStatus,
+  reviewSource,
+  isImmersiveModeActive,
+  reviewMode,
+  hintsShown,
+  flashcardHiddenWords,
+  flashcardRevealedWords,
+  firstLettersRevealedGroups,
+  navigate,
+  handleCardClick,
+  addHint,
+  revealWord,
+  revealFirstLetterChunk,
+  viewLastCard,
+  resetReview,
+  returnToDailyReview,
+  toggleImmersiveMode,
+  exitImmersiveMode,
+} = props.review
+
+// Inactive = paused or scheduled in the future (no review tint applies)
+const isCurrentVerseInactive = computed(() => {
+  if (!currentReviewVerse.value) return false
+  const { category } = getEffectiveReviewCategory(currentReviewVerse.value)
+  return category === 'paused' || category === 'future'
+})
 
 // Map the orchestrator's navigation intent to a named transition
 // (defined in styles.css): next/restart slide left, previous slides
 // right, view-last drops in from below.
 const blockTransition = computed(() => {
-  switch (props.navDirection) {
+  switch (navDirection.value) {
     case 'previous': return 'card-right'
     case 'view-last': return 'card-drop'
     default: return 'card-left' // 'next' and 'restart'
@@ -342,33 +358,23 @@ const blockTransition = computed(() => {
 // navigation is in flight, so a drag can't hijack the card transform
 // mid-animation (the release would be dropped by navigate()'s guard anyway).
 const canSwipeLeft = computed(() =>
-  props.currentReviewIndex < props.totalReviewCount - 1 && !props.isNavigating
+  currentReviewIndex.value < totalReviewCount.value - 1 && !isNavigating.value
 )
 const canSwipeRight = computed(() =>
-  props.currentReviewIndex > 0 && !props.isNavigating
+  currentReviewIndex.value > 0 && !isNavigating.value
 )
 
 // Verse-dependent helpers, cached per verse (re-parsing the reference on
 // every render/reactive tick was wasteful — these only change with the verse).
 const referenceWords = computed(() =>
-  props.currentReviewVerse ? getWords(props.currentReviewVerse.reference, true) : []
+  currentReviewVerse.value ? getWords(currentReviewVerse.value.reference, true) : []
 )
 const contentWordsStartIndex = computed(() => referenceWords.value.length)
 
 const emit = defineEmits<{
-  returnToDailyReview: []
-  toggleImmersiveMode: []
-  exitImmersiveMode: []
-  navigate: [payload: { direction: 'next' | 'previous' }]
-  cardClick: []
   copyVerse: [verse: Verse]
   viewOnline: [verse: Verse]
   editVerse: [verse: Verse]
-  addHint: []
-  revealWord: [index: number]
-  revealFirstLetterChunk: [index: number]
-  viewLastCard: []
-  resetReview: []
 }>()
 
 // Local state for menu

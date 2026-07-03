@@ -279,25 +279,26 @@ Is data flow complex (many properties)?
 **Passing Composables as Props Pattern:**
 ```typescript
 // App.vue
-<ReviewTab :review="reviewLogic" />
+<ReviewTab :review="review" />
 
 // ReviewTab.vue
-const props = defineProps<{
-  review: ReturnType<typeof useReview>
-}>()
-// Template: props.review.currentReviewVerse
+const props = defineProps<{ review: ReviewComposable }>()
+// Destructure ONCE in setup: refs stay reactive and auto-unwrap in the
+// template; review actions are called directly instead of emitted.
+const { currentReviewVerse, reviewMode, navigate } = props.review
 ```
 
 This pattern:
-- ✅ Preserves Vue reactivity
-- ✅ Full TypeScript support via ReturnType
-- ✅ Makes dependencies explicit
-- ✅ Avoids excessive individual prop definitions
+- ✅ Preserves Vue reactivity (destructured refs, stable object identity)
+- ✅ Full TypeScript support via the exported `ReviewComposable` type
+- ✅ Makes dependencies explicit (the destructure lists exactly what's used)
+- ✅ Avoids excessive individual prop definitions AND event boilerplate
 
-**Current status:** ReviewTab presently receives individual props/events
-instead (a deliberate simplification — see previous-work/064). Consolidating
-back to the single-composable prop shown above is a planned cleanup from the
-July 2026 architecture review.
+**Current status:** Implemented for ReviewTab and ReviewModeButtons
+(previous-work/072). Only non-review concerns (clipboard, browser links,
+edit modal) still emit to App. History: 064 had deliberately gone the
+individual-props route; the July 2026 architecture review reversed that
+after the wiring grew to ~15 props + ~14 events per component.
 
 **Why NOT Pinia:**
 - Current composables work well and follow Vue 3 best practices

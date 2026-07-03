@@ -6,7 +6,7 @@
       <!-- Mode Buttons Row -->
       <div class="flex gap-3 justify-center">
         <button
-          @click="$emit('switchToTypeIt')"
+          @click="switchToTypeIt()"
           :class="reviewMode === 'typeit' ? 'mode-button-active' : 'mode-button-inactive'"
           class="px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
           title="Type It (t) - Coming Soon">
@@ -17,7 +17,7 @@
         <!-- Flash Cards with +/- buttons (fused when active) -->
         <div v-if="reviewMode === 'flashcards'" class="flashcard-group-active flex gap-0 rounded-lg">
           <button
-            @click="$emit('decreaseFlashCardDifficulty')"
+            @click="decreaseFlashCardDifficulty()"
             :disabled="!canDecreaseFlashCardDifficulty"
             :title="canDecreaseFlashCardDifficulty ? 'Decrease difficulty' : 'Already at easiest'"
             class="flashcard-sub-button-in-group rounded-l-lg"
@@ -25,14 +25,14 @@
             −
           </button>
           <button
-            @click="$emit('switchToFlashCards')"
+            @click="switchToFlashCards()"
             :title="flashCardLevelName"
             class="flashcard-main-active px-2 py-2.5 font-medium transition-all flex items-center gap-2">
             <i class="mdi mdi-cards-outline text-lg"></i>
             <span>Flash Cards</span>
           </button>
           <button
-            @click="$emit('increaseFlashCardDifficulty')"
+            @click="increaseFlashCardDifficulty()"
             :disabled="!canIncreaseFlashCardDifficulty"
             :title="canIncreaseFlashCardDifficulty ? 'Increase difficulty' : 'Already at hardest'"
             class="flashcard-sub-button-in-group rounded-r-lg"
@@ -42,7 +42,7 @@
         </div>
         <button
           v-else
-          @click="$emit('switchToFlashCards')"
+          @click="switchToFlashCards()"
           class="mode-button-inactive px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
           title="Flash Cards (c)">
           <i class="mdi mdi-cards-outline text-lg"></i>
@@ -50,7 +50,7 @@
         </button>
 
         <button
-          @click="reviewMode === 'hints' ? $emit('addHint') : $emit('switchToHints')"
+          @click="reviewMode === 'hints' ? addHint() : switchToHints()"
           :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
           class="px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
           title="Hint (h)">
@@ -59,7 +59,7 @@
         </button>
 
         <button
-          @click="$emit('switchToFirstLetters')"
+          @click="switchToFirstLetters()"
           :class="reviewMode === 'firstletters' ? 'mode-button-active' : 'mode-button-inactive'"
           class="px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
           title="First Letters (f)">
@@ -68,7 +68,7 @@
         </button>
 
         <button
-          @click="$emit('switchToContent')"
+          @click="switchToContent()"
           :class="reviewMode === 'content' ? 'mode-button-active' : 'mode-button-inactive'"
           class="px-5 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
           title="Reveal verse (Space)">
@@ -80,7 +80,7 @@
       <!-- Action Buttons Row (Desktop) - Always visible, disabled until verse revealed -->
       <div class="flex gap-3 justify-center">
         <button
-          @click="$emit('again')"
+          @click="again()"
           :disabled="reviewMode !== 'content' || isNavigating"
           class="action-button-again px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
           :title="reviewMode === 'content' ? 'Need more practice (a)' : 'Available after revealing verse'">
@@ -88,7 +88,7 @@
           <span>Again</span>
         </button>
         <button
-          @click="$emit('gotIt')"
+          @click="gotIt()"
           :disabled="reviewMode !== 'content' || isNavigating"
           class="action-button-gotit px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
           :title="reviewMode === 'content' ? 'I remembered it! (g)' : 'Available after revealing verse'">
@@ -103,7 +103,7 @@
       <!-- Action Buttons Row (Mobile) - Always visible, disabled until verse revealed -->
       <div class="flex gap-3">
         <button
-          @click="$emit('again')"
+          @click="again()"
           :disabled="reviewMode !== 'content' || isNavigating"
           class="action-button-again flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
           :title="reviewMode === 'content' ? 'Need more practice (a)' : 'Available after revealing verse'">
@@ -111,7 +111,7 @@
           <span>Again</span>
         </button>
         <button
-          @click="$emit('switchToContent')"
+          @click="switchToContent()"
           :class="reviewMode === 'content' ? 'mode-button-active' : 'mode-button-inactive'"
           class="py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
           style="min-width: 3rem;"
@@ -120,7 +120,7 @@
           <i class="mdi mdi-text-long text-xl"></i>
         </button>
         <button
-          @click="$emit('gotIt')"
+          @click="gotIt()"
           :disabled="reviewMode !== 'content' || isNavigating"
           class="action-button-gotit flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
           :title="reviewMode === 'content' ? 'I remembered it! (g)' : 'Available after revealing verse'">
@@ -132,7 +132,7 @@
       <!-- Mode Buttons Row (Mobile) - Icons only, all 4 on one row -->
       <div class="flex gap-2">
         <button
-          @click="$emit('switchToTypeIt')"
+          @click="switchToTypeIt()"
           :class="reviewMode === 'typeit' ? 'mode-button-active' : 'mode-button-inactive'"
           class="flex-1 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
           title="Type It (t) - Coming Soon"
@@ -143,7 +143,7 @@
         <!-- Flash Cards with +/- buttons (fused when active) -->
         <div v-if="reviewMode === 'flashcards'" class="flashcard-group-active flex-1 flex gap-0 rounded-lg">
           <button
-            @click="$emit('decreaseFlashCardDifficulty')"
+            @click="decreaseFlashCardDifficulty()"
             :disabled="!canDecreaseFlashCardDifficulty"
             class="flashcard-sub-button-in-group rounded-l-lg px-2"
             :class="canDecreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'"
@@ -151,13 +151,13 @@
             −
           </button>
           <button
-            @click="$emit('switchToFlashCards')"
+            @click="switchToFlashCards()"
             class="flashcard-main-active flex-1 py-2.5 font-medium transition-all flex items-center justify-center"
             aria-label="Flash Cards">
             <i class="mdi mdi-cards-outline text-xl"></i>
           </button>
           <button
-            @click="$emit('increaseFlashCardDifficulty')"
+            @click="increaseFlashCardDifficulty()"
             :disabled="!canIncreaseFlashCardDifficulty"
             class="flashcard-sub-button-in-group rounded-r-lg px-2"
             :class="canIncreaseFlashCardDifficulty ? 'flashcard-sub-button-enabled' : 'flashcard-sub-button-disabled'"
@@ -167,7 +167,7 @@
         </div>
         <button
           v-else
-          @click="$emit('switchToFlashCards')"
+          @click="switchToFlashCards()"
           class="mode-button-inactive flex-1 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
           title="Flash Cards (c)"
           aria-label="Flash Cards">
@@ -175,7 +175,7 @@
         </button>
 
         <button
-          @click="reviewMode === 'hints' ? $emit('addHint') : $emit('switchToHints')"
+          @click="reviewMode === 'hints' ? addHint() : switchToHints()"
           :class="reviewMode === 'hints' ? 'mode-button-active' : 'mode-button-inactive'"
           class="flex-1 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
           title="Hint (h)"
@@ -184,7 +184,7 @@
         </button>
 
         <button
-          @click="$emit('switchToFirstLetters')"
+          @click="switchToFirstLetters()"
           :class="reviewMode === 'firstletters' ? 'mode-button-active' : 'mode-button-inactive'"
           class="flex-1 py-2.5 rounded-lg font-medium transition-all flex items-center justify-center"
           title="First Letters (f)"
@@ -197,24 +197,31 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  reviewMode: 'reference' | 'content' | 'hints' | 'firstletters' | 'flashcards' | 'typeit'
-  canIncreaseFlashCardDifficulty: boolean
-  canDecreaseFlashCardDifficulty: boolean
-  flashCardLevelName: string
-  isNavigating: boolean
+import type { ReviewComposable } from '../../composables/useReview'
+
+const props = defineProps<{
+  // The whole review composable as one prop (systemPatterns §7): mode
+  // state is read via destructured refs, actions are called directly.
+  review: ReviewComposable
 }>()
 
-defineEmits<{
-  switchToTypeIt: []
-  switchToFlashCards: []
-  switchToHints: []
-  switchToFirstLetters: []
-  switchToContent: []
-  increaseFlashCardDifficulty: []
-  decreaseFlashCardDifficulty: []
-  addHint: []
-  again: []
-  gotIt: []
-}>()
+const {
+  reviewMode,
+  canIncreaseFlashCardDifficulty,
+  canDecreaseFlashCardDifficulty,
+  getFlashCardLevelName: flashCardLevelName,
+  isNavigating,
+  switchToTypeIt,
+  switchToFlashCards,
+  switchToHints,
+  switchToFirstLetters,
+  switchToContent,
+  increaseFlashCardDifficulty,
+  decreaseFlashCardDifficulty,
+  addHint,
+  navigate,
+} = props.review
+
+const gotIt = () => navigate({ direction: 'next', recordReview: true })
+const again = () => navigate({ direction: 'next', recordReview: false })
 </script>
