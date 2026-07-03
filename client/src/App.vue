@@ -82,6 +82,7 @@
         :review-complete="reviewComplete"
         :current-review-index="currentReviewIndex"
         :is-navigating="isNavigating"
+        :nav-direction="navDirection"
         :current-review-verse="currentReviewVerse"
         :current-verse-review-status="currentVerseReviewStatus"
         :is-current-verse-inactive="isCurrentVerseInactive"
@@ -92,7 +93,6 @@
         :flashcard-hidden-words="flashcardHiddenWords"
         :flashcard-revealed-words="flashcardRevealedWords"
         :first-letters-revealed-groups="firstLettersRevealedGroups"
-        :register-card-animators="registerCardAnimators"
         @return-to-daily-review="returnToDailyReview()"
         @toggle-immersive-mode="toggleImmersiveMode()"
         @exit-immersive-mode="exitImmersiveMode()"
@@ -280,8 +280,8 @@ const {
   // Navigation
   navigate,
   viewLastCard,
-  registerCardAnimators,
   isNavigating,
+  navDirection,
 
   // Review source selection handlers
   startReviewFromFiltered,

@@ -218,9 +218,9 @@ KEY QUESTION THIS FILE ANSWERS: "How is the system architectured and why?"
 - `client/src/composables/useAuth.ts` - Authentication state and operations
 - `client/src/composables/useVerses.ts` - Verse CRUD, filtering, import/export (simplified after wizard extraction)
 - `client/src/composables/useAddVerseWizard.ts` - Add verse wizard (paste → AI parse → form → collections)
-- `client/src/composables/useReview.ts` - Review system logic, navigation, and animations
+- `client/src/composables/useReview.ts` - Review system logic and navigation (animations delegated to Vue `<Transition>` in ReviewTab)
 - `client/src/composables/useSync.ts` - Sync scheduling and status tracking
-- `client/src/composables/useCardTransitions.ts` - Card animation primitives (used internally by useReview)
+- `client/src/composables/useStats.ts` - Statistics dashboard engine
 - `client/src/composables/useSwipeDetection.ts` - Touch gesture detection
 - `client/src/app.ts` - Orchestrates composables
 
@@ -321,7 +321,7 @@ When a component owns a DOM element that requires event handling (touch, swipe, 
 
 **Why:** Avoids convoluted ref-passing patterns (watchEffect sync, defineExpose, ref forwarding). Component encapsulates its DOM interactions, parent orchestrates behavior.
 
-**Applied In:** ReviewTab owns cardElement, useSwipeDetection, AND useCardTransitions - all DOM-related concerns stay in the component that owns the DOM element.
+**Applied In:** ReviewTab owns cardElement, useSwipeDetection, AND the card's Vue `<Transition>` configuration - all DOM-related concerns stay in the component that owns the DOM element.
 
 **Key Files:**
 - `client/src/App.vue` - Main shell component
@@ -726,15 +726,17 @@ watch(hasSyncIssuesWithAuth, (newValue, oldValue) => {
 - Completion screen didn't differentiate between daily and filtered review modes
 
 **How It Works:**
-- `useReview` composable manages `useCardTransitions` internally
 - Single `navigate()` method handles all navigation with optional review recording
+- `navigate()` mutates state only; Vue `<Transition>` in ReviewTab (keyed by
+  verse id, named via `navDirection`) owns all enter/leave animation
 - Keyboard shortcuts call `navigate()` directly (no injection needed)
 - All navigation triggers unified through clean, direct API
 
 **Implementation:**
 ```typescript
-// useReview manages transitions internally:
-const review = useReview(cardElement);
+// useReview is animation-free; ReviewTab maps review.navDirection
+// to a named <Transition>:
+const review = useReview();
 
 // All handlers use review.navigate() directly:
 const handleGotIt = () => review.navigate({
@@ -749,32 +751,32 @@ const handlePreviousClick = () => review.navigate({
 
 **Key Features:**
 1. **Unified Entry Point:** Single `navigate()` method on review composable
-2. **Guard Logic:** Checks transition state and boundary conditions
-3. **Animation Coordination:** Sequences exit → navigation → entry animations
+2. **Concurrency Guard:** `isNavigating` spans the whole sequence including
+   the 400ms review-feedback delay (see previous-work/069)
+3. **Animations Delegated:** state changes drive Vue `<Transition>` — keyed
+   by verse id, transition name chosen from `navDirection`
 4. **Review Recording:** Optional parameter integrates review tracking
 5. **Boundary Handling:** Explicit completion state for last card
 6. **No Injection:** Keyboard shortcuts call navigate() directly
 
 **Navigation Flow:**
 ```
-1. Guard checks (is transitioning? at boundary?)
+1. Guard (isNavigating? at boundary?)
    ↓
-2. Record review (optional, with visual feedback)
+2. Record review (optional, with 400ms visual feedback)
    ↓
-3. Exit animation (card slides out)
+3. Set navDirection + mutate state (index / completion)
    ↓
-4. Navigate (update index, handle completion)
-   ↓
-5. Entry animation (new card slides in)
-   OR show completion screen + reset card state
+4. Vue <Transition> reacts: old card leaves, new card enters
+   (mode="out-in"; the completion screen swaps the same way)
 ```
 
-**Critical Invariant:** Card visibility is owned by `useCardTransitions` state
-(`cardVisible`), and only an entry animation restores it after an exit. Any
-path that ends an exit without an entry MUST call the registered `reset`
-animator (the completion branch does this behind the completion screen).
-Violating this renders subsequently-presented cards invisible but interactive.
-(See previous-work/067_review_card_visibility_fix.md)
+**History note:** The previous hand-rolled animation engine
+(useCardTransitions) required an "every exit must pair with an entry or
+reset" invariant; violating it rendered cards invisible-but-interactive
+(previous-work/067). Migrating to Vue `<Transition>` (previous-work/071)
+removed both the engine and the invariant — Vue owns enter/leave lifecycles
+and cannot strand visibility state.
 
 **Why This Pattern:**
 - ✅ **Simple architecture:** Clean 2-layer design (App.vue → useReview)
@@ -786,7 +788,8 @@ Violating this renders subsequently-presented cards invisible but interactive.
 
 **Architecture:**
 ```
-App.vue → useReview (owns transitions internally)
+App.vue → useReview (state + orchestration)
+ReviewTab → Vue <Transition> (animations) + useSwipeDetection (drag)
 ```
 
 **Integration Points:**
@@ -798,9 +801,9 @@ App.vue → useReview (owns transitions internally)
 - Card click → `review.navigate({ recordReview: true })`
 
 **Trade-offs Accepted:**
-- Review composable is larger (~800 lines vs ~700 before)
-- Transitions tightly coupled to review (acceptable - only used in review)
-- Could be seen as violating separation of concerns (but navigation IS review logic)
+- Review composable is large (navigation IS review logic)
+- Swipe drag still binds an inline transform (necessary for finger-following);
+  handoff to the leave transition uses the `--swipe-x` custom property
 
 **Completion Screen Differentiation:**
 - **Daily mode:** Celebratory (🎉 "Review Complete!")
@@ -809,13 +812,14 @@ App.vue → useReview (owns transitions internally)
 - Different action buttons based on context
 
 **Implementation Files:**
-- `client/src/composables/useReview.ts` - All review logic including navigation and animations
-- `client/src/composables/useCardTransitions.ts` - Animation primitives (used internally by useReview)
-- `client/src/app.ts` - Passes cardElement to useReview
+- `client/src/composables/useReview.ts` - All review logic including navigation
+- `client/src/components/tabs/ReviewTab.vue` - Vue `<Transition>` config + swipe handoff
+- `client/src/styles.css` - Named card transitions (card-left / card-right / card-drop)
 - `client/src/App.vue` - Uses review.navigate() directly
 
 **See:**
 - previous-work/049_unified_review_navigation.md - Complete navigation unification
+- previous-work/071_vue_transition_migration.md - Vue `<Transition>` migration
 
 ## Component Relationships
 

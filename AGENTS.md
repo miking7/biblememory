@@ -52,7 +52,6 @@ client/src/
   composables/
     useReview.ts     review state machine; navigate() is the single entry
                      point for ALL navigation, guarded by isNavigating
-    useCardTransitions.ts  card animation state (exit/entry/reset)
     useSwipeDetection.ts   touch gestures (reused by StatsModal)
     useVerses.ts / useAuth.ts / useSync.ts / useStats.ts / useAddVerseWizard.ts
   actions.ts         CRUD + oplog ops + review-status cache
@@ -71,9 +70,10 @@ server `ops` table (monotonic seq) → other devices cursor-pull → LWW merge.
 
 ## Invariants & gotchas
 
-- **Card animations:** every exit animation must be followed by an entry
-  animation or a `reset` — otherwise the next presented card renders
-  invisible (systemPatterns §14; previous-work/067).
+- **Card animations:** owned by Vue `<Transition>` in ReviewTab — keyed by
+  verse id, transition name chosen from `useReview.navDirection`. Never
+  reintroduce manual visibility/offset state for the card; the old
+  hand-rolled engine caused invisible-card bugs (previous-work/067, 071).
 - **Navigation:** never bypass `useReview.navigate()`; it owns the
   isNavigating concurrency guard (previous-work/069).
 - **Unicode:** apostrophe/quote handling in `utils/` is encoded

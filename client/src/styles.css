@@ -520,6 +520,68 @@ input:focus, textarea:focus {
     transform: translateY(0);
 }
 
+/* Review Card Transitions (Vue <Transition> names, chosen via navDirection) */
+/* Used at two levels in ReviewTab: the card swap (keyed by verse id) and the
+   empty/review/completion block swap. mode="out-in" sequences the leave
+   (300ms) before the enter (150ms). --swipe-x lets a leave start from the
+   dragged swipe offset instead of snapping back to center first. */
+
+/* Bounce-back for failed swipes (enter/leave classes below override this
+   during transitions; inline 'transition: none' overrides it during drags) */
+.review-card {
+    transition: transform 0.15s ease-out;
+}
+
+.card-left-leave-active,
+.card-right-leave-active,
+.card-drop-leave-active {
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.card-left-enter-active,
+.card-right-enter-active {
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+}
+
+.card-drop-enter-active {
+    transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+}
+
+.card-left-leave-from,
+.card-right-leave-from {
+    transform: translateX(var(--swipe-x, 0px));
+}
+
+.card-left-leave-to {
+    transform: translateX(-150vw);
+    opacity: 0;
+}
+
+.card-left-enter-from {
+    transform: translateX(150vw);
+    opacity: 0;
+}
+
+.card-right-leave-to {
+    transform: translateX(150vw);
+    opacity: 0;
+}
+
+.card-right-enter-from {
+    transform: translateX(-150vw);
+    opacity: 0;
+}
+
+/* view-last: completion screen fades away, card drops in from below */
+.card-drop-leave-to {
+    opacity: 0;
+}
+
+.card-drop-enter-from {
+    transform: translateY(40vh);
+    opacity: 0;
+}
+
 /* Reduced Motion Support - Accessibility */
 /* Respects user's preference for reduced motion */
 @media (prefers-reduced-motion: reduce) {

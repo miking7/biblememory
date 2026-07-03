@@ -13,7 +13,8 @@ export interface UseSwipeDetectionOptions {
  * Composable for detecting horizontal swipe gestures
  *
  * Handles touch events and calls callbacks when valid swipes are detected.
- * Does NOT handle animations - use with useCardTransitions for visual effects.
+ * Does NOT handle animations - callers bind swipeOffset to a transform for
+ * drag feedback and hand off to their own transition on release.
  */
 export function useSwipeDetection(
   element: Ref<HTMLElement | null>,

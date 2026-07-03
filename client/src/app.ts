@@ -314,8 +314,8 @@ export function bibleMemoryApp() {
     // Navigation
     navigate: reviewLogic.navigate,
     viewLastCard: reviewLogic.viewLastCard,
-    registerCardAnimators: reviewLogic.registerCardAnimators,
     isNavigating: reviewLogic.isNavigating,
+    navDirection: reviewLogic.navDirection,
 
     // Immersive mode
     isImmersiveModeActive: reviewLogic.isImmersiveModeActive,

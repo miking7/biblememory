@@ -22,6 +22,11 @@ export type ReviewMode =
   | 'flashcards'     // Random word hiding with difficulty levels
   | 'typeit';        // Type the verse from memory (coming soon)
 
+// Navigation intent for the most recent state change. ReviewTab maps this
+// to a named Vue <Transition> so card enter/leave animations match the
+// gesture (next slides left, previous slides right, etc).
+export type NavDirection = 'next' | 'previous' | 'restart' | 'view-last';
+
 export function useReview() {
 
   // State
@@ -50,15 +55,12 @@ export function useReview() {
   // Immersive mode state
   const isImmersiveModeActive = ref(false);
 
-  // Card animation hooks. The card DOM (and its transitions) is owned by
-  // ReviewTab, so it registers these handlers and navigate() drives them.
-  // This keeps navigate() as the single orchestrator for every navigation
-  // source (arrows, swipe, keyboard, Got it/Again, card click).
-  type CardAnimator = (direction: 'left' | 'right' | 'up' | 'down', duration?: number) => Promise<void>;
-  let cardAnimators: { exit: CardAnimator; entry: CardAnimator; reset: () => void; isAnimating: () => boolean } | null = null;
-  const registerCardAnimators = (animators: typeof cardAnimators) => {
-    cardAnimators = animators;
-  };
+  // Animations are owned by Vue <Transition> in ReviewTab, keyed on the
+  // current verse: navigate() just mutates state and records the intent
+  // here; ReviewTab maps it to a named transition. This keeps navigate()
+  // as the single orchestrator for every navigation source (arrows, swipe,
+  // keyboard, Got it/Again, card click) without owning any animation state.
+  const navDirection = ref<NavDirection>('next');
 
   // Stats
   const reviewedToday = ref(0);
@@ -170,6 +172,7 @@ export function useReview() {
   };
 
   const resetReview = async () => {
+    navDirection.value = 'restart';
     currentReviewIndex.value = 0;
     showVerseText.value = false;
     switchToReference();
@@ -455,6 +458,7 @@ export function useReview() {
 
   // Review source selection methods
   const startFilteredReview = (verses: Verse[], startIndex: number = 0) => {
+    navDirection.value = 'restart';
     reviewSource.value = 'filtered';
     filteredReviewVerses.value = [...verses]; // Snapshot (frozen array)
     currentReviewIndex.value = startIndex;
@@ -463,6 +467,7 @@ export function useReview() {
   };
 
   const returnToDailyReview = () => {
+    navDirection.value = 'restart';
     reviewSource.value = 'daily';
     filteredReviewVerses.value = [];
     currentReviewIndex.value = 0;
@@ -491,10 +496,10 @@ export function useReview() {
 
   /**
    * Navigate to next or previous card. Single orchestrator for every
-   * navigation source. Sequence mirrors the pre-refactor behaviour:
-   * record review (400ms feedback) -> exit animation -> change verse ->
-   * entry animation. Animations are no-ops if ReviewTab hasn't registered
-   * its card animators (e.g. in tests).
+   * navigation source: record review (400ms feedback) -> mutate state.
+   * The state change itself drives the card's Vue <Transition> in
+   * ReviewTab (keyed on verse id), so there is nothing to await for
+   * animations and no animation state to corrupt.
    *
    * @param options.direction - 'next' or 'previous'
    * @param options.recordReview - Optional: true = "got it", false = "needs practice"
@@ -503,11 +508,11 @@ export function useReview() {
     direction: 'next' | 'previous';
     recordReview?: boolean;
   }) => {
-    // One navigation at a time. Checking isAnimating() alone is not
-    // enough: the review-recording feedback delay runs before any
-    // animation starts, and a second trigger in that window would record
-    // the review twice and advance two cards.
-    if (isNavigating.value || cardAnimators?.isAnimating()) return;
+    // One navigation at a time. The guard must span the review-recording
+    // feedback delay: a second trigger in that window would record the
+    // review twice and advance two cards. Overlapping *animations* are
+    // fine — Vue's out-in transition retargets cleanly.
+    if (isNavigating.value) return;
 
     // Can't go previous from first card
     if (options.direction === 'previous' && currentReviewIndex.value === 0) {
@@ -516,37 +521,23 @@ export function useReview() {
 
     isNavigating.value = true;
     try {
+      navDirection.value = options.direction;
+
       // Record review if requested (includes 400ms visual feedback)
       if (options.recordReview !== undefined) {
         await markReview(options.recordReview);
       }
 
-      // Exit animation: card slides out opposite to the direction of travel
-      const exitDir = options.direction === 'next' ? 'left' : 'right';
-      if (cardAnimators) await cardAnimators.exit(exitDir);
-
-      // Navigate
       if (options.direction === 'next') {
         const isOnLastCard = currentReviewIndex.value === totalReviewCount.value - 1;
 
         if (isOnLastCard) {
-          // Reached end - show completion screen (no entry animation)
           completeReview();
-          // The exit animation left the card hidden, and the completion
-          // screen now covers it. Restore the resting state here — flows
-          // that re-present a card without an entry animation (Review More,
-          // Return to Daily Review, re-selecting the Review tab) would
-          // otherwise render the card at opacity 0.
-          cardAnimators?.reset();
         } else {
-          // Normal next card - slide the new card in from the right
           await nextVerse();
-          if (cardAnimators) await cardAnimators.entry('right');
         }
       } else {
-        // Previous card - slide the new card in from the left
         await previousVerse();
-        if (cardAnimators) await cardAnimators.entry('left');
       }
     } finally {
       isNavigating.value = false;
@@ -557,10 +548,10 @@ export function useReview() {
    * View the last card from the completion screen
    * Un-completes the review and shows the last card
    */
-  const viewLastCard = async () => {
+  const viewLastCard = () => {
     if (!reviewComplete.value) return;
+    navDirection.value = 'view-last';
     uncompleteReview();
-    if (cardAnimators) await cardAnimators.entry('down', 200);
   };
 
   return {
@@ -622,11 +613,11 @@ export function useReview() {
     revealFirstLetterChunk,
     revealWord,
 
-    // Navigation (with animations)
+    // Navigation
     navigate,
     viewLastCard,
-    registerCardAnimators,
     isNavigating,
+    navDirection,
 
     // Phase 2: Keyboard shortcuts
     handleKeyPress,

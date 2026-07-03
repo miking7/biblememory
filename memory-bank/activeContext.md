@@ -15,42 +15,32 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Architecture review remediation — items 1-2 complete (both
-awaiting Herd test / user review before push)
+**Status:** Architecture review remediation — items 1-4 complete (069-071
+tested on Herd through item 2; items 3-4 awaiting Herd test)
 
-**Latest Work:**
-- **069:** `isNavigating` guard covering the entire `navigate()` sequence —
-  double-tapping "Got it!" no longer records two reviews and skips a card.
-  Includes the repo's first composable-level tests (verified red without the
-  fix).
-- **070:** Agent entry-point restructure — new canonical **AGENTS.md** (repo
-  root) with commands/architecture/invariants/doc-map; CLAUDE.md and
-  .clinerules are now thin pointers to it. Memory-bank reading is now
-  SELECTIVE (activeContext first, others per the map). Doc drift purged
-  (legacy-app sections, versions, sync interval, endpoint/test counts,
-  line-number refs).
+**Latest Work (071):** Migrated card animations to Vue `<Transition>` —
+`useCardTransitions` deleted along with the exit/entry/reset invariant and
+the `registerCardAnimators` handshake. `navigate()` is now animation-free
+(sets `navDirection`, mutates state; Vue owns enter/leave). Swipe releases
+hand off to the leave animation via `--swipe-x` (exit continues from under
+the finger). Completion is now an animated block swap.
 
 **Remediation list (from the state/transitions/animations review):**
 1. ✅ Navigation race guard (069)
 2. ✅ Agent entry-point restructure + doc-drift purge (070)
-3. ⏸ Swipe→exit animation continuity; animator registration lifecycle
-4. ⏸ Migrate review card to Vue `<Transition>` (removes hand-rolled
-   useCardTransitions invariant)
-5. ⏸ Consolidate ReviewTab wiring to single `review` prop (matches
+3. ✅ Absorbed into 4 (swipe continuity + registration lifecycle)
+4. ✅ Vue `<Transition>` migration (071)
+5. ⏳ Consolidate ReviewTab wiring to single `review` prop (matches
    systemPatterns §7 documented pattern)
 
-**Recent shipped work:** Apostrophe/Unicode handling in text splitters +
-Vitest infrastructure (068, pushed — 777ef65).
-
-**Standing notes from recent work (all pushed to production):**
-- Card animation invariant: every card exit animation must be followed by an
-  entry animation or a `reset` — flows that re-present a card without one
-  render it invisible (previous-work/067_review_card_visibility_fix.md).
+**Standing notes:**
 - Stats dashboard deferred item: deterministic "due today" target (progress-bar
   denominator still rides `getVersesForReview()`'s `Math.random()` gating)
   (previous-work/066_statistics_dashboard.md).
 
-**Next:** User-driven thorough code review to identify further bugs.
+**Next after item 5:** remaining smaller review findings (F7 cohesion items:
+400ms delay placement, alert→toast, redundant status updates; midnight cache
+rollover; immersive+completion Escape trap).
 
 ## Previous Work Index (Complete Archive)
 
@@ -131,3 +121,4 @@ This index provides titles and links for reference when needed.
 - **068** - Apostrophe & Unicode Handling Fix (First Letters + Flash Cards) → [previous-work/068_apostrophe_unicode_handling.md](previous-work/068_apostrophe_unicode_handling.md)
 - **069** - Navigation Race Fix (isNavigating guard) → [previous-work/069_navigation_race_fix.md](previous-work/069_navigation_race_fix.md)
 - **070** - Agent Entry-Point Restructure (AGENTS.md) + Doc-Drift Purge → [previous-work/070_agent_entrypoint_restructure.md](previous-work/070_agent_entrypoint_restructure.md)
+- **071** - Vue Transition Migration (Card Animations) → [previous-work/071_vue_transition_migration.md](previous-work/071_vue_transition_migration.md)

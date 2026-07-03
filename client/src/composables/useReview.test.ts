@@ -6,13 +6,12 @@ import type { Verse } from '../db';
 // Navigation-guard regression tests (see previous-work/069): a second
 // navigation trigger fired while one is still in flight (including the
 // review-recording feedback delay) must be dropped, not queued or applied.
+// Animations are owned by Vue <Transition> in ReviewTab and play no part
+// in the guard, so none are simulated here.
 //
 // These run in node with no IndexedDB: the verse stubs' ids are pre-seeded
 // into the review-status cache so the status watcher stays on the
 // synchronous cache path and never queries the database.
-
-const sleep = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
 
 function setupReview(verseIds: string[]) {
   const review = useReview();
@@ -20,14 +19,6 @@ function setupReview(verseIds: string[]) {
     updateReviewCache(id, 'recall', Date.now());
   }
   review.dueForReview.value = verseIds.map((id) => ({ id } as Verse));
-  review.registerCardAnimators({
-    exit: () => sleep(10),
-    entry: () => sleep(10),
-    reset: () => {},
-    // Deliberately always false: the guard must not depend on animation
-    // state, because the feedback delay runs before any animation starts.
-    isAnimating: () => false,
-  });
   return review;
 }
 
