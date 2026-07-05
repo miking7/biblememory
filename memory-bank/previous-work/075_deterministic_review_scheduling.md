@@ -1,7 +1,7 @@
 # 075 — Deterministic Review Scheduling (Date-Seeded Daily Queue)
 
-**Date:** July 5, 2026
-**Status:** Implemented; unit tests + build green; awaiting Herd verification before push.
+**Date:** July 5–6, 2026
+**Status:** Shipped to production (commit 9864f18); Round 4/5 fixes on top, pending push.
 
 ## Problem
 
@@ -174,6 +174,95 @@ work and are tested; revisit if a fourth interstitial appears); per-review
 full-table streak scan (pre-existing, hidden under the 400ms feedback
 overlap); ReviewTab interstitial-markup dedup into a presentational
 component; single-verse adjacent-key edge (accepted).
+
+## Round 4: production feedback — the runaway target
+
+First production use surfaced a design flaw in the "fully unified queue"
+simplification: the lap was pure hash order, so weekly/monthly verses sat
+interleaved ahead of the last daily verse. Reaching the goal therefore
+forced reviewing them, each overflowing its small target and growing the
+day's total by one per review — an unreachable target (reviewed +1,
+total +1, forever).
+
+Fix: **deck-first ordering** inside the unreviewed portion of the lap
+(`nextLap`): walk the hash order filling each category's *outstanding*
+target (target − distinct-reviewed-today, so off-deck/manual reviews
+shrink the deck), put those verses first, the rest of the collection
+after. Reviewing front-to-back now meets the targets exactly — the total
+stays fixed until the user genuinely goes beyond it. Still a pure
+function of (verses, today's reviews, date); covered by tests including a
+walk-the-deck integration test asserting the total never inflates
+mid-deck.
+
+Also from the same feedback: the card-footer X/Y switched from
+distinct-reviewed (which ignores skipping) to **position within today's
+plan** (`min(index+1, total)/total`) — deck-first makes position and
+progress agree when reviewing in order, and skipping back/forward now
+moves the indicator. The tab badge counting down remaining-to-target was
+confirmed as intended.
+
+## Round 5: code review of the Round-4 fix, before pushing
+
+An 8-angle review of the deck-first change itself (before it went out)
+found the fix had introduced a new, sharper bug in the process:
+
+1. **False "goal complete" reading (most severe — fixed).** The card-footer
+   indicator had been changed to `min(position, target)/target` to satisfy
+   "X should move when skipping." But `dueForReview`'s position advances on
+   every navigation regardless of whether a review was recorded, and
+   `buildDailyQueue`'s history can legitimately contain the same verse more
+   than once (non-adjacent repeats aren't collapsed) — so position can race
+   ahead of genuine distinct-reviewed progress. Traced concretely: 3 daily
+   verses (target 3), review a, b, a, b, a (5 events, verse c untouched) →
+   `computeProgress` correctly reports `{reviewed: 2, total: 3,
+   allTargetsMet: false}`, but the old label showed **"3/3"** — directly
+   contradicting the still-false celebration state. It also froze at
+   "total/total" forever once the initial deck was cleared, even during
+   later genuine laps, and disagreed with StatsBar's honest
+   distinct-reviewed number on screen at the same time.
+
+   **Fix:** reverted the footer to plain, uncapped queue position
+   (`currentReviewIndex + 1 / totalReviewCount`) for both daily and
+   filtered modes — the same thing it always showed pre-075. This still
+   satisfies "moves on skip" (the actual ask), never fabricates a false
+   "done" state, and stops competing with StatsBar/the badge/the
+   celebration screen for the same "progress toward goal" story — those
+   three already read `dailyProgress` directly and are the correct owners
+   of that number.
+
+2. **Duplicate quota-state derivation (fixed).** `nextLap` had grown its
+   own inline `computeTargets` + `distinctReviewedByCategory` calls,
+   duplicating exactly what `computeProgress` does — two independently-
+   maintained formulas over the same inputs, flagged by four of the eight
+   finder angles as a drift risk. Extracted `computeQuotaState()` as the
+   one shared derivation; both functions now call it. (The one remaining
+   redundancy — `computeProgress` and `buildDailyQueue`/`nextLap` are still
+   separately invoked once each from `actions.getDailyReviewState` — was
+   assessed by the efficiency angle as sub-millisecond at realistic
+   collection sizes and left alone rather than restructuring the
+   actions.ts/useReview.ts data flow again.)
+
+3. **Header comment contradicted the code (fixed).** The module's
+   top-of-file summary still said "quotas do not filter the queue — they
+   only define the day's target," which the deck-first change made false
+   (quotas now actively reorder the unreviewed segment). Rewritten to
+   describe deck-first placement accurately; AGENTS.md's invariant bullet
+   updated to match instead of independently restating it.
+
+4. **Minor cleanup:** named the sort-entry shape (`RankedEntry`) instead of
+   an inline `typeof entries[number]`; replaced the dead
+   `{learn:0,daily:0,...}` literal-then-overwrite with
+   `Object.fromEntries`; replaced the three-key sort comparator (which
+   re-checked `Set.has()` on every pairwise comparison) with an explicit
+   partition into deck/bonus/already-reviewed groups, each sorted once.
+
+**Consciously not fixed (documented, not chased):** deck membership for
+*other* same-category verses can theoretically shift if a verse is added
+mid-day and that flips a category's rounding-coin outcome — a real but
+rare edge case (requires simultaneous insertion + a threshold crossing)
+that never produces incorrect quota math, only an occasional reorder, and
+self-heals like everything else. Noted in the `nextLap` doc comment rather
+than engineered around.
 
 ## Notes / expected behaviors
 

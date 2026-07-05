@@ -414,13 +414,15 @@ const canGoPrevious = computed(() =>
   currentReviewIndex.value > 0 && !isNavigating.value
 )
 
-// Daily mode reports quota progress (reviewed / today's target) since the
-// queue loops forever; filtered mode reports position in the finite set.
-const progressLabel = computed(() =>
-  reviewSource.value === 'daily'
-    ? `${dailyProgress.value.reviewed}/${dailyProgress.value.total}`
-    : `${currentReviewIndex.value + 1}/${totalReviewCount.value}`
-)
+// Plain position in the queue (moves on skip in either direction, per
+// user request) — deliberately NOT capped at or mixed with dailyProgress's
+// quota target. A capped/target-relative version looked "done" (N/N) after
+// browsing without reviewing, or after replaying an already-reviewed verse,
+// and it froze once the deck's targets were met even during later genuine
+// laps — two different numbers (queue position vs. quota progress) forced
+// into one. The quota story belongs to StatsBar/the tab badge/the
+// celebration screen, which already read dailyProgress directly.
+const progressLabel = computed(() => `${currentReviewIndex.value + 1}/${totalReviewCount.value}`)
 
 // Verse-dependent helpers, cached per verse (re-parsing the reference on
 // every render/reactive tick was wasteful — these only change with the verse).

@@ -9,11 +9,17 @@ import type { Verse } from '../db';
 //
 // Core rule: the session queue is
 //   [verses reviewed today, in review order] ++
-//   [all eligible verses sorted by (times reviewed today ASC, date-seeded hash ASC)]
-// The second segment makes review order deterministic per day, lets skipped
-// cards surface before repeats, and loops the whole collection indefinitely.
-// Category quotas do not filter the queue — they only define the day's target
-// (when the celebration fires and what the progress denominator is).
+//   [one lap over all eligible verses]
+// A lap sorts least-reviewed-today first (repeats only start once everyone's
+// been seen once — this is what loops the collection indefinitely), and
+// within the UNREVIEWED verses, puts TODAY'S DECK first: the verses that
+// fill each category's still-outstanding target, in date-seeded hash order.
+// Deck-first placement matters — without it, reviewing toward the goal
+// forces overflowing interleaved weekly/monthly verses along the way and the
+// target grows forever instead of being reachable (previous-work/075,
+// "Round 4"). So quotas DO shape queue order, not just the celebration/
+// progress denominator — but only by reordering among unreviewed verses;
+// nothing is ever excluded, and the whole collection still follows the deck.
 
 export type ReviewCategory = 'learn' | 'daily' | 'weekly' | 'monthly';
 
@@ -163,6 +169,42 @@ export function reviewCountsByVerse(todaysReviews: ReviewEvent[]): Map<string, n
   return counts;
 }
 
+// Distinct verses reviewed today, bucketed by scheduling category. An
+// out-of-rotation verse (paused, future, unstarted) buckets under
+// 'inactive' — zero-target overflow that must never satisfy a real quota.
+function distinctReviewedByCategory(
+  versesById: Map<string, Verse>,
+  todaysReviews: ReviewEvent[],
+  todayMidnight: number
+): Map<string, number> {
+  const reviewedByCat = new Map<string, number>();
+  const seen = new Set<string>();
+  for (const r of todaysReviews) {
+    if (seen.has(r.verseId)) continue;
+    seen.add(r.verseId);
+    const verse = versesById.get(r.verseId);
+    if (!verse) continue; // deleted verse
+    const bucket = eligibleCategory(verse, todayMidnight) ?? 'inactive';
+    reviewedByCat.set(bucket, (reviewedByCat.get(bucket) || 0) + 1);
+  }
+  return reviewedByCat;
+}
+
+// Shared by computeProgress and nextLap so quota state (targets + distinct-
+// reviewed-by-category) is derived by exactly one formula — the two must
+// never independently re-derive it and risk disagreeing.
+function computeQuotaState(
+  verses: Verse[],
+  todaysReviews: ReviewEvent[],
+  dateStr: string,
+  todayMidnight: number
+): { targets: DailyTargets; reviewedByCat: Map<string, number> } {
+  const targets = computeTargets(verses, dateStr, todayMidnight);
+  const versesById = new Map(verses.map(v => [v.id, v]));
+  const reviewedByCat = distinctReviewedByCategory(versesById, todaysReviews, todayMidnight);
+  return { targets, reviewedByCat };
+}
+
 // Daily quota progress. Quotas are floors, not caps: reviewing more verses
 // in a category than targeted raises that category's effective total
 // (max(target, actual)), so `total` only ever grows during the day. Reviews
@@ -174,22 +216,7 @@ export function computeProgress(
   dateStr: string,
   todayMidnight: number
 ): DailyProgress {
-  const targets = computeTargets(verses, dateStr, todayMidnight);
-  const versesById = new Map(verses.map(v => [v.id, v]));
-
-  const reviewedByCat = new Map<string, number>();
-  const seen = new Set<string>();
-  for (const r of todaysReviews) {
-    if (seen.has(r.verseId)) continue;
-    seen.add(r.verseId);
-    const verse = versesById.get(r.verseId);
-    if (!verse) continue;
-    // Bucket by the SCHEDULING category: an out-of-rotation verse (paused,
-    // future, unstarted — even with a manual weekly/monthly reviewCat) must
-    // count as zero-target overflow, never satisfy a real category's quota.
-    const bucket = eligibleCategory(verse, todayMidnight) ?? 'inactive';
-    reviewedByCat.set(bucket, (reviewedByCat.get(bucket) || 0) + 1);
-  }
+  const { targets, reviewedByCat } = computeQuotaState(verses, todaysReviews, dateStr, todayMidnight);
 
   let reviewed = 0;
   let total = 0;
@@ -210,12 +237,30 @@ export function computeProgress(
   return { reviewed, total, allTargetsMet };
 }
 
-// One full pass over the eligible collection: least-reviewed-today first,
-// date-seeded hash order within equal counts. On a fresh day this is pure
-// hash order; each review sinks that verse behind the not-yet-reviewed rest,
-// so repeats only start once everything else has caught up. Appending
-// another lap when navigation reaches the end is what makes daily review
-// loop indefinitely.
+interface RankedEntry {
+  verse: Verse;
+  count: number; // times reviewed today
+  rank: number;  // date-seeded hash rank
+}
+
+// One full pass over the eligible collection, ordered so that reviewing
+// front-to-back meets the day's targets exactly:
+//
+//   1. times-reviewed-today ASC — repeats only start once everything else
+//      has caught up (this is what loops the collection);
+//   2. within the unreviewed verses, TODAY'S DECK first — the verses that
+//      fill each category's still-outstanding target (remaining =
+//      target − distinct-reviewed), chosen in hash order. Without this,
+//      the interleaved weekly/monthly verses ahead of the last daily verse
+//      would each overflow their category on the way to the goal, growing
+//      the day's total with every review — an unreachable target;
+//   3. date-seeded hash order within each group.
+//
+// Everything stays a pure function of (verses, today's reviews, date), so
+// devices still agree and the deck self-heals as reviews sync. Deck
+// membership can shift for OTHER same-category verses if a verse is
+// added/removed mid-day and that flips the category's rounding-coin
+// outcome (computeTargets) — rare, and it self-heals like everything else.
 export function nextLap(
   verses: Verse[],
   todaysReviews: ReviewEvent[],
@@ -223,20 +268,41 @@ export function nextLap(
   todayMidnight: number
 ): Verse[] {
   const counts = reviewCountsByVerse(todaysReviews);
-  return verses
+  const entries: RankedEntry[] = verses
     .filter(v => eligibleCategory(v, todayMidnight) !== null)
     .map(v => ({
       verse: v,
       count: counts.get(v.id) || 0,
       rank: verseRank(v.id, dateStr),
-    }))
-    .sort(
-      (a, b) =>
-        a.count - b.count ||
-        a.rank - b.rank ||
-        (a.verse.id < b.verse.id ? -1 : 1) // hash-collision tiebreak
-    )
-    .map(e => e.verse);
+    }));
+
+  const byRank = (a: RankedEntry, b: RankedEntry) =>
+    a.rank - b.rank || (a.verse.id < b.verse.id ? -1 : 1); // hash-collision tiebreak
+
+  // Today's deck: walk the hash-ordered UNREVIEWED verses, taking each
+  // category until its outstanding target is filled.
+  const { targets, reviewedByCat } = computeQuotaState(verses, todaysReviews, dateStr, todayMidnight);
+  const remaining = Object.fromEntries(
+    REVIEW_CATEGORIES.map(cat => [cat, Math.max(0, targets[cat] - (reviewedByCat.get(cat) || 0))])
+  ) as Record<ReviewCategory, number>;
+
+  const unreviewed = entries.filter(e => e.count === 0).sort(byRank);
+  const deck: RankedEntry[] = [];
+  const bonus: RankedEntry[] = [];
+  for (const e of unreviewed) {
+    const cat = eligibleCategory(e.verse, todayMidnight)!; // non-null: entries is pre-filtered to eligible verses
+    if (remaining[cat] > 0) {
+      remaining[cat]--;
+      deck.push(e);
+    } else {
+      bonus.push(e);
+    }
+  }
+  const alreadyReviewed = entries
+    .filter(e => e.count > 0)
+    .sort((a, b) => a.count - b.count || byRank(a, b));
+
+  return [...deck, ...bonus, ...alreadyReviewed].map(e => e.verse);
 }
 
 // If the segment being appended starts with the same verse the queue

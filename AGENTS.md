@@ -91,12 +91,16 @@ server `ops` table (monotonic seq) → other devices cursor-pull → LWW merge.
 - **Review scheduling:** deterministic and date-seeded. The algorithm
   lives in `utils/reviewScheduling.ts` (pure, unit-tested) and is
   documented in systemPatterns §Spaced Repetition Algorithm. Invariants:
-  category quotas are floors that gate the celebration/progress display —
-  they never filter which cards appear; the queue is never persisted
-  (rebuilt on every Review-tab entry from synced state); reviews must
-  never record into a session whose `queueDate` is stale (new-day
-  interstitial); never reintroduce `Math.random` into scheduling
-  (previous-work/075).
+  category quotas are floors — reviewing more than a category's target
+  only raises its effective total, never caps it — and they shape queue
+  order (today's outstanding deck comes first, "Round 4"/"Round 5" of
+  previous-work/075) without ever excluding a verse; the queue is never
+  persisted (rebuilt on every Review-tab entry from synced state); reviews
+  must never record into a session whose `queueDate` is stale (new-day
+  interstitial); the card-footer position indicator is deliberately plain
+  queue position, never capped at or blended with the quota target (that
+  produced a false "N/N done" — Round 5); never reintroduce `Math.random`
+  into scheduling.
 - Logout wipes ALL local data (by design, with outbox warning).
 
 ## Documentation map (memory-bank/)

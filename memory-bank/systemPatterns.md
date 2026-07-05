@@ -922,13 +922,18 @@ Result: Device B's edit wins (Last-Write-Wins based on ts_server)
    a. History segment — verses reviewed today, in review order
       (consecutive duplicates collapsed)
    b. Lap segment — all eligible verses sorted by
-      (times-reviewed-today ASC, hash32(verseId|localDate) ASC)
+      (times-reviewed-today ASC, today's-deck-first, hash32(verseId|date));
+      the deck = the verses filling each category's still-outstanding
+      target, chosen in hash order. Deck-first matters: without it,
+      reviewing toward the goal forces overflow of interleaved
+      weekly/monthly verses and the day's total grows unreachably.
    c. startIndex lands on the first card after the history
    ↓
 4. computeTargets(): learn/daily target = count; weekly = count/7;
    monthly = count/30 — fractional part resolved by a date-seeded coin.
    Targets GATE the goal (celebration + X/Y progress); they never filter
-   which cards appear.
+   which cards appear — beyond the deck prefix, the whole collection
+   still follows in the queue.
    ↓
 5. User reviews; recordReview() stores the event + queues the op for sync
    ↓

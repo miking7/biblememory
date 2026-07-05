@@ -269,6 +269,53 @@ describe('nextLap', () => {
   });
 });
 
+describe('deck-first ordering (mixed categories)', () => {
+  // 3 daily (target 3) + 14 weekly (14/7 → target 2) + 60 monthly (60/30 →
+  // target 2): today's plan is exactly 7 cards.
+  const collection = [
+    ...Array.from({ length: 3 }, (_, i) => makeVerse({ id: `dl-${i}`, startedAt: age.daily })),
+    ...Array.from({ length: 14 }, (_, i) => makeVerse({ id: `wk-${i}`, startedAt: age.weekly })),
+    ...Array.from({ length: 60 }, (_, i) => makeVerse({ id: `mo-${i}`, startedAt: age.monthly })),
+  ];
+  const catOf = (id: string) => (id.startsWith('dl') ? 'daily' : id.startsWith('wk') ? 'weekly' : 'monthly');
+
+  it('front-loads exactly the per-category targets', () => {
+    const lap = nextLap(collection, [], DATE, TODAY).map(v => v.id);
+    const deck = lap.slice(0, 7);
+    expect(deck.filter(id => catOf(id) === 'daily')).toHaveLength(3);
+    expect(deck.filter(id => catOf(id) === 'weekly')).toHaveLength(2);
+    expect(deck.filter(id => catOf(id) === 'monthly')).toHaveLength(2);
+    expect(lap).toHaveLength(77); // the rest of the collection still follows
+  });
+
+  it('reviewing front-to-back keeps the total stable and meets targets exactly at the end', () => {
+    const lap = nextLap(collection, [], DATE, TODAY);
+    const reviews: ReviewEvent[] = [];
+    for (let i = 0; i < 7; i++) {
+      const before = computeProgress(collection, reviews, DATE, TODAY);
+      expect(before.total).toBe(7); // never inflates mid-deck (the reported bug)
+      expect(before.allTargetsMet).toBe(false);
+      reviews.push(review(lap[i].id, TODAY + i));
+    }
+    expect(computeProgress(collection, reviews, DATE, TODAY)).toEqual({
+      reviewed: 7,
+      total: 7,
+      allTargetsMet: true,
+    });
+  });
+
+  it('off-deck reviews shrink the outstanding deck instead of growing it', () => {
+    // Two monthly verses reviewed manually satisfy the monthly target, so
+    // the rebuilt plan front-loads only the still-outstanding categories.
+    const reviews = [review('mo-10', TODAY + 1), review('mo-11', TODAY + 2)];
+    const lap = nextLap(collection, reviews, DATE, TODAY).map(v => v.id);
+    const outstanding = lap.slice(0, 5); // 3 daily + 2 weekly remain
+    expect(outstanding.filter(id => catOf(id) === 'daily')).toHaveLength(3);
+    expect(outstanding.filter(id => catOf(id) === 'weekly')).toHaveLength(2);
+    expect(outstanding.filter(id => catOf(id) === 'monthly')).toHaveLength(0);
+  });
+});
+
 describe('buildDailyQueue', () => {
   const verses = Array.from({ length: 6 }, (_, i) =>
     makeVerse({ id: `q-${i}`, startedAt: age.daily })

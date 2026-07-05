@@ -15,24 +15,28 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Deterministic review scheduling implemented (075) — the daily
-queue is now a pure function of (verse set, today's reviews, local date):
-date-seeded hash ordering, category quotas as floors/targets (not filters),
-reviewed-today history replayed first, infinite lap-looping instead of a
-completion screen, one-time daily-goal celebration. Unit tests (103) + build
-green. Uncommitted in the working tree; awaiting Herd verification before
-commit/push. 074 (sync health state machine) shipped to production July 5,
-2026.
+**Status:** Deterministic review scheduling (075) shipped to production
+(commit 9864f18, July 6 2026). Production use immediately surfaced a real
+bug — the daily progress target grew without bound — fixed same-day
+(deck-first queue ordering) alongside a second bug the fix itself
+introduced (a false "goal complete" reading in the card-footer position
+indicator, caught by review before this second push). Unit tests (111) +
+build green. Uncommitted fix in the working tree, ready to push.
 
-**Latest Work (075):** `utils/reviewScheduling.ts` (pure) +
-`getDailyReviewState`/`getDailyProgress`/`getNextReviewLap` in actions.ts
-replace `getVersesForReview()`'s `Math.random` gating. `useReview` rebuilds
-the queue on every daily-review entry (self-heals across devices);
-StatsBar/badge/StatsModal now use `dailyProgress` (distinct-verses vs
-seeded target). Round 2 added the midnight-rollover interstitial (blocks
-stale-day sessions via queueDate + navigate/visibility/timer checks) and
-new/small-collection UX (lap-complete pause under 3 eligible verses;
-empty-state CTA). Details and expected behaviors in previous-work/075.
+**Latest Work (075):** the daily queue is a pure function of (verse set,
+today's reviews, local date) in `utils/reviewScheduling.ts`, replacing
+`getVersesForReview()`'s `Math.random` gating. Rounds 1–3 (shipped):
+date-seeded hash ordering, quota floors, reviewed-today history first,
+infinite lap-looping, one-time celebration, midnight-rollover interstitial,
+small-collection lap-complete pause, empty-state CTA. Round 4 (production
+fix): the unreviewed segment is now ordered **deck-first** — verses filling
+each category's outstanding target come before the rest of the hash-ordered
+collection — because pure hash order let interleaved weekly/monthly verses
+force unreachable target growth. Round 5 (pre-push review of Round 4):
+reverted the card-footer indicator to plain queue position (a
+target-capped version looked "done" while the real goal wasn't met, and
+disagreed with StatsBar); deduplicated quota-state derivation between
+`computeProgress`/`nextLap`. Full detail in previous-work/075.
 This also resolves the 066 deferred item (deterministic "due today" target).
 
 **Deferred candidates on record (previous-work/073):** double review-status
