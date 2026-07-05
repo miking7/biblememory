@@ -15,11 +15,15 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Architecture review remediation COMPLETE (items 1-5), post-test
-fix round done (071 addendum), and a pre-push 8-angle code review completed
-with 6 confirmed findings fixed (see previous-work/073). Awaiting final Herd
-re-test (tint fade, swipe exit continuity, modal keyboard isolation) before
-pushing the whole batch.
+**Status:** Architecture review remediation COMPLETE and IN PRODUCTION —
+items 1-5 (069-072), the post-test fix round (071 addendum), and the
+pre-push 8-angle code review with 6 confirmed findings fixed (073) were all
+Herd-tested and pushed as one batch on July 5, 2026.
+
+**Deferred candidates on record (previous-work/073):** double review-status
+lookup per navigation, gotIt/again consolidation, shared isVerseInactive
+helper, key-repeat pacing, navDirection stale-direction cosmetics, vue-tsc
+in the verification loop.
 
 **Latest Work (071 + 072):** Migrated card animations to Vue `<Transition>`
 (`useCardTransitions` deleted along with the exit/entry/reset invariant and
