@@ -372,9 +372,13 @@ export function useReview() {
         toggleImmersiveMode();
         return true;
       case 'n':
+      case 'arrowright':
+        event.preventDefault();
         navigate({ direction: 'next' });
         return true;
       case 'p':
+      case 'arrowleft':
+        event.preventDefault();
         navigate({ direction: 'previous' });
         return true;
       case ' ':

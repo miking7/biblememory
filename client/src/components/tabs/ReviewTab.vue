@@ -48,7 +48,7 @@
               @click="navigate({ direction: 'previous' })"
               :disabled="currentReviewIndex === 0 || isNavigating"
               class="no-zoom absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 sm:-translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
-              title="Previous verse (p)">
+              title="Previous verse (p or ←)">
               <i class="mdi mdi-chevron-left text-2xl"></i>
             </button>
 
@@ -57,7 +57,7 @@
               @click="navigate({ direction: 'next' })"
               :disabled="currentReviewIndex >= totalReviewCount - 1 || isNavigating"
               class="no-zoom absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
-              title="Next verse (n)">
+              title="Next verse (n or →)">
               <i class="mdi mdi-chevron-right text-2xl"></i>
             </button>
 
@@ -396,12 +396,12 @@ const { isSwiping, swipeOffset } = useSwipeDetection(cardElement, {
   onSwipeLeft: () => {
     swipeHandoffX.value = swipeOffset.value
     holdSwipe.value = true
-    emit('navigate', { direction: 'next' })
+    navigate({ direction: 'next' })
   },
   onSwipeRight: () => {
     swipeHandoffX.value = swipeOffset.value
     holdSwipe.value = true
-    emit('navigate', { direction: 'previous' })
+    navigate({ direction: 'previous' })
   },
   threshold: 50,
   canSwipeLeft: () => canSwipeLeft.value,
@@ -411,7 +411,7 @@ const { isSwiping, swipeOffset } = useSwipeDetection(cardElement, {
 const cardStyle = computed(() => ({
   transform: isSwiping.value
     ? `translateX(${swipeOffset.value}px)`
-    : holdSwipe.value
+    : holdSwipe.value && swipeHandoffX.value !== 0
       ? `translateX(${swipeHandoffX.value}px)`
       : undefined,
   transition: isSwiping.value ? 'none' : undefined,

@@ -15,8 +15,9 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Architecture review remediation COMPLETE (items 1-5) — items
-3-5 (commits for 071, 072) awaiting Herd test before push
+**Status:** Architecture review remediation COMPLETE (items 1-5) + one
+post-test fix round (swipe navigate wiring, arrow-key shortcuts — see 071
+addendum). Awaiting final Herd re-test of swipes before push.
 
 **Latest Work (071 + 072):** Migrated card animations to Vue `<Transition>`
 (`useCardTransitions` deleted along with the exit/entry/reset invariant and

@@ -67,3 +67,18 @@ too — a swipe on the last card triggers the block swap, not a card swap).
 
 Item 4 of the architecture-review remediation (absorbs item 3: swipe
 continuity + registration lifecycle). See previous-work/069, 070.
+
+## Addendum — post-Herd-test fixes (same day)
+
+Michael's device testing caught one regression from the 072 conversion:
+the swipe callbacks in ReviewTab's script still `emit('navigate', …)` after
+App stopped listening, so successful swipe releases set `holdSwipe` and
+then never navigated — cards froze at the drag offset. Fixed by calling
+`navigate()` directly (matching every other trigger). Plain `tsc` cannot
+catch undeclared emits in .vue files; adding `vue-tsc` to the verification
+loop would close that gap (noted as a future improvement).
+
+Also added in the same fix round: ArrowLeft/ArrowRight as aliases of p/n in
+`handleKeyPress` (never previously bound — tester expectation), and the
+chevron tooltips now mention both keys. Desktop mouse-drag swiping remains
+deliberately unimplemented (touch events only).

@@ -169,8 +169,8 @@ previous-work/043_legacy_codebase_removal.md).
   - [x] "View Last Card" button from completion screen
   - [x] Simplified from 3-layer to 2-layer architecture (merged orchestrator into review)
 - [x] Keyboard shortcuts fully integrated
-  - [x] 'n' - Next verse
-  - [x] 'p' - Previous verse
+  - [x] 'n' / right-arrow - Next verse
+  - [x] 'p' / left-arrow - Previous verse
   - [x] Space - Reveal verse (content mode)
   - [x] 'g' - Got It! (mark successful recall)
   - [x] 'a' - Again (mark needs practice)
