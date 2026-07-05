@@ -15,29 +15,29 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Architecture review remediation COMPLETE and IN PRODUCTION —
-items 1-5 (069-072), the post-test fix round (071 addendum), and the
-pre-push 8-angle code review with 6 confirmed findings fixed (073) were all
-Herd-tested and pushed as one batch on July 5, 2026.
+**Status:** Sync health state machine implemented (074) — fixes the stale
+"currently offline" toast firing on reconnect — and an 8-angle pre-push code
+review round found 6 confirmed bugs in the first cut, all fixed (body-read
+timeout wedge, login timeout regression, performSync serialization with
+trailing rerun, doomed-sync join, stale-success settle, reconnect-probe
+fast-path). Uncommitted in the working tree; awaiting Herd re-verification
+(recovery toast within ~1 s, sync-error badge/toast, AI parse) before
+commit/push. The prior transition batch (069-073) is in production as of
+July 5, 2026.
+
+**Latest Work (074):** `useSync` rewritten as a settled-verdict state machine
+(`syncHealth` flips healthy only after a *completed* sync, never on
+`navigator.onLine` alone); serialized sync passes with a trailing rerun;
+`online`/`offline` listeners with trust asymmetry; verdict-keyed toast;
+body-covering `fetchWithTimeout` in `utils/http.ts` (shared with the AddVerse
+wizard); shared-promise `syncNow`; push failures fail the sync. Deferred:
+scheduler lifecycle/backoff (incl. the multi-tab logout error loop) + smaller
+server-side findings (listed in 074).
 
 **Deferred candidates on record (previous-work/073):** double review-status
 lookup per navigation, gotIt/again consolidation, shared isVerseInactive
 helper, key-repeat pacing, navDirection stale-direction cosmetics, vue-tsc
 in the verification loop.
-
-**Latest Work (071 + 072):** Migrated card animations to Vue `<Transition>`
-(`useCardTransitions` deleted along with the exit/entry/reset invariant and
-the animator handshake; swipe releases hand off via `--swipe-x`; completion
-is an animated block swap). Then consolidated ReviewTab (15 props/14 events
-→ 1/3) and ReviewModeButtons (5/10 → 1/0) onto a single `review` composable
-prop per systemPatterns §7; `handleCardClick` moved into useReview.
-
-**Remediation list (from the state/transitions/animations review):**
-1. ✅ Navigation race guard (069)
-2. ✅ Agent entry-point restructure + doc-drift purge (070)
-3. ✅ Absorbed into 4 (swipe continuity + registration lifecycle)
-4. ✅ Vue `<Transition>` migration (071)
-5. ✅ Single `review` prop consolidation (072)
 
 **Standing notes:**
 - Stats dashboard deferred item: deterministic "due today" target (progress-bar
@@ -130,3 +130,4 @@ This index provides titles and links for reference when needed.
 - **071** - Vue Transition Migration (Card Animations) → [previous-work/071_vue_transition_migration.md](previous-work/071_vue_transition_migration.md)
 - **072** - Single `review` Prop Consolidation → [previous-work/072_review_prop_consolidation.md](previous-work/072_review_prop_consolidation.md)
 - **073** - Pre-Push Code Review & Fixes (Transition Batch) → [previous-work/073_prepush_code_review_fixes.md](previous-work/073_prepush_code_review_fixes.md)
+- **074** - Sync Health State Machine (Reconnect Toast Fix) → [previous-work/074_sync_status_state_machine.md](previous-work/074_sync_status_state_machine.md)

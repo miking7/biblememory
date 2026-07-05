@@ -235,12 +235,11 @@ input:focus, textarea:focus {
     white-space: pre-wrap;
 }
 
-/* Offline Toast - Auto-dismissing notification */
-.offline-toast {
+/* Sync Status Toast - Auto-dismissing notification */
+.sync-toast {
     position: fixed;
     top: 20px;
     right: 20px;
-    background: rgba(239, 68, 68, 0.95);
     color: white;
     padding: 12px 20px;
     border-radius: 12px;
@@ -251,6 +250,14 @@ input:focus, textarea:focus {
 
     /* Slide-in animation */
     animation: slideInFromTop 0.3s ease-out;
+}
+
+.sync-toast--warning {
+    background: rgba(239, 68, 68, 0.95);
+}
+
+.sync-toast--success {
+    background: rgba(34, 197, 94, 0.95);
 }
 
 @keyframes slideInFromTop {
@@ -292,10 +299,6 @@ input:focus, textarea:focus {
     50% {
         opacity: 0.7;
     }
-}
-
-.online-indicator {
-    background: rgba(16, 185, 129, 0.9);
 }
 
 /* Phase 2: Mode button styling */

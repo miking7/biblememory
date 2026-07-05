@@ -8,6 +8,7 @@ import {
   dateToMidnightEpoch,
   epochToDateString
 } from '../actions';
+import { fetchWithTimeout, TimeoutError } from '../utils/http';
 
 export function useAddVerseWizard(onVerseAdded: () => void) {
   // Wizard step state
@@ -85,29 +86,24 @@ export function useAddVerseWizard(onVerseAdded: () => void) {
         throw new Error('Authentication required');
       }
 
-      // Call parse API with 15 second timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-      const response = await fetch('/api/parse-verse', {
+      // Call parse API with 15 second timeout (covers the body read too)
+      const response = await fetchWithTimeout('/api/parse-verse', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Auth-Token': token
         },
-        body: JSON.stringify({ text: pastedText.value }),
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
+        body: JSON.stringify({ text: pastedText.value })
+      }, 15000);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        let errorData: any = {};
+        try { errorData = JSON.parse(response.text); } catch { /* non-JSON error body */ }
         console.error('API error response:', errorData);
         throw new Error(errorData.error || 'Server error');
       }
 
-      const parsed = await response.json();
+      const parsed = JSON.parse(response.text);
 
       // Pre-fill form with parsed data
       newVerse.value.reference = parsed.reference || '';
@@ -125,7 +121,7 @@ export function useAddVerseWizard(onVerseAdded: () => void) {
     } catch (error: any) {
       console.error('Parse error:', error);
 
-      if (error.name === 'AbortError') {
+      if (error instanceof TimeoutError) {
         parsingError.value = 'Request timed out - please try again or enter manually';
       } else if (error.message === 'Authentication required') {
         parsingError.value = 'Please log in to use AI parsing';

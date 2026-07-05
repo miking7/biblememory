@@ -1,7 +1,14 @@
 import { db, clearLocalData, clearServiceWorkerCaches } from "./db";
 import { updateReviewCache } from "./actions";
+import { fetchWithTimeout } from "./utils/http";
 
 const API_BASE = "/api";
+
+// Per-request timeout that actually aborts the request, body read included.
+// The old approach (Promise.race at the scheduler level) abandoned the fetch
+// but left it running, so a "timed out" sync kept mutating state in the
+// background while the UI had already reported failure.
+const REQUEST_TIMEOUT_MS = 10_000;
 
 // Get auth headers with token
 async function getAuthHeaders(): Promise<HeadersInit> {
@@ -44,21 +51,20 @@ export async function pushOps(): Promise<void> {
     }
 
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE}/push`, {
+    const response = await fetchWithTimeout(`${API_BASE}/push`, {
       method: "POST",
       headers,
       body: JSON.stringify({
         client_id: "web-client", // Could be made unique per device
         ops
       })
-    });
+    }, REQUEST_TIMEOUT_MS);
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Push failed: ${response.status} ${error}`);
+      throw new Error(`Push failed: ${response.status} ${response.text}`);
     }
 
-    const result = await response.json();
+    const result = JSON.parse(response.text);
 
     // Remove acknowledged operations from outbox
     if (result.acked_ids && result.acked_ids.length > 0) {
@@ -94,17 +100,17 @@ export async function pullOps(): Promise<void> {
       const syncState = await db.sync.get("default");
       const cursor = syncState?.cursor || 0;
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${API_BASE}/pull?since=${cursor}&limit=${PULL_PAGE_SIZE}`,
-        { headers }
+        { headers },
+        REQUEST_TIMEOUT_MS
       );
 
       if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Pull failed: ${response.status} ${error}`);
+        throw new Error(`Pull failed: ${response.status} ${response.text}`);
       }
 
-      const result = await response.json();
+      const result = JSON.parse(response.text);
       const ops = (result.ops || []) as any[];
 
       if (ops.length === 0) {
@@ -208,29 +214,38 @@ export async function pullOps(): Promise<void> {
 }
 
 // Guards against overlapping syncs — a long paginated pull can still be running
-// when the next periodic tick or a fresh outbox push fires.
-let syncInFlight = false;
+// when the next periodic tick or a fresh outbox push fires. Concurrent callers
+// share the in-flight sync's promise: resolving them instantly (the old
+// behavior) made a no-op indistinguishable from a completed sync, which let
+// the UI flip to healthy while the real sync was still running or failing.
+let syncInFlight: Promise<void> | null = null;
 
 // Sync now (push then pull)
-export async function syncNow(): Promise<void> {
-  if (syncInFlight) return; // a sync is already running; don't run two at once
-  syncInFlight = true;
-  try {
-    try {
-      await pushOps();
-    } catch (error) {
-      console.error("Push failed during sync:", error);
-      // Continue to pull even if push fails
-    }
+export function syncNow(): Promise<void> {
+  if (!syncInFlight) {
+    syncInFlight = runSync().finally(() => {
+      syncInFlight = null;
+    });
+  }
+  return syncInFlight;
+}
 
-    try {
-      await pullOps();
-    } catch (error) {
-      console.error("Pull failed during sync:", error);
-      throw error;
-    }
-  } finally {
-    syncInFlight = false;
+async function runSync(): Promise<void> {
+  // A failing push must not block the pull (reads shouldn't depend on
+  // writes), but it still fails the sync as a whole — local changes are NOT
+  // on the server, and reporting success here would hide that from the UI.
+  let pushError: unknown = null;
+  try {
+    await pushOps();
+  } catch (error) {
+    console.error("Push failed during sync:", error);
+    pushError = error;
+  }
+
+  await pullOps();
+
+  if (pushError) {
+    throw pushError instanceof Error ? pushError : new Error(String(pushError));
   }
 }
 
@@ -282,8 +297,16 @@ export async function login(email: string, password: string): Promise<void> {
     createdAt: Date.now()
   });
 
-  // Initial sync after login
-  await syncNow();
+  // Initial sync after login — best-effort. Auth succeeded the moment the
+  // token was stored, and scheduleSync starts (and retries) right after
+  // login, so a slow or failing first sync must not surface as a failed
+  // login (the per-request timeout otherwise turns a slow network into a
+  // "Login failed" with a valid token already in db.auth).
+  try {
+    await syncNow();
+  } catch (error) {
+    console.error("Initial sync after login failed (scheduler will retry):", error);
+  }
 }
 
 // Register
@@ -316,8 +339,12 @@ export async function register(email: string, password: string): Promise<void> {
     createdAt: Date.now()
   });
 
-  // Initial sync after registration
-  await syncNow();
+  // Initial sync after registration — best-effort, same reasoning as login.
+  try {
+    await syncNow();
+  } catch (error) {
+    console.error("Initial sync after registration failed (scheduler will retry):", error);
+  }
 }
 
 // Get count of pending operations in outbox

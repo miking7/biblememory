@@ -385,36 +385,55 @@ When a component owns a DOM element that requires event handling (touch, swipe, 
 
 **Implementation:** See `client/src/App.vue` and `client/src/components/VerseCard.vue`
 
-### 9. Sync Status Tracking Pattern
+### 9. Sync Health State Machine Pattern
 
-**Purpose:** Provide accurate connectivity feedback based on actual network operations
+**Purpose:** Provide truthful connectivity/sync feedback based on settled evidence, never on guesses
 
 **Problem Solved:**
-- `navigator.onLine` unreliable across browsers (especially Safari)
-- Doesn't detect server issues, DNS problems, or firewall issues
-- False positives (shows "online" but can't reach server)
-- Required browser-specific workarounds
+- `navigator.onLine` alone is unreliable (captive portals, "interface up but no
+  internet", browser quirks) and doesn't detect server-side failures
+- Deriving UI health from booleans that mix connectivity guesses with sync
+  outcomes caused the status to flip healthy *before* any sync had run,
+  firing a stale offline toast on reconnect (previous-work/074)
 
 **How It Works:**
-- Track actual sync operation results in app state
-- Properties: `lastSyncSuccess`, `lastSyncError`, `lastSyncAttempt`
-- Computed property `hasSyncIssues` determines UI indicator visibility
-- Only relevant for authenticated users (unauthenticated users see landing page, not app)
+- `useSync.syncHealth` holds the last **settled verdict** — `'offline' |
+  'error' | 'synced'` — and changes only on real evidence: an `offline`
+  event / `navigator.onLine === false`, a completed sync, or a failed sync
+- `'synced'` is only ever set after `syncNow()` resolves; connectivity
+  detection alone can never flip the status healthy, and the settle re-checks
+  `navigator.onLine` so a stale success can't overwrite an authoritative
+  offline signal that landed mid-sync
+- A sync failure settles as `'offline'` (not `'error'`) when connectivity was
+  lost mid-flight
+- Sync passes are serialized (`performSync`): a trigger landing mid-pass
+  within the freshness window shares the pass; a later trigger flags one
+  trailing rerun, and only the FINAL pass settles the verdict — a superseded
+  pass's failure never reaches the UI (e.g. the 'online' handler arriving
+  while a pre-disconnect request is dying)
+- `isSyncing` is a separate activity flag; `syncStatus` derives the display
+  union `'offline' | 'syncing' | 'error' | 'synced'` without letting the
+  transient syncing state distort the health verdict
+- `hasSyncIssues` (badge visibility) = health is not `'synced'`, auth-gated
+  in `app.ts` (`hasSyncIssuesWithAuth`)
+- A failing push fails the sync as a whole (local changes are not on the
+  server), but the pull still runs first — reads don't depend on writes
 
 **Why This Pattern:**
-- Works uniformly across all browsers (no special cases)
-- Detects both network AND server connectivity issues
-- More accurate user feedback (based on reality not browser API)
-- Prevents unnecessary server load during outages
-- Simpler code (no browser-specific workarounds)
+- Every badge/toast transition corresponds to something that actually
+  happened, so recovery can never display an error
+- Detects both network AND server connectivity issues uniformly
+- `'offline'` vs `'error'` distinguishes intentional offline use from a
+  failing sync — different user meaning, same badge
 
-**Smart Retry Logic:**
-- Immediate sync (1 second) when last sync succeeded and outbox has data
-- Backoff to 30 seconds when connectivity is failing (prevents server hammering)
-- Automatic retry every 30 seconds during issues
-- Immediate sync when connectivity restored
+**Retry Cadence:**
+- Immediate sync (1-second check) only while healthy with pending outbox data
+- 30-second periodic retry while offline/failing (prevents server hammering)
+- Immediate verification sync on the `online` event and on tab visibility
 
-**Implementation:** See `client/src/composables/useSync.ts` and sync status tracking in `client/src/app.ts`
+**Implementation:** `client/src/composables/useSync.ts` (`syncHealth`,
+`syncStatus`, `performSync`) and the auth-gating/toast wiring in
+`client/src/app.ts`. Regression tests: `useSync.test.ts`.
 
 ### 10. Progressive Web App (PWA) Pattern
 
@@ -574,65 +593,57 @@ iOS (Safari):
 
 **See:** previous-work/031_pwa_offline_blank_screen_fix.md for detailed analysis
 
-### 12. Offline-First Sync Detection Pattern
+### 12. Connectivity Detection & Request Timeout Pattern
 
-**Purpose:** Prevent unnecessary network timeout attempts when user is offline
+**Purpose:** React to connectivity transitions immediately, without ever trusting "online" claims
 
 **Problem Solved:**
-- Sync attempts when offline cause 30+ second timeouts
-- Failed syncs show error messages even when intentionally offline
-- Multiple sync triggers (startup, visibility change, periodic) compound delays
-- User perception: "App is broken" when actually working fine offline
+- Polling `navigator.onLine` only when a sync tick happened to run left the
+  status up to 30 seconds stale and made health flip on interface detection
+- A `Promise.race` timeout abandoned the fetch but left it running, so a
+  "timed out" sync kept mutating state (and holding the in-flight lock) after
+  the UI had reported failure
+- Concurrent sync triggers got an instant no-op resolution that was
+  indistinguishable from a completed sync
 
-**How It Works:**
-- Check `navigator.onLine` before attempting sync
-- Skip sync entirely when offline (don't queue timeout)
-- Set `lastSyncSuccess = true` when offline (no false errors)
-- Add 5-second timeout for actual sync attempts (prevent long waits)
-- Gracefully handle offline state without user-visible errors
+**How It Works — the trust asymmetry:**
+- `navigator.onLine === false` and the `offline` event are **authoritative**:
+  no network interface exists, so settle `'offline'` immediately and skip the
+  doomed request
+- `navigator.onLine === true` and the `online` event are **only hints**
+  (captive portals, LAN without internet): they trigger a verification sync,
+  and health flips green when that sync actually succeeds
+- Per-request timeout via `AbortController` (`fetchWithTimeout` in
+  `utils/http.ts`, shared with the wizard's parse-verse call) genuinely
+  aborts the request **including the body read** — fetch() resolves at
+  response headers, so a timer cleared there leaves a stalled body unbounded
+  and wedges the caller forever — and a paginated pull backlog gets a fresh
+  timeout per page instead of one global deadline
+- Concurrent `syncNow()` callers share the in-flight sync's promise, so
+  "resolved" always means a sync really completed; `performSync` adds
+  pass serialization with a trailing rerun on top (pattern 9)
+- The 1-second outbox fast-path also fires as a reconnect probe when the
+  verdict is `'offline'` but the browser reports a network — pending changes
+  push within ~1 s of reconnect without relying on the `online` event
+  (historically flaky in iOS standalone PWAs); `'error'` still backs off to
+  the 30-second periodic retry
 
-**Implementation:**
-```typescript
-const syncAndReload = async () => {
-  // Skip sync if offline
-  if (!navigator.onLine) {
-    console.log("Offline - skipping sync");
-    lastSyncSuccess.value = true; // No error when intentionally offline
-    return;
-  }
-
-  // Add timeout for actual sync attempts
-  await Promise.race([
-    syncNow(),
-    new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Sync timeout')), 5000)
-    )
-  ]);
-};
-```
-
-**Why This Pattern:**
-- ✅ No unnecessary network timeouts when offline
-- ✅ Faster app startup when offline (immediate render)
-- ✅ No false error messages for intentional offline use
-- ✅ 5-second timeout prevents long freezes even with poor connectivity
-- ✅ Works with existing OpLog sync architecture
+**Sync Triggers:**
+- Initial sync on schedule start; `online` event; tab `visibilitychange`;
+  1-second outbox check while healthy; 30-second periodic retry otherwise
 
 **Trade-offs Accepted:**
-- Relies on `navigator.onLine` (not 100% reliable but good enough)
-- Doesn't distinguish between "no network" and "server down"
-- Could miss sync opportunities if `navigator.onLine` is wrong
-
-**Sync Triggers Affected:**
-- Initial sync on app startup
-- Periodic sync every 30 seconds
-- Visibility change sync when tab becomes visible
-- Outbox-triggered sync when pending operations exist
+- `online` event false-positives cost one failed verification sync (settles
+  `'error'`/`'offline'` honestly)
+- No exponential backoff yet — failure retry is a flat 30 s (acceptable for a
+  single-user server; revisit if load ever matters)
 
 **Implementation Files:**
-- `client/src/composables/useSync.ts` (`syncAndReload`) - Offline detection and timeout
+- `client/src/composables/useSync.ts` (`performSync`, event listeners)
+- `client/src/utils/http.ts` (`fetchWithTimeout`, `TimeoutError`)
+- `client/src/sync.ts` (shared-promise `syncNow`)
 
-**See:** previous-work/031_pwa_offline_blank_screen_fix.md for detailed analysis
+**See:** previous-work/074_sync_status_state_machine.md
 
 ### 13. Toast Notification Pattern
 
@@ -645,78 +656,43 @@ const syncAndReload = async () => {
 - Need reusable infrastructure for various notification types
 
 **How It Works:**
-- Reactive state controls toast visibility (`showOfflineToast`)
-- Watcher triggers toast on state changes
-- Auto-dismiss timeout (5 seconds by default)
-- Slide-in animation for visual polish
-- Can be manually triggered (e.g., badge click)
-
-**Implementation:**
-```typescript
-// State management
-const showOfflineToast = ref(false);
-let toastTimeout: ReturnType<typeof setTimeout> | null = null;
-
-// Auto-dismiss function
-const showToast = () => {
-  if (toastTimeout) clearTimeout(toastTimeout); // Prevent multiple timeouts
-  showOfflineToast.value = true;
-  toastTimeout = setTimeout(() => {
-    showOfflineToast.value = false;
-    toastTimeout = null;
-  }, 5000);
-};
-
-// Watch for state changes
-watch(hasSyncIssuesWithAuth, (newValue, oldValue) => {
-  if (oldValue !== undefined && newValue !== oldValue) {
-    showToast(); // Only on actual changes, not initial load
-  }
-});
-```
-
-**Visual Design:**
-- Fixed position (top-right corner by default)
-- Slide-in animation from top
-- Glass-morphism styling (matches app design language)
-- Auto-dismisses after 5 seconds
-- Can be extended with click-to-dismiss
+- The toast's message and color are keyed to the **settled sync-health
+  verdict** it announces (`SYNC_TOAST_TEXT` in `app.ts` owns the copy):
+  offline and error are red warnings, recovery is a green success
+- A watcher on `useSync.syncHealth` fires the toast on every settled
+  transition (auth-gated); because health only moves on real evidence
+  (pattern 9), the recovery toast can never show while sync is unverified —
+  the original single hard-coded offline message also fired on recovery
+  (previous-work/074)
+- Auto-dismiss after 5 seconds; clicking the sync-issues badge re-shows the
+  toast for the *current* verdict
+- Slide-in animation, fixed top-right (`.sync-toast` +
+  `.sync-toast--warning` / `.sync-toast--success` in `styles.css`)
 
 **Why This Pattern:**
-- ✅ Non-intrusive (temporary, auto-dismissing)
-- ✅ Industry standard (familiar to users)
-- ✅ Reusable infrastructure (can be used for success, error, info messages)
-- ✅ Accessible (can add ARIA live region)
-- ✅ Mobile-friendly (doesn't block important UI)
-
-**Current Use Cases:**
-1. **Offline Notification:** Shows when sync status changes (offline/online)
-   - Message: "⚠️ Sync issues - currently offline. Changes saved locally."
-   - Paired with persistent badge on User Menu for awareness
-
-**Future Use Cases:**
-- Success notifications (e.g., "✅ Verse added successfully")
-- Sync status updates (e.g., "✅ Back online • Syncing changes...")
-- Error messages (e.g., "⚠️ Failed to sync - will retry")
-- Feature announcements (e.g., "✨ New review mode available")
+- ✅ The message always states what actually happened — text and trigger
+  can't drift apart because both derive from the same verdict
+- ✅ Non-intrusive (temporary, auto-dismissing), industry standard
+- ✅ Kind-based styling extends to future success/info notifications
 
 **Companion Pattern: Badge Indicator**
-- Small persistent indicator (10px red dot on User Menu)
-- Shows when toast condition is still active
-- Clickable to re-trigger toast
+- Small persistent indicator (10px red dot on User Menu, `.offline-badge`)
+- Visible while `hasSyncIssues`; clickable to re-trigger the toast
 - Provides persistent awareness without distraction
 
 **Trade-offs Accepted:**
 - Toast can be missed if user not looking at screen (mitigated by persistent badge)
-- No queue system for multiple toasts (simple single toast is sufficient for now)
+- No queue system for multiple toasts (single toast; a rapid flap just
+  re-arms the same element with the newest verdict)
 - Auto-dismiss means user can't read at their own pace (can add click-to-dismiss later)
 
 **Implementation Files:**
-- `client/src/app.ts` (`showOfflineToast`, `showToast`, connectivity watcher) - Toast state and logic
-- `client/src/App.vue` (`.offline-toast` element) - Toast component
-- `client/src/styles.css` (`.offline-toast`, `slideInFromTop`) - Toast styling with animations
+- `client/src/app.ts` (`SYNC_TOAST_TEXT`, `showToast`, `triggerSyncToast`, health watcher)
+- `client/src/App.vue` (`.sync-toast` element) - Toast component
+- `client/src/styles.css` (`.sync-toast`, variants, `slideInFromTop`)
 
-**See:** previous-work/031_offline_notification_redesign.md for full implementation details
+**See:** previous-work/031_offline_notification_redesign.md (original badge+toast
+design) and previous-work/074_sync_status_state_machine.md (truthful-message rework)
 
 ### 14. Unified Review Navigation Pattern
 

@@ -81,6 +81,11 @@ server `ops` table (monotonic seq) → other devices cursor-pull → LWW merge.
 - **Unicode:** apostrophe/quote handling in `utils/` is encoded
   corruption-proof (code points / escapes) — never replace those constructs
   with literal glyphs (previous-work/068).
+- **Sync health:** `useSync.syncHealth` may flip to `'synced'` only after a
+  sync actually completes — never on `navigator.onLine` / the `online` event
+  alone (those are hints; only offline signals are authoritative). Flipping
+  healthy on connectivity detection caused the stale reconnect toast
+  (previous-work/074).
 - **Review scheduling:** `reviewCat: 'auto'` derives frequency from verse
   age; weekly/monthly due-ness is probability-gated per session
   (`Math.random`), so the daily queue is intentionally non-deterministic.

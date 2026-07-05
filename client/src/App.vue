@@ -8,9 +8,12 @@
 
     <!-- Main App (authenticated only) -->
     <div v-else class="container mx-auto px-4 py-4 sm:py-8 max-w-5xl">
-    <!-- Offline Toast Notification -->
-    <div v-show="showOfflineToast" class="offline-toast">
-      ⚠️ Sync issues - currently offline. Changes saved locally.
+    <!-- Sync Status Toast Notification (message follows the health transition) -->
+    <div
+      v-show="showSyncToast"
+      class="sync-toast"
+      :class="syncToastKind === 'success' ? 'sync-toast--success' : 'sync-toast--warning'">
+      {{ syncToastMessage }}
     </div>
 
     <!-- Header - Hidden in immersive mode -->
@@ -21,7 +24,7 @@
       :is-immersive-mode-active="isImmersiveModeActive"
       @open-about="showAboutModal = true"
       @logout="handleLogout()"
-      @trigger-offline-toast="triggerOfflineToast()"
+      @trigger-sync-toast="triggerSyncToast()"
     />
 
     <!-- Stats Bar - Hidden in immersive mode -->
@@ -164,8 +167,10 @@ const {
   authLoading,
 
   // Toast notifications
-  showOfflineToast,
-  triggerOfflineToast,
+  showSyncToast,
+  syncToastMessage,
+  syncToastKind,
+  triggerSyncToast,
 
   // Review: the whole composable (passed to review components as one prop)
   // plus the pieces App's own template binds directly

@@ -17,10 +17,10 @@
         class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white hover:shadow-lg transition-all text-xl relative">
         👤
 
-        <!-- Offline Badge -->
+        <!-- Sync Issues Badge -->
         <span
           v-show="hasSyncIssues"
-          @click.stop="$emit('triggerOfflineToast')"
+          @click.stop="$emit('triggerSyncToast')"
           class="offline-badge"
           title="Click for details">
         </span>
@@ -63,7 +63,7 @@ defineProps<{
 defineEmits<{
   openAbout: []
   logout: []
-  triggerOfflineToast: []
+  triggerSyncToast: []
 }>()
 
 const showMenu = ref(false)

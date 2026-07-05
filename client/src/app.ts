@@ -2,7 +2,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useAuth } from './composables/useAuth';
 import { useVerses } from './composables/useVerses';
 import { useReview } from './composables/useReview';
-import { useSync } from './composables/useSync';
+import { useSync, type SyncHealth } from './composables/useSync';
 
 // Vue.js app function using Composition API with composables
 export function bibleMemoryApp() {
@@ -24,40 +24,53 @@ export function bibleMemoryApp() {
     return auth.isAuthenticated.value && sync.hasSyncIssues.value;
   });
 
-  // Toast notification state
-  const showOfflineToast = ref(false);
+  // Sync status toast: message + color keyed to the settled health verdict,
+  // so the toast always says what actually happened (the old single
+  // hard-coded "currently offline" message also fired on recovery).
+  const SYNC_TOAST_TEXT: Record<SyncHealth, { message: string; kind: 'warning' | 'success' }> = {
+    offline: { message: '⚠️ Currently offline. Changes saved locally.', kind: 'warning' },
+    error: { message: '⚠️ Sync problem — changes saved locally. Will keep retrying.', kind: 'warning' },
+    synced: { message: '✅ Back online — all changes synced.', kind: 'success' },
+  };
+
+  const showSyncToast = ref(false);
+  const syncToastMessage = ref('');
+  const syncToastKind = ref<'warning' | 'success'>('warning');
   let toastTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Function to show toast for 5 seconds
-  const showToast = () => {
+  const showToast = (health: SyncHealth) => {
     // Clear any existing timeout
     if (toastTimeout) {
       clearTimeout(toastTimeout);
     }
 
     // Show toast
-    showOfflineToast.value = true;
+    syncToastMessage.value = SYNC_TOAST_TEXT[health].message;
+    syncToastKind.value = SYNC_TOAST_TEXT[health].kind;
+    showSyncToast.value = true;
 
     // Auto-hide after 5 seconds
     toastTimeout = setTimeout(() => {
-      showOfflineToast.value = false;
+      showSyncToast.value = false;
       toastTimeout = null;
     }, 5000);
   };
 
   // Function to manually trigger toast (when clicking badge)
-  const triggerOfflineToast = () => {
+  const triggerSyncToast = () => {
     if (hasSyncIssuesWithAuth.value) {
-      showToast();
+      showToast(sync.syncHealth.value);
     }
   };
 
-  // Watch for connectivity changes and show toast
-  watch(hasSyncIssuesWithAuth, (newValue, oldValue) => {
-    // Only show toast when sync status changes (not on initial load)
-    if (oldValue !== undefined && newValue !== oldValue) {
-      showToast();
-    }
+  // Toast on settled health transitions (the watcher fires only on change).
+  // syncHealth only moves on real evidence (offline event, completed sync,
+  // failed sync), so a transition to 'synced' is always a genuine recovery —
+  // never a connectivity guess.
+  watch(sync.syncHealth, (health) => {
+    if (!auth.isAuthenticated.value) return;
+    showToast(health);
   });
 
   // Initialization
@@ -258,16 +271,16 @@ export function bibleMemoryApp() {
     handleKeyPress: reviewLogic.handleKeyPress,
     isImmersiveModeActive: reviewLogic.isImmersiveModeActive,
 
-    // Sync (from useSync)
-    lastSyncSuccess: sync.lastSyncSuccess,
-    lastSyncError: sync.lastSyncError,
-    lastSyncAttempt: sync.lastSyncAttempt,
+    // Sync (from useSync) — App.vue binds only the badge visibility; the
+    // richer useSync surface (syncStatus, lastSyncError) stays unexported
+    // here until a template actually renders it
     hasSyncIssues: hasSyncIssuesWithAuth,
-    isOffline: sync.isOffline,
 
     // Toast notifications
-    showOfflineToast,
-    triggerOfflineToast,
+    showSyncToast,
+    syncToastMessage,
+    syncToastKind,
+    triggerSyncToast,
 
     // Deck-style view mode
     verseViewMode,
