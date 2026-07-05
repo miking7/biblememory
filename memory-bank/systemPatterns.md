@@ -294,11 +294,9 @@ This pattern:
 - ✅ Makes dependencies explicit (the destructure lists exactly what's used)
 - ✅ Avoids excessive individual prop definitions AND event boilerplate
 
-**Current status:** Implemented for ReviewTab and ReviewModeButtons
-(previous-work/072). Only non-review concerns (clipboard, browser links,
-edit modal) still emit to App. History: 064 had deliberately gone the
-individual-props route; the July 2026 architecture review reversed that
-after the wiring grew to ~15 props + ~14 events per component.
+**Current status:** Implemented for ReviewTab and ReviewModeButtons.
+Only non-review concerns (clipboard, browser links, edit modal) still emit
+to App. (History of the back-and-forth: previous-work/064 and 072.)
 
 **Why NOT Pinia:**
 - Current composables work well and follow Vue 3 best practices
@@ -314,11 +312,15 @@ after the wiring grew to ~15 props + ~14 events per component.
 
 **Component DOM Ownership Pattern:**
 When a component owns a DOM element that requires event handling (touch, swipe, animations, etc.):
-- The component should own related composable calls (e.g., `useSwipeDetection`, `useCardTransitions`)
-- Emit events for actions (e.g., `@navigate` with direction)
-- Handle animations internally (exit → emit event → parent navigates → watch prop change → entry animation)
-- Pass guard conditions as props (e.g., `:can-swipe-left="..."`)
-- Parent handles business logic via event handlers
+- The component owns the related composable calls (e.g., `useSwipeDetection`)
+  and its own Vue `<Transition>` configuration
+- Domain actions are called directly on the composable received as a prop
+  (e.g., swipe release → `navigate()`); emit only for concerns the parent
+  owns (clipboard, edit modal)
+- Guard conditions are derived locally from composable state (e.g.,
+  `canSwipeLeft` from index bounds + `isNavigating`)
+- All animation state stays internal — the orchestrator publishes intent
+  (`navDirection`); it never drives the DOM
 
 **Why:** Avoids convoluted ref-passing patterns (watchEffect sync, defineExpose, ref forwarding). Component encapsulates its DOM interactions, parent orchestrates behavior.
 

@@ -81,7 +81,7 @@
       <div class="flex gap-3 justify-center">
         <button
           @click="again()"
-          :disabled="reviewMode !== 'content' || isNavigating"
+          :disabled="actionsDisabled"
           class="action-button-again px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
           :title="reviewMode === 'content' ? 'Need more practice (a)' : 'Available after revealing verse'">
           <i class="mdi mdi-refresh text-lg"></i>
@@ -89,7 +89,7 @@
         </button>
         <button
           @click="gotIt()"
-          :disabled="reviewMode !== 'content' || isNavigating"
+          :disabled="actionsDisabled"
           class="action-button-gotit px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"
           :title="reviewMode === 'content' ? 'I remembered it! (g)' : 'Available after revealing verse'">
           <i class="mdi mdi-check text-lg"></i>
@@ -104,7 +104,7 @@
       <div class="flex gap-3">
         <button
           @click="again()"
-          :disabled="reviewMode !== 'content' || isNavigating"
+          :disabled="actionsDisabled"
           class="action-button-again flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
           :title="reviewMode === 'content' ? 'Need more practice (a)' : 'Available after revealing verse'">
           <i class="mdi mdi-refresh text-lg"></i>
@@ -121,7 +121,7 @@
         </button>
         <button
           @click="gotIt()"
-          :disabled="reviewMode !== 'content' || isNavigating"
+          :disabled="actionsDisabled"
           class="action-button-gotit flex-1 py-2.5 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2"
           :title="reviewMode === 'content' ? 'I remembered it! (g)' : 'Available after revealing verse'">
           <i class="mdi mdi-check text-lg"></i>
@@ -197,6 +197,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { ReviewComposable } from '../../composables/useReview'
 
 const props = defineProps<{
@@ -224,4 +225,7 @@ const {
 
 const gotIt = () => navigate({ direction: 'next', recordReview: true })
 const again = () => navigate({ direction: 'next', recordReview: false })
+
+// One disable predicate for all four Got it!/Again buttons (desktop + mobile)
+const actionsDisabled = computed(() => reviewMode.value !== 'content' || isNavigating.value)
 </script>

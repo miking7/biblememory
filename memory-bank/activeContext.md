@@ -15,9 +15,11 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Architecture review remediation COMPLETE (items 1-5) + one
-post-test fix round (swipe navigate wiring, arrow-key shortcuts — see 071
-addendum). Awaiting final Herd re-test of swipes before push.
+**Status:** Architecture review remediation COMPLETE (items 1-5), post-test
+fix round done (071 addendum), and a pre-push 8-angle code review completed
+with 6 confirmed findings fixed (see previous-work/073). Awaiting final Herd
+re-test (tint fade, swipe exit continuity, modal keyboard isolation) before
+pushing the whole batch.
 
 **Latest Work (071 + 072):** Migrated card animations to Vue `<Transition>`
 (`useCardTransitions` deleted along with the exit/entry/reset invariant and
@@ -123,3 +125,4 @@ This index provides titles and links for reference when needed.
 - **070** - Agent Entry-Point Restructure (AGENTS.md) + Doc-Drift Purge → [previous-work/070_agent_entrypoint_restructure.md](previous-work/070_agent_entrypoint_restructure.md)
 - **071** - Vue Transition Migration (Card Animations) → [previous-work/071_vue_transition_migration.md](previous-work/071_vue_transition_migration.md)
 - **072** - Single `review` Prop Consolidation → [previous-work/072_review_prop_consolidation.md](previous-work/072_review_prop_consolidation.md)
+- **073** - Pre-Push Code Review & Fixes (Transition Batch) → [previous-work/073_prepush_code_review_fixes.md](previous-work/073_prepush_code_review_fixes.md)

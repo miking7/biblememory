@@ -46,7 +46,7 @@
             <!-- Left Arrow (Previous) -->
             <button
               @click="navigate({ direction: 'previous' })"
-              :disabled="currentReviewIndex === 0 || isNavigating"
+              :disabled="!canGoPrevious"
               class="no-zoom absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 sm:-translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
               title="Previous verse (p or ←)">
               <i class="mdi mdi-chevron-left text-2xl"></i>
@@ -55,7 +55,7 @@
             <!-- Right Arrow (Next) -->
             <button
               @click="navigate({ direction: 'next' })"
-              :disabled="currentReviewIndex >= totalReviewCount - 1 || isNavigating"
+              :disabled="!canGoNext"
               class="no-zoom absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-4 z-10 w-10 h-10 rounded-full bg-white/60 border-2 border-slate-300 shadow-lg flex items-center justify-center text-slate-700 hover:bg-white hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
               title="Next verse (n or →)">
               <i class="mdi mdi-chevron-right text-2xl"></i>
@@ -169,15 +169,17 @@
                 </div>
 
                 <!-- Hints Mode: Progressive word revelation -->
-                <div v-if="reviewMode === 'hints'" @click="addHint()" class="cursor-pointer">
+                <!-- .stop: without it the click also bubbles to the card's
+                     handleCardClick, whose hints case adds a second hint -->
+                <div v-if="reviewMode === 'hints'" @click.stop="addHint()" class="cursor-pointer">
                   <p class="verse-content text-sm sm:text-base text-slate-800 leading-relaxed font-mono"
-                     v-text="getHintedContent(currentReviewVerse.content, hintsShown)"></p>
+                     v-text="hintedContent"></p>
                 </div>
 
                 <!-- First Letters Mode: First letter + punctuation with clickable groups -->
                 <div v-if="reviewMode === 'firstletters'">
                   <div class="verse-content text-sm sm:text-base text-slate-800 font-mono tracking-tight leading-relaxed">
-                    <template v-for="(chunk, index) in getFirstLettersChunks(currentReviewVerse.content)" :key="'fl-chunk-' + index">
+                    <template v-for="(chunk, index) in firstLettersChunks" :key="'fl-chunk-' + index">
                       <!-- Clickable word group (if exists) -->
                       <span
                         v-if="chunk.fullText"
@@ -198,7 +200,7 @@
                 <!-- Flash Cards Mode: Random word hiding with difficulty levels -->
                 <div v-if="reviewMode === 'flashcards'">
                   <div class="text-sm sm:text-base text-slate-800 leading-relaxed">
-                    <template v-for="(word, index) in getWords(currentReviewVerse.content)" :key="'content-' + index">
+                    <template v-for="(word, index) in contentWords" :key="'content-' + index">
                       <br v-if="word.str === '\n'">
                       <span
                         v-else-if="flashcardHiddenWords.has(index + contentWordsStartIndex)"
@@ -354,13 +356,14 @@ const blockTransition = computed(() => {
   }
 })
 
-// Compute swipe boundaries internally. Swiping is also blocked while a
-// navigation is in flight, so a drag can't hijack the card transform
-// mid-animation (the release would be dropped by navigate()'s guard anyway).
-const canSwipeLeft = computed(() =>
+// One movement predicate per direction, shared by the arrow buttons and
+// the swipe guards so they can never disagree. Both directions are blocked
+// while a navigation is in flight, so a drag can't hijack the card
+// transform mid-sequence (navigate()'s guard would drop the release anyway).
+const canGoNext = computed(() =>
   currentReviewIndex.value < totalReviewCount.value - 1 && !isNavigating.value
 )
-const canSwipeRight = computed(() =>
+const canGoPrevious = computed(() =>
   currentReviewIndex.value > 0 && !isNavigating.value
 )
 
@@ -370,6 +373,15 @@ const referenceWords = computed(() =>
   currentReviewVerse.value ? getWords(currentReviewVerse.value.reference, true) : []
 )
 const contentWordsStartIndex = computed(() => referenceWords.value.length)
+const contentWords = computed(() =>
+  currentReviewVerse.value ? getWords(currentReviewVerse.value.content) : []
+)
+const firstLettersChunks = computed(() =>
+  currentReviewVerse.value ? getFirstLettersChunks(currentReviewVerse.value.content) : []
+)
+const hintedContent = computed(() =>
+  currentReviewVerse.value ? getHintedContent(currentReviewVerse.value.content, hintsShown.value) : ''
+)
 
 const emit = defineEmits<{
   copyVerse: [verse: Verse]
@@ -383,39 +395,34 @@ const showReviewCardMenu = ref(false)
 // Card element ref for swipe detection
 const cardElement = ref<HTMLElement | null>(null) as Ref<HTMLElement | null>
 
-// Swipe → transition handoff: on a successful release the card holds the
-// dragged offset until the leave animation picks it up via --swipe-x, so
-// the exit continues from under the finger instead of snapping to center.
-const holdSwipe = ref(false)
-const swipeHandoffX = ref(0)
-const onCardLeaveStart = () => { holdSwipe.value = false }
-const onCardLeaveDone = () => { swipeHandoffX.value = 0 }
+// Swipe → transition handoff. A leaving element keeps the inline styles
+// from its last render (Vue does not re-patch an element it is removing),
+// so after a swipe release the outgoing card still carries the drag-time
+// `transition: none` and transform. The before-leave hook cleans those up
+// imperatively and publishes the released offset as --swipe-x for the
+// *-leave-from rules, so the exit animates from under the finger.
+// swipeOffset persists after a successful release (useSwipeDetection only
+// zeroes it on failed swipes) — exactly what makes the value available here.
+const onCardLeaveStart = (el: Element) => {
+  const style = (el as HTMLElement).style
+  style.setProperty('--swipe-x', `${swipeOffset.value}px`)
+  style.transition = ''
+  style.transform = ''
+}
+const onCardLeaveDone = () => { swipeOffset.value = 0 }
 
 // Set up swipe detection internally (component owns its DOM touch handling)
 const { isSwiping, swipeOffset } = useSwipeDetection(cardElement, {
-  onSwipeLeft: () => {
-    swipeHandoffX.value = swipeOffset.value
-    holdSwipe.value = true
-    navigate({ direction: 'next' })
-  },
-  onSwipeRight: () => {
-    swipeHandoffX.value = swipeOffset.value
-    holdSwipe.value = true
-    navigate({ direction: 'previous' })
-  },
+  onSwipeLeft: () => navigate({ direction: 'next' }),
+  onSwipeRight: () => navigate({ direction: 'previous' }),
   threshold: 50,
-  canSwipeLeft: () => canSwipeLeft.value,
-  canSwipeRight: () => canSwipeRight.value,
+  canSwipeLeft: () => canGoNext.value,
+  canSwipeRight: () => canGoPrevious.value,
 })
 
 const cardStyle = computed(() => ({
-  transform: isSwiping.value
-    ? `translateX(${swipeOffset.value}px)`
-    : holdSwipe.value && swipeHandoffX.value !== 0
-      ? `translateX(${swipeHandoffX.value}px)`
-      : undefined,
+  transform: isSwiping.value ? `translateX(${swipeOffset.value}px)` : undefined,
   transition: isSwiping.value ? 'none' : undefined,
-  '--swipe-x': `${swipeHandoffX.value}px`,
   touchAction: 'pan-y',
 }))
 </script>

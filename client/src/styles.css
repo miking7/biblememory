@@ -428,8 +428,10 @@ input:focus, textarea:focus {
 }
 
 /* Review Card Status Backgrounds - Visual feedback for "reviewed today" */
+/* transform is included for the failed-swipe bounce-back; the card
+   transition classes further below override this during enter/leave */
 .review-card {
-    transition: background 0.3s ease, border-color 0.3s ease;
+    transition: background 0.3s ease, border-color 0.3s ease, transform 0.15s ease-out;
 }
 
 .review-card-gotit {
@@ -526,16 +528,18 @@ input:focus, textarea:focus {
    (300ms) before the enter (150ms). --swipe-x lets a leave start from the
    dragged swipe offset instead of snapping back to center first. */
 
-/* Bounce-back for failed swipes (enter/leave classes below override this
-   during transitions; inline 'transition: none' overrides it during drags) */
-.review-card {
-    transition: transform 0.15s ease-out;
+/* Leaving elements are visible for up to 300ms with review state already
+   advanced — pointer-events: none keeps taps from hitting the outgoing card */
+.card-left-leave-active,
+.card-right-leave-active {
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    pointer-events: none;
 }
 
-.card-left-leave-active,
-.card-right-leave-active,
+/* view-last: fade the completion screen out quickly, then drop the card in */
 .card-drop-leave-active {
-    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+    pointer-events: none;
 }
 
 .card-left-enter-active,
@@ -547,32 +551,27 @@ input:focus, textarea:focus {
     transition: transform 0.2s ease-out, opacity 0.2s ease-out;
 }
 
+/* Leaves start from the released swipe offset (--swipe-x is set imperatively
+   in ReviewTab's onCardLeaveStart; 0 for non-swipe navigations) so a swiped
+   card exits from under the finger */
 .card-left-leave-from,
 .card-right-leave-from {
     transform: translateX(var(--swipe-x, 0px));
 }
 
-.card-left-leave-to {
-    transform: translateX(-150vw);
-    opacity: 0;
-}
-
-.card-left-enter-from {
-    transform: translateX(150vw);
-    opacity: 0;
-}
-
-.card-right-leave-to {
-    transform: translateX(150vw);
-    opacity: 0;
-}
-
+/* next/previous are mirror images — keep each off-screen position grouped */
+.card-left-leave-to,
 .card-right-enter-from {
     transform: translateX(-150vw);
     opacity: 0;
 }
 
-/* view-last: completion screen fades away, card drops in from below */
+.card-left-enter-from,
+.card-right-leave-to {
+    transform: translateX(150vw);
+    opacity: 0;
+}
+
 .card-drop-leave-to {
     opacity: 0;
 }

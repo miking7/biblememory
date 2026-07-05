@@ -257,9 +257,12 @@ const handleVerseAdded = async () => {
 // Set up keyboard shortcuts
 onMounted(() => {
   const keyHandler = (event: KeyboardEvent) => {
-    // Only handle when Review tab is active
-    if (currentTab.value === 'review' && !reviewComplete.value) {
-      handleKeyPress(event);
+    // Review shortcuts apply only on the Review tab with no modal on top —
+    // otherwise arrow keys aimed at modal controls would drive the deck
+    if (currentTab.value !== 'review' || reviewComplete.value) return;
+    if (showEditModal.value || showAboutModal.value || showStatsModal.value) return;
+    if (handleKeyPress(event)) {
+      event.preventDefault();
     }
   };
   window.addEventListener('keydown', keyHandler);

@@ -35,7 +35,6 @@ export function useReview() {
 
   // State
   const currentReviewIndex = ref(0);
-  const showVerseText = ref(false);
   const reviewComplete = ref(false);
   const dueForReview = ref<Verse[]>([]);
 
@@ -178,7 +177,6 @@ export function useReview() {
   const resetReview = async () => {
     navDirection.value = 'restart';
     currentReviewIndex.value = 0;
-    showVerseText.value = false;
     switchToReference();
 
     // Only regenerate daily review if in daily mode. Await it before
@@ -206,14 +204,12 @@ export function useReview() {
   // Phase 2: Mode switching functions
   const switchToReference = () => {
     reviewMode.value = 'reference';
-    showVerseText.value = false;
     hintsShown.value = 0;
     flashcardRevealedWords.value.clear();
   };
 
   const switchToContent = () => {
     reviewMode.value = 'content';
-    showVerseText.value = true;
   };
 
   const switchToHints = () => {
@@ -357,11 +353,14 @@ export function useReview() {
     }
   };
 
-  // Phase 2: Keyboard shortcut handler
+  // Phase 2: Keyboard shortcut handler. Returns true when the key was
+  // handled; the caller decides what to do with the browser event
+  // (App.vue calls event.preventDefault() on true).
   const handleKeyPress = (event: KeyboardEvent): boolean => {
-    // Ignore if typing in input field
+    // Ignore keys aimed at form controls (typing, select arrow-navigation)
     if (event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLTextAreaElement) {
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLSelectElement) {
       return false;
     }
 
@@ -373,16 +372,13 @@ export function useReview() {
         return true;
       case 'n':
       case 'arrowright':
-        event.preventDefault();
         navigate({ direction: 'next' });
         return true;
       case 'p':
       case 'arrowleft':
-        event.preventDefault();
         navigate({ direction: 'previous' });
         return true;
       case ' ':
-        event.preventDefault(); // Prevent page scroll
         if (reviewMode.value === 'content') {
           navigate({ direction: 'next', recordReview: true });
         } else {
@@ -545,6 +541,11 @@ export function useReview() {
     // fine — Vue's out-in transition retargets cleanly.
     if (isNavigating.value) return;
 
+    // Nothing to navigate (e.g. 'n' pressed on the All-caught-up screen —
+    // without this, nextVerse would push the index out of bounds and set
+    // reviewComplete on an empty queue)
+    if (totalReviewCount.value === 0) return;
+
     // Can't go previous from first card
     if (options.direction === 'previous' && currentReviewIndex.value === 0) {
       return;
@@ -588,7 +589,6 @@ export function useReview() {
   return {
     // State
     currentReviewIndex,
-    showVerseText,
     reviewComplete,
     dueForReview,
     reviewedToday,

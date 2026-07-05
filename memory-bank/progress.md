@@ -505,7 +505,7 @@ previous-work/043_legacy_codebase_removal.md).
 ## Current Status
 
 ### Version
-See `package.json` (source of truth — currently 1.0.0).
+See `client/package.json` (source of truth).
 
 ### Production Readiness
 ✅ **In Production** — live at https://bible-memory.app. Deployed by pushing
