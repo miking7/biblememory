@@ -15,38 +15,36 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Sync health state machine implemented (074) — fixes the stale
-"currently offline" toast firing on reconnect — and an 8-angle pre-push code
-review round found 6 confirmed bugs in the first cut, all fixed (body-read
-timeout wedge, login timeout regression, performSync serialization with
-trailing rerun, doomed-sync join, stale-success settle, reconnect-probe
-fast-path). Uncommitted in the working tree; awaiting Herd re-verification
-(recovery toast within ~1 s, sync-error badge/toast, AI parse) before
-commit/push. The prior transition batch (069-073) is in production as of
-July 5, 2026.
+**Status:** Deterministic review scheduling implemented (075) — the daily
+queue is now a pure function of (verse set, today's reviews, local date):
+date-seeded hash ordering, category quotas as floors/targets (not filters),
+reviewed-today history replayed first, infinite lap-looping instead of a
+completion screen, one-time daily-goal celebration. Unit tests (103) + build
+green. Uncommitted in the working tree; awaiting Herd verification before
+commit/push. 074 (sync health state machine) shipped to production July 5,
+2026.
 
-**Latest Work (074):** `useSync` rewritten as a settled-verdict state machine
-(`syncHealth` flips healthy only after a *completed* sync, never on
-`navigator.onLine` alone); serialized sync passes with a trailing rerun;
-`online`/`offline` listeners with trust asymmetry; verdict-keyed toast;
-body-covering `fetchWithTimeout` in `utils/http.ts` (shared with the AddVerse
-wizard); shared-promise `syncNow`; push failures fail the sync. Deferred:
-scheduler lifecycle/backoff (incl. the multi-tab logout error loop) + smaller
-server-side findings (listed in 074).
+**Latest Work (075):** `utils/reviewScheduling.ts` (pure) +
+`getDailyReviewState`/`getDailyProgress`/`getNextReviewLap` in actions.ts
+replace `getVersesForReview()`'s `Math.random` gating. `useReview` rebuilds
+the queue on every daily-review entry (self-heals across devices);
+StatsBar/badge/StatsModal now use `dailyProgress` (distinct-verses vs
+seeded target). Round 2 added the midnight-rollover interstitial (blocks
+stale-day sessions via queueDate + navigate/visibility/timer checks) and
+new/small-collection UX (lap-complete pause under 3 eligible verses;
+empty-state CTA). Details and expected behaviors in previous-work/075.
+This also resolves the 066 deferred item (deterministic "due today" target).
 
 **Deferred candidates on record (previous-work/073):** double review-status
 lookup per navigation, gotIt/again consolidation, shared isVerseInactive
 helper, key-repeat pacing, navDirection stale-direction cosmetics, vue-tsc
 in the verification loop.
 
-**Standing notes:**
-- Stats dashboard deferred item: deterministic "due today" target (progress-bar
-  denominator still rides `getVersesForReview()`'s `Math.random()` gating)
-  (previous-work/066_statistics_dashboard.md).
-
-**Next after item 5:** remaining smaller review findings (F7 cohesion items:
-400ms delay placement, alert→toast, redundant status updates; midnight cache
-rollover; immersive+completion Escape trap).
+**Next:** remaining smaller review findings (F7 cohesion items:
+alert→toast, redundant status updates; immersive+completion Escape trap).
+The midnight-cache-rollover deferred item is now resolved: the 075 new-day
+interstitial refreshes `recentReviewsCache`, queue, targets, and streak on
+day change (detected via navigate/visibility/midnight timer).
 
 ## Previous Work Index (Complete Archive)
 
@@ -131,3 +129,4 @@ This index provides titles and links for reference when needed.
 - **072** - Single `review` Prop Consolidation → [previous-work/072_review_prop_consolidation.md](previous-work/072_review_prop_consolidation.md)
 - **073** - Pre-Push Code Review & Fixes (Transition Batch) → [previous-work/073_prepush_code_review_fixes.md](previous-work/073_prepush_code_review_fixes.md)
 - **074** - Sync Health State Machine (Reconnect Toast Fix) → [previous-work/074_sync_status_state_machine.md](previous-work/074_sync_status_state_machine.md)
+- **075** - Deterministic Review Scheduling (Date-Seeded Daily Queue) → [previous-work/075_deterministic_review_scheduling.md](previous-work/075_deterministic_review_scheduling.md)

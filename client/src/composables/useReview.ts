@@ -2,15 +2,19 @@ import { ref, computed, watch } from 'vue';
 import { Verse } from '../db';
 import {
   recordReview as recordReviewAction,
-  getVersesForReview,
-  getTodayReviewCount,
+  getDailyReviewState,
+  getDailyProgress,
+  getNextReviewLap,
+  getTodayDateString,
   getCurrentStreak,
   loadTodaysReviewsIntoCache,
   updateReviewCache,
   getCachedReviewStatus,
   getRecentReviewStatus,
-  RecentReviewEntry
+  RecentReviewEntry,
+  DailyProgress
 } from '../actions';
+import { avoidSeamDuplicate } from '../utils/reviewScheduling';
 import { getWords } from '../utils/reviewHelpers';
 
 // Review mode types
@@ -31,12 +35,81 @@ export type NavDirection = 'next' | 'previous' | 'restart' | 'view-last';
 // (see systemPatterns §7 "Passing Composables as Props").
 export type ReviewComposable = ReturnType<typeof useReview>;
 
+// The daily-goal celebration is shown at most once per local day per device.
+// It is deliberately device-local UX state (the settings table syncs via the
+// oplog, which would suppress the celebration on other devices), hence
+// localStorage — with an in-memory fallback for non-browser test envs.
+const CELEBRATION_SHOWN_KEY = 'dailyCelebrationShownDate';
+let celebrationShownFallback: string | null = null;
+
+function celebrationShownToday(): boolean {
+  const today = getTodayDateString();
+  try {
+    return localStorage.getItem(CELEBRATION_SHOWN_KEY) === today;
+  } catch {
+    return celebrationShownFallback === today;
+  }
+}
+
+// Marked when the celebration is DISMISSED (not when shown): if the screen
+// is up but never acknowledged (tab switch, app closed), it may re-derive
+// and show again — but never twice after an acknowledgement.
+function markCelebrationShown(): void {
+  const today = getTodayDateString();
+  try {
+    localStorage.setItem(CELEBRATION_SHOWN_KEY, today);
+  } catch {
+    celebrationShownFallback = today;
+  }
+}
+
+// Keys that mean "advance / continue" on an interstitial screen. Kept in
+// sync with the next-shaped cases of handleKeyPress's main switch.
+const ADVANCE_KEYS = new Set([' ', 'enter', 'n', 'arrowright']);
+
 export function useReview() {
 
   // State
   const currentReviewIndex = ref(0);
   const reviewComplete = ref(false);
   const dueForReview = ref<Verse[]>([]);
+
+  // Daily quota progress (distinct verses reviewed vs. date-seeded targets).
+  // `total` grows when the user over-reviews a category — never shrinks.
+  const dailyProgress = ref<DailyProgress>({ reviewed: 0, total: 0, allTargetsMet: false });
+
+  // One-time "daily goal reached" screen (pattern: celebrate once, then
+  // review continues indefinitely — the queue loops over the collection)
+  const showCelebration = ref(false);
+
+  // Local date the current daily queue was built for. When the calendar day
+  // changes under an open session, reviewing must stop (the seed, targets,
+  // and reviewed-today state all belong to yesterday) until the user starts
+  // today's session.
+  const queueDate = ref<string | null>(null);
+  const showNewDay = ref(false);
+
+  // Below this many eligible verses, the daily loop pauses at the end of
+  // each lap with an explicit "Review Again" screen instead of silently
+  // repeating — with 1-2 verses an invisible loop just looks like a frozen
+  // card. At or above it, laps append seamlessly.
+  const MIN_VERSES_FOR_AUTO_LOOP = 3;
+  const dailyLapComplete = ref(false);
+  // Eligible-collection size when the lap-complete screen was shown (its copy)
+  const lapVerseCount = ref(0);
+
+  // Any full-screen block replacing the card (drives control visibility and
+  // keyboard routing). Gated on a non-empty queue — with 0 verses the
+  // empty state renders instead, and keys must not act on a hidden screen.
+  // The new-day screen only applies to daily review — filtered lists are
+  // date-independent, so a rollover flag must not block them.
+  const showingInterstitial = computed(() =>
+    totalReviewCount.value > 0 && (
+      showCelebration.value ||
+      dailyLapComplete.value ||
+      (showNewDay.value && reviewSource.value === 'daily')
+    )
+  );
 
   // True for the entire navigate() sequence, including the review-recording
   // feedback delay that runs BEFORE any animation starts. UI controls bind
@@ -66,7 +139,6 @@ export function useReview() {
   const navDirection = ref<NavDirection>('next');
 
   // Stats
-  const reviewedToday = ref(0);
   const currentStreak = ref(0);
 
   // Review status visual feedback (for "reviewed today" indicator)
@@ -90,23 +162,84 @@ export function useReview() {
       : filteredReviewVerses.value.length;
   });
 
+  // Show the celebration if the day's targets are all met and it hasn't
+  // been acknowledged yet today (the day-flag is written on dismissal, so
+  // an unacknowledged celebration can re-derive after a rebuild). Requires
+  // at least one review — on a day where every seeded target rounds to 0,
+  // opening the app must not celebrate doing nothing.
+  const maybeTriggerCelebration = () => {
+    if (reviewSource.value !== 'daily') return;
+    if (!dailyProgress.value.allTargetsMet) return;
+    if (dailyProgress.value.reviewed === 0) return;
+    if (celebrationShownToday()) return;
+    showCelebration.value = true;
+  };
+
   // Methods
-  const loadReviewVerses = async (forceRegenerate: boolean = false) => {
+
+  // (Re)build the daily queue from current synced state. Called on init and
+  // on every entry to daily review, so the order self-heals after syncs and
+  // rolls over naturally at midnight. Lands on the first unreviewed card.
+  const loadReviewVerses = async () => {
     try {
-      // Only regenerate if forced OR if no daily review exists yet
-      if (forceRegenerate || dueForReview.value.length === 0) {
-        dueForReview.value = await getVersesForReview();
-      }
-      // Otherwise, keep existing daily review list (maintain progress)
+      const { queue, startIndex, progress, dateStr } = await getDailyReviewState();
+      dueForReview.value = queue;
+      currentReviewIndex.value = startIndex;
+      dailyProgress.value = progress;
+      queueDate.value = dateStr;
+      // Reset ALL interstitials to the fresh day's reality — a stale
+      // celebration from yesterday must not survive the rebuild (it would
+      // congratulate 0 reviews); if today's goal is genuinely met and
+      // unacknowledged, maybeTriggerCelebration re-derives it.
+      showNewDay.value = false;
+      dailyLapComplete.value = false;
+      showCelebration.value = false;
+      maybeTriggerCelebration();
     } catch (error) {
       console.error("Failed to load review verses:", error);
     }
   };
 
+  // Flag the session stale if the local calendar day has changed since the
+  // daily queue was built. Checked on every navigation and continue action,
+  // plus App.vue's visibilitychange listener and midnight timer — so an
+  // open PWA can't keep recording reviews into yesterday's session.
+  const checkDayRollover = () => {
+    if (reviewSource.value !== 'daily') return; // filtered lists are date-independent
+    if (!queueDate.value) return;
+    if (queueDate.value !== getTodayDateString()) {
+      showNewDay.value = true;
+    }
+  };
+
+  // "Start Today's Review" on the new-day screen: refresh everything
+  // day-scoped (review-status cache, queue, targets, streak) for the new
+  // date. Shares the isNavigating guard — key auto-repeat or double-taps
+  // must not run concurrent cache rebuilds.
+  const startNewDay = async () => {
+    if (isNavigating.value) return;
+    isNavigating.value = true;
+    try {
+      navDirection.value = 'restart';
+      switchToReference();
+      await loadTodaysReviewsIntoCache();
+      await loadReviewVerses(); // clears the interstitials, sets queueDate to today
+      // Only the streak still needs refreshing — loadReviewVerses already
+      // set dailyProgress from the same snapshot as the queue.
+      currentStreak.value = await getCurrentStreak();
+      await updateCurrentVerseReviewStatus();
+    } catch (error) {
+      console.error("Failed to start today's review:", error);
+    } finally {
+      isNavigating.value = false;
+    }
+  };
+
   const updateStats = async () => {
     try {
-      reviewedToday.value = await getTodayReviewCount();
-      currentStreak.value = await getCurrentStreak();
+      const [streak, progress] = await Promise.all([getCurrentStreak(), getDailyProgress()]);
+      currentStreak.value = streak;
+      dailyProgress.value = progress;
     } catch (error) {
       console.error("Failed to update stats:", error);
     }
@@ -162,11 +295,13 @@ export function useReview() {
         lastReviewType: reviewType
       };
 
-      await updateStats();
-
-      // Brief delay for visual feedback (card shows color before advancing)
-      // Navigation is handled by the orchestrator
-      await new Promise(resolve => setTimeout(resolve, 400));
+      // Stats refresh overlaps the visual-feedback delay (card shows color
+      // before advancing) — the delay dominates, so the DB reads are free.
+      // Navigation is handled by the orchestrator.
+      await Promise.all([
+        updateStats(),
+        new Promise(resolve => setTimeout(resolve, 400))
+      ]);
 
     } catch (error) {
       console.error("Failed to record review:", error);
@@ -174,20 +309,66 @@ export function useReview() {
     }
   };
 
-  const resetReview = async () => {
-    navDirection.value = 'restart';
-    currentReviewIndex.value = 0;
-    switchToReference();
+  // The next full pass over the collection, rotated if its head would sit
+  // next to an identical card id (adjacent duplicate keys defeat the keyed
+  // card <Transition>). Shared by navigate() and keepReviewing().
+  const fetchRotatedLap = async () =>
+    avoidSeamDuplicate(
+      await getNextReviewLap(),
+      dueForReview.value[dueForReview.value.length - 1]?.id
+    );
 
-    // Only regenerate daily review if in daily mode. Await it before
-    // clearing reviewComplete — flipping it first would briefly show the
-    // old queue's first card until the new queue swaps in.
-    if (reviewSource.value === 'daily') {
-      await loadReviewVerses(true); // Force regenerate
+  const appendLapAndAdvance = async (lap: Verse[]) => {
+    dueForReview.value = [...dueForReview.value, ...lap];
+    await nextVerse();
+  };
+
+  // Dismiss the celebration / lap-complete screen and carry on reviewing.
+  // Mid-queue (celebration after a normal advance) this only clears the
+  // screen — the index already points at the next card. At the end of the
+  // queue (small-collection lap-complete, or a celebration that fired on
+  // the final card) it appends the next lap and advances.
+  const keepReviewing = async () => {
+    if (isNavigating.value) return;
+
+    // The day may have changed while the screen sat open (a tap at 00:00:01
+    // beats the midnight timer) — never extend yesterday's queue. The stale
+    // screens clear WITHOUT marking the celebration acknowledged: the flag
+    // is date-keyed and yesterday's celebration is not today's.
+    checkDayRollover();
+    if (showNewDay.value && reviewSource.value === 'daily') {
+      showCelebration.value = false;
+      dailyLapComplete.value = false;
+      return; // the new-day screen takes over
     }
-    // For filtered mode, just restart same list (no regeneration)
 
-    reviewComplete.value = false;
+    isNavigating.value = true;
+    try {
+      navDirection.value = 'next';
+      const atEnd = currentReviewIndex.value >= totalReviewCount.value - 1;
+
+      // Fetch BEFORE clearing the flags — if the read fails, the screen
+      // stays up and the tap can simply be retried.
+      const lap = reviewSource.value === 'daily' && atEnd ? await fetchRotatedLap() : null;
+
+      if (showCelebration.value) markCelebrationShown();
+      showCelebration.value = false;
+      dailyLapComplete.value = false;
+
+      if (lap !== null) {
+        if (lap.length === 0) {
+          // Nothing eligible remains (e.g. everything paused mid-session):
+          // resync with reality instead of dead-ending.
+          await loadReviewVerses();
+        } else {
+          await appendLapAndAdvance(lap);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to continue reviewing:", error);
+    } finally {
+      isNavigating.value = false;
+    }
   };
 
   const completeReview = () => {
@@ -366,6 +547,38 @@ export function useReview() {
 
     const key = event.key.toLowerCase();
 
+    // While an interstitial screen is up, "advance" keys trigger its
+    // primary action and everything else is ignored (no card to act on).
+    if (showingInterstitial.value) {
+      // A focused button must keep its native Enter/Space activation —
+      // hijacking it would fire the primary action instead of the button
+      // the keyboard user tabbed to (e.g. "Add More Verses").
+      if (event.target instanceof HTMLButtonElement) return false;
+
+      // Immersive-mode escape hatches stay available on every screen
+      if (key === 'escape') {
+        if (isImmersiveModeActive.value) {
+          exitImmersiveMode();
+          return true;
+        }
+        return false;
+      }
+      if (key === 'i') {
+        toggleImmersiveMode();
+        return true;
+      }
+
+      if (ADVANCE_KEYS.has(key)) {
+        if (showNewDay.value && reviewSource.value === 'daily') {
+          startNewDay();
+        } else {
+          keepReviewing();
+        }
+        return true;
+      }
+      return false;
+    }
+
     switch (key) {
       case 'i':
         toggleImmersiveMode();
@@ -490,35 +703,35 @@ export function useReview() {
     filteredReviewVerses.value = [...verses]; // Snapshot (frozen array)
     currentReviewIndex.value = startIndex;
     reviewComplete.value = false;
+    // Lingering daily interstitials would otherwise replace the chosen
+    // verse and block navigation (the celebration already counted as shown
+    // for the day; showNewDay survives — it's re-checked on return to daily)
+    showCelebration.value = false;
+    dailyLapComplete.value = false;
     switchToReference();
   };
 
-  const returnToDailyReview = () => {
+  // Enter (or re-enter) daily review. Rebuilds the queue from current
+  // synced state, so verses reviewed today (any source, any device) lead
+  // in review order and the rest follow in date-seeded order.
+  const returnToDailyReview = async () => {
     navDirection.value = 'restart';
     reviewSource.value = 'daily';
     filteredReviewVerses.value = [];
+    // Reset synchronously: a filtered-mode index applied to the old daily
+    // queue would render out-of-bounds (blank card) until the rebuild lands
     currentReviewIndex.value = 0;
     reviewComplete.value = false;
     switchToReference();
-    // Maintain existing daily review progress (don't regenerate)
+    await loadReviewVerses(); // sets currentReviewIndex to first unreviewed
   };
 
-  // Method to refresh current verse after edit
+  // Method to refresh current verse after edit. The daily queue can hold
+  // the same verse more than once (reviewed-today history + loop laps), so
+  // update every occurrence.
   const refreshCurrentVerse = (updatedVerse: Verse) => {
-    // Update in daily review if that's the current source
-    if (reviewSource.value === 'daily') {
-      const index = dueForReview.value.findIndex(v => v.id === updatedVerse.id);
-      if (index !== -1) {
-        dueForReview.value[index] = updatedVerse;
-      }
-    }
-    // Update in filtered review if that's the current source
-    else {
-      const index = filteredReviewVerses.value.findIndex(v => v.id === updatedVerse.id);
-      if (index !== -1) {
-        filteredReviewVerses.value[index] = updatedVerse;
-      }
-    }
+    const list = reviewSource.value === 'daily' ? dueForReview : filteredReviewVerses;
+    list.value = list.value.map(v => (v.id === updatedVerse.id ? updatedVerse : v));
   };
 
   /**
@@ -541,7 +754,22 @@ export function useReview() {
     // fine — Vue's out-in transition retargets cleanly.
     if (isNavigating.value) return;
 
-    // Nothing to navigate (e.g. 'n' pressed on the All-caught-up screen —
+    // A stale daily session (day changed since the queue was built) must
+    // not record reviews or advance — surface the new-day screen instead.
+    checkDayRollover();
+    if (showNewDay.value && reviewSource.value === 'daily') return;
+
+    // Celebration / lap-complete screens own the interaction until
+    // dismissed; a plain "next" triggers their continue action (so every
+    // next-shaped input behaves consistently)
+    if (showCelebration.value || dailyLapComplete.value) {
+      if (options.direction === 'next' && options.recordReview === undefined) {
+        void keepReviewing();
+      }
+      return;
+    }
+
+    // Nothing to navigate (e.g. 'n' pressed on the empty-collection screen —
     // without this, nextVerse would push the index out of bounds and set
     // reviewComplete on an empty queue)
     if (totalReviewCount.value === 0) return;
@@ -555,22 +783,53 @@ export function useReview() {
     try {
       navDirection.value = options.direction;
 
+      // If the queue is swapped out while we're awaiting (e.g. the user taps
+      // the Review tab mid-feedback-delay and returnToDailyReview rebuilds
+      // it), advancing against the new queue would skip a card — abort.
+      const sourceAtStart = reviewSource.value;
+      const listAtStart = sourceAtStart === 'daily' ? dueForReview.value : filteredReviewVerses.value;
+
       // Record review if requested (includes 400ms visual feedback)
       if (options.recordReview !== undefined) {
         await markReview(options.recordReview);
       }
 
+      const listNow = reviewSource.value === 'daily' ? dueForReview.value : filteredReviewVerses.value;
+      if (reviewSource.value !== sourceAtStart || listNow !== listAtStart) return;
+
       if (options.direction === 'next') {
         const isOnLastCard = currentReviewIndex.value === totalReviewCount.value - 1;
 
-        if (isOnLastCard) {
-          completeReview();
-        } else {
+        if (!isOnLastCard) {
           await nextVerse();
+        } else if (reviewSource.value === 'daily') {
+          // End of the daily queue. With enough eligible verses, append
+          // another least-reviewed-first lap and keep going seamlessly.
+          // With a small collection, pause on an explicit lap-complete
+          // screen instead — a silent 1-2 card loop looks like a frozen
+          // card to a new user.
+          const lap = await fetchRotatedLap();
+          if (lap.length === 0) {
+            // No eligible verses left (e.g. everything paused mid-session):
+            // rebuild so the queue reflects reality instead of dead-ending.
+            await loadReviewVerses();
+          } else if (lap.length < MIN_VERSES_FOR_AUTO_LOOP) {
+            lapVerseCount.value = lap.length;
+            dailyLapComplete.value = true;
+          } else {
+            await appendLapAndAdvance(lap);
+          }
+        } else {
+          completeReview();
         }
       } else {
         await previousVerse();
       }
+
+      // After the card has advanced, surface the one-time daily-goal
+      // celebration if this review just met the last outstanding target
+      // (dailyProgress was refreshed inside markReview via updateStats).
+      maybeTriggerCelebration();
     } finally {
       isNavigating.value = false;
     }
@@ -591,7 +850,13 @@ export function useReview() {
     currentReviewIndex,
     reviewComplete,
     dueForReview,
-    reviewedToday,
+    dailyProgress,
+    showCelebration,
+    showNewDay,
+    dailyLapComplete,
+    lapVerseCount,
+    showingInterstitial,
+    queueDate,
     currentStreak,
 
     // Review status visual feedback
@@ -625,7 +890,9 @@ export function useReview() {
     initReviewCache,
     updateCurrentVerseReviewStatus,
     markReview,
-    resetReview,
+    keepReviewing,
+    startNewDay,
+    checkDayRollover,
     completeReview,
     uncompleteReview,
 

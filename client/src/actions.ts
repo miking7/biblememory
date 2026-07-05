@@ -1,5 +1,14 @@
 import { db, Verse } from "./db";
 import { v4 as uuid } from "uuid";
+import {
+  buildDailyQueue,
+  computeProgress,
+  effectiveCategoryAt,
+  nextLap,
+  type DailyProgress
+} from "./utils/reviewScheduling";
+
+export type { DailyProgress } from "./utils/reviewScheduling";
 
 // Helper function to parse tags from comma-separated input
 export function parseTags(input: string): Array<{ key: string; value: string }> {
@@ -32,38 +41,17 @@ export function getTodayMidnight(): number {
   return today.getTime();
 }
 
-// Compute effective review category for a verse
+// Today's local date string (yyyy-mm-dd) — the ONE spelling of "the current
+// day" shared by the scheduling seed, the celebration day-flag, and the
+// midnight-rollover check, so they can never disagree about when a day flips.
+export function getTodayDateString(): string {
+  return epochToDateString(getTodayMidnight());
+}
+
+// Compute effective review category for a verse (as of today)
 // Returns the actual frequency that will be applied, plus whether it's manually set
 export function getEffectiveReviewCategory(verse: Verse): { category: string; isManual: boolean } {
-  const reviewCat = verse.reviewCat;
-
-  // If not 'auto', it's a manual override - return as-is
-  if (reviewCat !== 'auto') {
-    return { category: reviewCat, isManual: true };
-  }
-
-  // Auto-calculate based on days since start
-  const todayStart = getTodayMidnight();
-
-  // If not started yet or startedAt is in the future
-  if (!verse.startedAt || verse.startedAt > todayStart) {
-    return { category: 'future', isManual: false };
-  }
-
-  const daysSinceStart = Math.floor((todayStart - verse.startedAt) / (24 * 60 * 60 * 1000));
-
-  let category: string;
-  if (daysSinceStart < 7) {
-    category = 'learn';
-  } else if (daysSinceStart < 56) {
-    category = 'daily';
-  } else if (daysSinceStart < 112) {
-    category = 'weekly';
-  } else {
-    category = 'monthly';
-  }
-
-  return { category, isManual: false };
+  return effectiveCategoryAt(verse, getTodayMidnight());
 }
 
 // Convert date string (yyyy-mm-dd) to midnight epoch ms
@@ -240,10 +228,10 @@ export async function getSetting(key: string, defaultValue: any = null) {
   return setting ? setting.value : defaultValue;
 }
 
-// Start memorizing a verse (set startedAt to today)
+// Start memorizing a verse (set startedAt to today). Midnight epoch, same
+// as addVerse — scheduling treats any startedAt within today as started.
 export async function startMemorizing(verseId: string) {
-  const now = Date.now();
-  await updateVerse(verseId, { startedAt: now });
+  await updateVerse(verseId, { startedAt: getTodayMidnight() });
 }
 
 // Toggle favorite status
@@ -270,67 +258,54 @@ export async function searchVerses(query: string): Promise<Verse[]> {
   );
 }
 
-// Get verses due for review based on spaced repetition algorithm
-export async function getVersesForReview(): Promise<Verse[]> {
-  const allVerses = await getAllVerses();
-  const today = Date.now();
-  const todayStart = new Date(today).setHours(0, 0, 0, 0);
-
-  const dueVerses: Verse[] = [];
-
-  for (const verse of allVerses) {
-    // Skip paused verses
-    if (verse.reviewCat === 'paused') {
-      continue;
-    }
-
-    // Skip verses not started yet (future)
-    if (!verse.startedAt || verse.startedAt > today) {
-      continue;
-    }
-
-    // Get review frequency
-    const daysSinceStart = Math.floor((todayStart - verse.startedAt) / (24 * 60 * 60 * 1000));
-    let freq = verse.reviewCat;
-
-    // Auto-calculate frequency if set to 'auto'
-    if (freq === 'auto') {
-      if (daysSinceStart < 0) freq = 'future';
-      else if (daysSinceStart < 7) freq = 'learn';
-      else if (daysSinceStart < 56) freq = 'daily';
-      else if (daysSinceStart < 112) freq = 'weekly';
-      else freq = 'monthly';
-    }
-
-    // Determine if verse is due based on frequency
-    if (freq === 'learn' || freq === 'daily') {
-      dueVerses.push(verse);
-    } else if (freq === 'weekly') {
-      // 1-in-7 probability
-      if (Math.random() < (1/7)) {
-        dueVerses.push(verse);
-      }
-    } else if (freq === 'monthly') {
-      // 1-in-30 probability
-      if (Math.random() < (1/30)) {
-        dueVerses.push(verse);
-      }
-    }
-  }
-
-  return dueVerses;
-}
-
-// Get review count for today
-export async function getTodayReviewCount(): Promise<number> {
-  const today = new Date().setHours(0, 0, 0, 0);
-  const reviews = await db.reviews
+// Today's review events (raw, chronologically unordered)
+export async function getTodaysReviewEvents() {
+  return db.reviews
     .where('createdAt')
-    .above(today)
+    .aboveOrEqual(getTodayMidnight())
     .toArray();
-  
-  return reviews.length;
 }
+
+// Inputs the deterministic scheduler needs: the verse set, today's review
+// events, and the local date acting as the daily shuffle seed.
+async function getSchedulingInputs() {
+  const [verses, reviews] = await Promise.all([getAllVerses(), getTodaysReviewEvents()]);
+  return { verses, reviews, dateStr: getTodayDateString(), todayMidnight: getTodayMidnight() };
+}
+
+// Deterministic daily review queue + quota progress from ONE consistent
+// snapshot of the inputs (see utils/reviewScheduling.ts): verses reviewed
+// today in review order, then the rest of the collection in date-seeded
+// order. Identical on every device with the same synced data.
+export async function getDailyReviewState(): Promise<{
+  queue: Verse[];
+  startIndex: number;
+  progress: DailyProgress;
+  dateStr: string; // the local date this queue was built for (rollover detection)
+}> {
+  const { verses, reviews, dateStr, todayMidnight } = await getSchedulingInputs();
+  return {
+    ...buildDailyQueue(verses, reviews, dateStr, todayMidnight),
+    progress: computeProgress(verses, reviews, dateStr, todayMidnight),
+    dateStr,
+  };
+}
+
+// Today's quota progress: distinct verses reviewed vs. the date-seeded
+// per-category targets (overflow raises the total — quotas are floors).
+export async function getDailyProgress(): Promise<DailyProgress> {
+  const { verses, reviews, dateStr, todayMidnight } = await getSchedulingInputs();
+  return computeProgress(verses, reviews, dateStr, todayMidnight);
+}
+
+// One more full pass over the collection, least-reviewed first — appended
+// when daily-review navigation reaches the end of the queue so review can
+// continue indefinitely.
+export async function getNextReviewLap(): Promise<Verse[]> {
+  const { verses, reviews, dateStr, todayMidnight } = await getSchedulingInputs();
+  return nextLap(verses, reviews, dateStr, todayMidnight);
+}
+
 
 // Local-calendar-day ordinal. Rounding absorbs the <=1h DST shift, so two
 // different calendar days never collapse to the same ordinal.
@@ -381,11 +356,7 @@ const recentReviewsCache = new Map<string, RecentReviewEntry>();
 
 // Load today's reviews into cache (call on session start)
 export async function loadTodaysReviewsIntoCache(): Promise<void> {
-  const todayMidnight = getTodayMidnight();
-  const todaysReviews = await db.reviews
-    .where('createdAt')
-    .above(todayMidnight)
-    .toArray();
+  const todaysReviews = await getTodaysReviewEvents();
 
   // Clear existing cache and populate with today's reviews
   recentReviewsCache.clear();

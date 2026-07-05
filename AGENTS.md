@@ -76,8 +76,10 @@ server `ops` table (monotonic seq) → other devices cursor-pull → LWW merge.
   verse id, transition name chosen from `useReview.navDirection`. Never
   reintroduce manual visibility/offset state for the card; the old
   hand-rolled engine caused invisible-card bugs (previous-work/067, 071).
-- **Navigation:** never bypass `useReview.navigate()`; it owns the
-  isNavigating concurrency guard (previous-work/069).
+- **Navigation:** never bypass `useReview.navigate()` for card navigation;
+  the interstitial actions `keepReviewing()`/`startNewDay()` are its only
+  sanctioned siblings and share the same isNavigating guard
+  (previous-work/069, 075).
 - **Unicode:** apostrophe/quote handling in `utils/` is encoded
   corruption-proof (code points / escapes) — never replace those constructs
   with literal glyphs (previous-work/068).
@@ -86,9 +88,15 @@ server `ops` table (monotonic seq) → other devices cursor-pull → LWW merge.
   alone (those are hints; only offline signals are authoritative). Flipping
   healthy on connectivity detection caused the stale reconnect toast
   (previous-work/074).
-- **Review scheduling:** `reviewCat: 'auto'` derives frequency from verse
-  age; weekly/monthly due-ness is probability-gated per session
-  (`Math.random`), so the daily queue is intentionally non-deterministic.
+- **Review scheduling:** deterministic and date-seeded. The algorithm
+  lives in `utils/reviewScheduling.ts` (pure, unit-tested) and is
+  documented in systemPatterns §Spaced Repetition Algorithm. Invariants:
+  category quotas are floors that gate the celebration/progress display —
+  they never filter which cards appear; the queue is never persisted
+  (rebuilt on every Review-tab entry from synced state); reviews must
+  never record into a session whose `queueDate` is stale (new-day
+  interstitial); never reintroduce `Math.random` into scheduling
+  (previous-work/075).
 - Logout wipes ALL local data (by design, with outbox warning).
 
 ## Documentation map (memory-bank/)

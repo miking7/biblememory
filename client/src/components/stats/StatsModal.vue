@@ -94,7 +94,7 @@
               <section>
                 <div class="flex items-end justify-between mb-2">
                   <div>
-                    <div class="text-3xl font-bold text-slate-800">{{ reviewedToday }}</div>
+                    <div class="text-3xl font-bold text-slate-800">{{ reviewedDistinct }}</div>
                     <div class="text-xs text-slate-500">{{ todaySubtitle }}</div>
                   </div>
                   <div class="text-right text-sm font-medium" :style="{ color: '#059669' }">{{ todayPct }}%</div>
@@ -230,6 +230,9 @@ const props = defineProps<{
   show: boolean;
   initialTab?: TabKey;
   reviewTarget: number;
+  // Distinct verses reviewed today — quota progress uses this, not the raw
+  // event count (the daily queue loops, so repeat reviews are common)
+  reviewedDistinct: number;
 }>();
 
 const emit = defineEmits<{ close: [] }>();
@@ -258,7 +261,6 @@ const {
   weekWindow,
   monthWindow,
   yearWindow,
-  reviewedToday,
   avg7,
   avg30,
   avg365,
@@ -283,16 +285,16 @@ useSwipeDetection(swipeArea, {
   canSwipeRight: () => currentIndex.value > 0,
 });
 
-// --- Today progress (vs live due target) ---
+// --- Today progress (distinct verses vs quota target) ---
 const todayPct = computed(() => {
   const t = props.reviewTarget;
-  if (t > 0) return Math.min(100, Math.round((reviewedToday.value / t) * 100));
-  return reviewedToday.value > 0 ? 100 : 0;
+  if (t > 0) return Math.min(100, Math.round((props.reviewedDistinct / t) * 100));
+  return props.reviewedDistinct > 0 ? 100 : 0;
 });
 const todaySubtitle = computed(() => {
   const t = props.reviewTarget;
   if (t > 0) return `of ${t} due reviewed`;
-  if (reviewedToday.value > 0) return 'reviewed — all caught up';
+  if (props.reviewedDistinct > 0) return 'reviewed — all caught up';
   return 'nothing due today';
 });
 
