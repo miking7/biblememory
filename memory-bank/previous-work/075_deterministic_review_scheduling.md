@@ -264,7 +264,7 @@ that never produces incorrect quota math, only an occasional reorder, and
 self-heals like everything else. Noted in the `nextLap` doc comment rather
 than engineered around.
 
-## Round 6: production feedback — the footer's Y showed a huge number
+## Round 6: production feedback — the footer's Y showed a huge number, then a rejected fix
 
 The Round 5 revert to plain queue position (`currentReviewIndex + 1 /
 totalReviewCount`) fixed the false-"done" bug but broke something else:
@@ -275,20 +275,25 @@ appended lap every time round, its length is close to the user's entire
 library size — nothing to do with the day's target — and grows further
 each loop.
 
-Fix: the daily-mode footer now shows `dailyProgress.reviewed /
-dailyProgress.total` — the same distinct-verses-vs-quota-target numbers
-StatsBar, the tab badge, and the celebration screen already use. This is
-provably safe against the Round-5 false-"done" bug: `total = Σ
-max(target, actual)` per category is always `>= reviewed` by construction
-(`max(x, y) >= y`), so `reviewed/total` can never show `N/N` unless
-`allTargetsMet` is genuinely true. The accepted trade-off: this number
-only advances on an actually-recorded review, not on a bare skip forward
-— reverting the "moves on skip" behavior from a few rounds back, since
-every attempt to make the footer track queue *position* instead of quota
-*progress* has produced a real bug (Round 5: false completion; Round 6:
-wrong denominator entirely). If a skip-responsive position indicator is
-still wanted, it should be a visually distinct element, not blended into
-the reviewed/target number.
+First fix attempt: pointed the footer at `dailyProgress.reviewed /
+dailyProgress.total` — provably safe against the Round-5 false-"done" bug
+(`total = Σ max(target, actual)` per category is always `>= reviewed` by
+construction), but it silently dropped the "moves on skip" behavior the
+owner had explicitly asked for and already confirmed working — a
+regression the owner rightly rejected ("I didn't ask to break our other
+fixes... regression is not ok").
+
+**Actual fix:** drop the denominator entirely. The footer shows a bare
+`#N` (`currentReviewIndex + 1`, no `/total`) in daily mode. This keeps
+exactly the wanted behavior — the number moves on skip in either direction
+— while removing the failure mode outright: with no denominator, there is
+nothing for the numerator to falsely equal (Round 5's bug) and no wrong
+number being displayed as if it were a target (Round 6's bug). The quota
+story (reviewed vs. target) was never this footer's job before 075 either
+— it belongs to StatsBar/the tab badge/the celebration screen, which
+already read `dailyProgress` directly and are unaffected by any of this.
+Filtered mode keeps its real, meaningful `position/size` denominator
+(a genuinely fixed, small chosen set — never implicated in either bug).
 
 ## Notes / expected behaviors
 

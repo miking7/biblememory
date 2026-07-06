@@ -414,22 +414,20 @@ const canGoPrevious = computed(() =>
   currentReviewIndex.value > 0 && !isNavigating.value
 )
 
-// Daily mode: dailyProgress.reviewed/total (distinct verses vs. today's
-// quota target) — NOT queue position. totalReviewCount is the length of
-// dueForReview, which holds a full lap over the WHOLE active collection
-// (plus another appended lap each time round) — nothing to do with the
-// day's target, and displaying it as "Y" showed a huge, ever-growing
-// number instead of the target. reviewed/total is also provably safe
-// against the false-"done" bug an earlier position-based attempt hit:
-// total = Σ max(target, actual) per category is always >= reviewed by
-// construction, so this pairing can never show N/N before allTargetsMet
-// is genuinely true. Trade-off: unlike a position, this only advances on
-// an actual recorded review — browsing forward without confirming one
-// leaves it unchanged (arguably correct: no review happened yet).
-// Filtered mode is unaffected: position in the finite chosen set.
+// Daily mode: "#N" — plain session position, no denominator. A denominator
+// here has caused two real bugs: capped-at-target falsely read as "done"
+// before the goal was met (Round 5), and totalReviewCount (the length of
+// dueForReview, a full lap over the WHOLE collection plus another lap
+// every loop) showed a huge number with no relation to the target (Round
+// 6). Dropping it removes the failure mode outright while keeping the
+// thing that was actually wanted — the number moves on skip in either
+// direction. The quota story (reviewed vs. target) is StatsBar/the tab
+// badge/the celebration screen's job; they already read dailyProgress.
+// Filtered mode is unaffected: position/size of the finite chosen set,
+// which has always been a real, meaningful denominator.
 const progressLabel = computed(() =>
   reviewSource.value === 'daily'
-    ? `${dailyProgress.value.reviewed}/${dailyProgress.value.total}`
+    ? `#${currentReviewIndex.value + 1}`
     : `${currentReviewIndex.value + 1}/${totalReviewCount.value}`
 )
 
