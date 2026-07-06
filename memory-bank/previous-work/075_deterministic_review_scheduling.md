@@ -295,6 +295,37 @@ already read `dailyProgress` directly and are unaffected by any of this.
 Filtered mode keeps its real, meaningful `position/size` denominator
 (a genuinely fixed, small chosen set — never implicated in either bug).
 
+## Round 7: one more attempt at a meaningful x/y (owner's design, tested live)
+
+The owner proposed a denominator that solves Round 5/6's failure differently:
+let `z` = today's raw review-event count (not deduplicated — repeats count
+each time) and `r` = the tab badge's "remaining to target" number (now a
+first-class `DailyProgress.remaining` field, `max(0, total - reviewed)`,
+single-sourced so the badge and footer can never disagree). Denominator
+`y = max(x, z + r)` where `x` is queue position; numerator stays `x`.
+
+Traced before implementing: `z + r` genuinely fixes the Round-5 repeat-review
+case (reviewing the same 2-of-3 verses repeatedly grows `z` in lockstep with
+`x`, so the fraction never falsely completes) — a real improvement pairing
+position with a target-shaped number correctly for the first time. Flagged
+one residual gap: since `x` also advances on a bare skip (next without
+recording a review — a long-supported gesture), skipping forward past
+`z + r` drags the denominator up via the `max()` to match, which *can* show
+a premature "N/N" with zero reviews recorded — the same failure class as
+Round 5, via a different trigger.
+
+Presented this trade-off directly rather than silently substituting a
+"safer" formula. **Owner's call: ship it as proposed.** Rationale given: the
+footer models "position in a hand of dealt cards" — dragging the
+denominator up to meet a skip-ahead position reads as acceptable within
+that framing, to be judged by feel in real use rather than by the math
+alone. Implemented as specified: `DailyProgress` gained `remaining` and
+`totalEvents`; `ReviewTab`'s daily-mode label is `x/max(x, totalEvents +
+remaining)`. Filtered mode and the tab badge are unaffected. If the
+skip-triggered early-"done" reading feels wrong in practice, the documented
+fallback is `x = totalEvents` (drop position from the numerator too) —
+provably safe with no clamp needed, at the cost of not moving on a bare skip.
+
 ## Notes / expected behaviors
 
 - Celebration is once per **device** per day (localStorage flag). Crossing

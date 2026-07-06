@@ -208,7 +208,26 @@ describe('computeProgress', () => {
 
   it('zero-verse collection is trivially met with zero total', () => {
     const p = computeProgress([], [], DATE, TODAY);
-    expect(p).toEqual({ reviewed: 0, total: 0, allTargetsMet: true });
+    expect(p).toEqual({
+      reviewed: 0,
+      total: 0,
+      allTargetsMet: true,
+      remaining: 0,
+      totalEvents: 0,
+    });
+  });
+
+  it('totalEvents counts every review event, including repeats; remaining tracks the true shortfall', () => {
+    const v = makeVerse({ startedAt: age.daily });
+    const p = computeProgress(
+      [v],
+      [review(v.id, TODAY + 1), review(v.id, TODAY + 2), review(v.id, TODAY + 3)],
+      DATE,
+      TODAY
+    );
+    expect(p.totalEvents).toBe(3); // 3 raw events, not deduplicated
+    expect(p.reviewed).toBe(1); // 1 distinct verse
+    expect(p.remaining).toBe(0); // target (1) met
   });
 });
 
@@ -301,6 +320,8 @@ describe('deck-first ordering (mixed categories)', () => {
       reviewed: 7,
       total: 7,
       allTargetsMet: true,
+      remaining: 0,
+      totalEvents: 7,
     });
   });
 

@@ -16,18 +16,19 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 ## Current Work Focus
 
 **Status:** Deterministic review scheduling (075) shipped to production
-(commits 9864f18, f94af54; July 6 2026). Production feedback rounds: (1)
-the daily target grew without bound — fixed via deck-first queue
-ordering; a pre-push review then caught a false "goal complete" reading
-that fix introduced in the card-footer indicator, fixed before pushing.
-(2) After pushing, the footer's denominator showed a huge, wrong number
-(queue length, not the target) — first fix attempt (pairing it with
-`dailyProgress.reviewed/total`) was rejected as a regression, since it
-silently dropped the already-confirmed-working "moves on skip" behavior;
-corrected by dropping the denominator entirely (`#N` position only, no
-`/total`) — keeps the wanted behavior, removes the failure mode outright.
-Unit tests (111) + build green. Uncommitted fix in the working tree, not
-yet pushed.
+(commits 9864f18, f94af54; July 6 2026), with several rounds of card-footer
+iteration since (previous-work/075 Rounds 5–7 — the exact denominator has
+been genuinely tricky to get right; full history there). Current design
+(Round 7, owner-specified): daily mode shows `x/max(x, totalEvents +
+remaining)` — `x` = queue position (moves on skip), `totalEvents` = raw
+review count today (repeats included), `remaining` = same number as the
+tab badge. Known, accepted trade-off: skipping forward past the remaining
+count without reviewing can show a premature "done"-looking reading —
+flagged before implementing, owner chose to ship and test by feel rather
+than by the math alone. `DailyProgress` gained `remaining`/`totalEvents`
+as single-sourced fields (badge and footer both read them, never
+recompute). Unit tests (112) + build green. Uncommitted in the working
+tree, not yet pushed.
 
 **Latest Work (075):** the daily queue is a pure function of (verse set,
 today's reviews, local date) in `utils/reviewScheduling.ts`, replacing

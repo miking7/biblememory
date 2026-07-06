@@ -76,7 +76,13 @@ export function useReview() {
 
   // Daily quota progress (distinct verses reviewed vs. date-seeded targets).
   // `total` grows when the user over-reviews a category — never shrinks.
-  const dailyProgress = ref<DailyProgress>({ reviewed: 0, total: 0, allTargetsMet: false });
+  const dailyProgress = ref<DailyProgress>({
+    reviewed: 0,
+    total: 0,
+    allTargetsMet: false,
+    remaining: 0,
+    totalEvents: 0,
+  });
 
   // One-time "daily goal reached" screen (pattern: celebrate once, then
   // review continues indefinitely — the queue loops over the collection)

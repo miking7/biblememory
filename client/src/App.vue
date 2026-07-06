@@ -46,8 +46,8 @@
       <TabNavigation
         :current-tab="currentTab"
         :is-immersive-mode-active="isImmersiveModeActive"
-        :show-badge="remainingToday > 0"
-        :badge-count="remainingToday"
+        :show-badge="dailyProgress.remaining > 0"
+        :badge-count="dailyProgress.remaining"
         @update:current-tab="currentTab = $event"
         @select-review="currentTab = 'review'; returnToDailyReview()"
       />
@@ -220,11 +220,6 @@ const {
   startReviewFromFiltered,
   startReviewAtVerse,
 } = bibleMemoryApp();
-
-// Verses still needed to reach today's quota target (drives the tab badge)
-const remainingToday = computed(() =>
-  Math.max(0, dailyProgress.value.total - dailyProgress.value.reviewed)
-);
 
 // Local state for About modal
 const showAboutModal = ref(false);

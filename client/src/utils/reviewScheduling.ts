@@ -52,6 +52,8 @@ export interface DailyProgress {
   reviewed: number;       // distinct verses reviewed today (all categories)
   total: number;          // Σ max(target, reviewed) per category — grows with overflow, never shrinks
   allTargetsMet: boolean;
+  remaining: number;      // max(0, total - reviewed) — single source for the tab badge + footer
+  totalEvents: number;    // raw review count today, NOT deduplicated (repeats count each time)
 }
 
 // 32-bit FNV-1a with a murmur3-style finalizer. Integer-only (Math.imul),
@@ -234,7 +236,13 @@ export function computeProgress(
     cat => (reviewedByCat.get(cat) || 0) >= targets[cat]
   );
 
-  return { reviewed, total, allTargetsMet };
+  return {
+    reviewed,
+    total,
+    allTargetsMet,
+    remaining: Math.max(0, total - reviewed),
+    totalEvents: todaysReviews.length,
+  };
 }
 
 interface RankedEntry {

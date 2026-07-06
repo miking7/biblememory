@@ -414,22 +414,27 @@ const canGoPrevious = computed(() =>
   currentReviewIndex.value > 0 && !isNavigating.value
 )
 
-// Daily mode: "#N" — plain session position, no denominator. A denominator
-// here has caused two real bugs: capped-at-target falsely read as "done"
-// before the goal was met (Round 5), and totalReviewCount (the length of
-// dueForReview, a full lap over the WHOLE collection plus another lap
-// every loop) showed a huge number with no relation to the target (Round
-// 6). Dropping it removes the failure mode outright while keeping the
-// thing that was actually wanted — the number moves on skip in either
-// direction. The quota story (reviewed vs. target) is StatsBar/the tab
-// badge/the celebration screen's job; they already read dailyProgress.
-// Filtered mode is unaffected: position/size of the finite chosen set,
-// which has always been a real, meaningful denominator.
-const progressLabel = computed(() =>
-  reviewSource.value === 'daily'
-    ? `#${currentReviewIndex.value + 1}`
-    : `${currentReviewIndex.value + 1}/${totalReviewCount.value}`
-)
+// Daily mode: x = queue position (moves on skip either direction — the
+// "hand of dealt cards" feel). y = max(x, totalEvents + remaining): the
+// deliberate baseline denominator is today's raw-review-count-so-far plus
+// what's still outstanding, which (unlike the plain quota target) keeps
+// growing on a repeat review instead of falsely reaching "done" early —
+// but if x runs ahead of that (skipping forward without confirming a
+// review), y is dragged up to match rather than showing x > y. Known,
+// accepted trade-off: skipping past the remaining count this way *can*
+// show a premature "done"-looking N/N with no reviews recorded — chosen
+// deliberately over yet another skip-unresponsive attempt (see
+// memory-bank/previous-work/075, Round 7); revisit if it feels wrong in
+// practice. Filtered mode is unaffected: position/size of the finite
+// chosen set.
+const progressLabel = computed(() => {
+  if (reviewSource.value !== 'daily') {
+    return `${currentReviewIndex.value + 1}/${totalReviewCount.value}`
+  }
+  const x = currentReviewIndex.value + 1
+  const y = Math.max(x, dailyProgress.value.totalEvents + dailyProgress.value.remaining)
+  return `${x}/${y}`
+})
 
 // Verse-dependent helpers, cached per verse (re-parsing the reference on
 // every render/reactive tick was wasteful — these only change with the verse).
