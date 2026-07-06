@@ -414,15 +414,24 @@ const canGoPrevious = computed(() =>
   currentReviewIndex.value > 0 && !isNavigating.value
 )
 
-// Plain position in the queue (moves on skip in either direction, per
-// user request) — deliberately NOT capped at or mixed with dailyProgress's
-// quota target. A capped/target-relative version looked "done" (N/N) after
-// browsing without reviewing, or after replaying an already-reviewed verse,
-// and it froze once the deck's targets were met even during later genuine
-// laps — two different numbers (queue position vs. quota progress) forced
-// into one. The quota story belongs to StatsBar/the tab badge/the
-// celebration screen, which already read dailyProgress directly.
-const progressLabel = computed(() => `${currentReviewIndex.value + 1}/${totalReviewCount.value}`)
+// Daily mode: dailyProgress.reviewed/total (distinct verses vs. today's
+// quota target) — NOT queue position. totalReviewCount is the length of
+// dueForReview, which holds a full lap over the WHOLE active collection
+// (plus another appended lap each time round) — nothing to do with the
+// day's target, and displaying it as "Y" showed a huge, ever-growing
+// number instead of the target. reviewed/total is also provably safe
+// against the false-"done" bug an earlier position-based attempt hit:
+// total = Σ max(target, actual) per category is always >= reviewed by
+// construction, so this pairing can never show N/N before allTargetsMet
+// is genuinely true. Trade-off: unlike a position, this only advances on
+// an actual recorded review — browsing forward without confirming one
+// leaves it unchanged (arguably correct: no review happened yet).
+// Filtered mode is unaffected: position in the finite chosen set.
+const progressLabel = computed(() =>
+  reviewSource.value === 'daily'
+    ? `${dailyProgress.value.reviewed}/${dailyProgress.value.total}`
+    : `${currentReviewIndex.value + 1}/${totalReviewCount.value}`
+)
 
 // Verse-dependent helpers, cached per verse (re-parsing the reference on
 // every render/reactive tick was wasteful — these only change with the verse).

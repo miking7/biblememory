@@ -97,10 +97,14 @@ server `ops` table (monotonic seq) → other devices cursor-pull → LWW merge.
   previous-work/075) without ever excluding a verse; the queue is never
   persisted (rebuilt on every Review-tab entry from synced state); reviews
   must never record into a session whose `queueDate` is stale (new-day
-  interstitial); the card-footer position indicator is deliberately plain
-  queue position, never capped at or blended with the quota target (that
-  produced a false "N/N done" — Round 5); never reintroduce `Math.random`
-  into scheduling.
+  interstitial); the card-footer daily-mode indicator shows
+  `dailyProgress.reviewed/total` (distinct verses vs. quota target, same
+  number StatsBar/badge/celebration use) — never the raw queue length or
+  position, which is unrelated to the target once the queue holds a full
+  lap over the whole collection (Round 6 — a position-based version
+  previously showed a false "done" reading, Round 5; the queue-length
+  version showed a wildly wrong target, Round 6); never reintroduce
+  `Math.random` into scheduling.
 - Logout wipes ALL local data (by design, with outbox warning).
 
 ## Documentation map (memory-bank/)

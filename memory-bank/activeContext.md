@@ -16,12 +16,16 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 ## Current Work Focus
 
 **Status:** Deterministic review scheduling (075) shipped to production
-(commit 9864f18, July 6 2026). Production use immediately surfaced a real
-bug — the daily progress target grew without bound — fixed same-day
-(deck-first queue ordering) alongside a second bug the fix itself
-introduced (a false "goal complete" reading in the card-footer position
-indicator, caught by review before this second push). Unit tests (111) +
-build green. Uncommitted fix in the working tree, ready to push.
+(commits 9864f18, f94af54; July 6 2026). Two rounds of production feedback
+so far: (1) the daily target grew without bound — fixed via deck-first
+queue ordering; a pre-push review of that fix then caught a false
+"goal complete" reading it introduced in the card-footer indicator,
+fixed before pushing. (2) After pushing, the footer's denominator turned
+out to show a huge, wrong number (queue length, not the target) — fixed
+by pointing the footer at `dailyProgress.reviewed/total` directly (same
+number StatsBar/badge/celebration already use), accepting that it no
+longer moves on a bare skip. Unit tests (111) + build green. Uncommitted
+fix in the working tree, ready to push.
 
 **Latest Work (075):** the daily queue is a pure function of (verse set,
 today's reviews, local date) in `utils/reviewScheduling.ts`, replacing

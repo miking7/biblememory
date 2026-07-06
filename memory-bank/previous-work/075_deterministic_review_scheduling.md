@@ -264,6 +264,32 @@ that never produces incorrect quota math, only an occasional reorder, and
 self-heals like everything else. Noted in the `nextLap` doc comment rather
 than engineered around.
 
+## Round 6: production feedback — the footer's Y showed a huge number
+
+The Round 5 revert to plain queue position (`currentReviewIndex + 1 /
+totalReviewCount`) fixed the false-"done" bug but broke something else:
+`totalReviewCount` in daily mode is `dueForReview.length`, and since the
+queue holds one full lap over the **whole active collection** (deck-first
+only reorders within that lap, it doesn't shrink it) plus another
+appended lap every time round, its length is close to the user's entire
+library size — nothing to do with the day's target — and grows further
+each loop.
+
+Fix: the daily-mode footer now shows `dailyProgress.reviewed /
+dailyProgress.total` — the same distinct-verses-vs-quota-target numbers
+StatsBar, the tab badge, and the celebration screen already use. This is
+provably safe against the Round-5 false-"done" bug: `total = Σ
+max(target, actual)` per category is always `>= reviewed` by construction
+(`max(x, y) >= y`), so `reviewed/total` can never show `N/N` unless
+`allTargetsMet` is genuinely true. The accepted trade-off: this number
+only advances on an actually-recorded review, not on a bare skip forward
+— reverting the "moves on skip" behavior from a few rounds back, since
+every attempt to make the footer track queue *position* instead of quota
+*progress* has produced a real bug (Round 5: false completion; Round 6:
+wrong denominator entirely). If a skip-responsive position indicator is
+still wanted, it should be a visually distinct element, not blended into
+the reviewed/target number.
+
 ## Notes / expected behaviors
 
 - Celebration is once per **device** per day (localStorage flag). Crossing
