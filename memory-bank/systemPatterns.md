@@ -924,30 +924,31 @@ Result: Device B's edit wins (Last-Write-Wins based on ts_server)
    b. Lap segment — all eligible verses sorted by
       (times-reviewed-today ASC, today's-deck-first, hash32(verseId|date));
       the deck = the verses filling each category's still-outstanding
-      target, chosen in hash order. Deck-first matters: without it,
-      reviewing toward the goal forces overflow of interleaved
-      weekly/monthly verses and the day's total grows unreachably.
+      target, chosen in hash order. Deck-first deals the actually-due
+      verses first, so reviewing straight through hits today's grand total
+      on exactly the due set (a skewed mix only arises by deliberately
+      skipping the dealt order).
    c. startIndex lands on the first card after the history
    ↓
 4. computeTargets(): learn/daily target = count; weekly = count/7;
    monthly = count/30 — fractional part resolved by a date-seeded coin.
-   Targets GATE the goal (celebration + StatsBar/StatsModal denominator);
-   they never filter which cards appear — beyond the deck prefix, the
-   whole collection still follows in the queue.
+   Targets shape the DECK (which verses lead) and their SUM is the day's
+   grand total (dailyTarget); they never filter which cards appear — beyond
+   the deck prefix, the whole collection still follows in the queue.
    ↓
 5. User reviews; recordReview() stores the event + queues the op for sync.
-   computeProgress() also derives `goal`: a chronological replay of
-   today's reviews that tracks `total` until every category is FIRST
-   simultaneously satisfied, then freezes — so StatsBar's denominator
-   stops climbing once the day's goal is met, and further bonus reviews
-   show as reviewed > goal instead of the target chasing back to 100%.
+   computeProgress() reports ONE grand total: dailyTarget (= Σ targets,
+   fixed for the day) and reviewed (distinct ELIGIBLE verses reviewed,
+   regardless of category). remaining = max(0, dailyTarget − reviewed)
+   feeds the tab badge; goalMet = reviewed ≥ dailyTarget fires the
+   celebration; StatsBar/StatsModal show reviewed against dailyTarget.
+   dailyTarget never moves with over-review, so reviewed simply climbs past
+   it on bonus reviews — no per-category floor total, no freeze logic.
    ↓
 6. Reaching the end of the queue appends another lap — daily review loops
-   indefinitely; skipped cards surface before any repeats. If the quota is
-   STILL outstanding at that point (only possible via a skip — deck-first
-   ordering guarantees it's satisfied partway through otherwise), a prompt
-   offers to rebuild the queue (skipped cards re-sorted to the front) or
-   keep looping and defer them further.
+   indefinitely; skipped cards surface before any repeats (small
+   collections pause on an explicit lap-complete screen instead of looping
+   silently).
 ```
 
 **Algorithm Thresholds (in human terms):**
@@ -961,15 +962,18 @@ Result: Device B's edit wins (Last-Write-Wins based on ts_server)
 - Deterministic per-verse hash ranking (not a global shuffle): every device
   with the same synced data derives the identical queue for the date, and
   adding/removing/pausing verses never perturbs other verses' order
-- Quotas are floors, not caps: over-reviewing a category raises its
-  effective total (`max(target, distinct-reviewed)`) — the day's total only
-  grows; quota progress counts distinct verses, loop ordering counts events
-- `goal` (StatsBar/StatsModal's denominator) is a SEPARATE, frozen-at-
-  milestone view of that same total — computed by replay, not stored state,
-  so every device derives the identical frozen value once reviews sync
+- Progress is one grand total, not a per-category breakdown: `dailyTarget`
+  (Σ per-category targets) is fixed the moment the verse set and date are
+  known, and `reviewed` (distinct eligible verses, any category) climbs
+  toward and past it — no floor-adjusted total, no freeze logic. Categories
+  still shape the deck; they no longer split the progress number. Accepted
+  trade-off: reaching the total with a skewed mix (only possible by skipping
+  the dealt order) reads as done
+- Loop ordering counts review events (a verse reviewed 5× sinks 5 laps
+  deep); quota/deck math counts distinct verses
 - The card-footer denominator uses a session-local `handSize` high-water
-  mark, not live position — going back to an earlier card must not shrink
-  it (previous-work/075, Round 8)
+  mark, not live position — once a card is dealt into the hand by skipping
+  to it, going back to an earlier card must not shrink the hand
 - No queue is persisted — it is a pure function of synced state, so sync
   lag self-corrects on the next rebuild
 - One-time-per-day "Daily Goal Reached" celebration, gated by a
@@ -978,7 +982,8 @@ Result: Device B's edit wins (Last-Write-Wins based on ts_server)
 
 **See:** `client/src/utils/reviewScheduling.ts` (pure algorithm + tests),
 `client/src/actions.ts` (DB wrappers), `client/src/composables/useReview.ts`
-(session orchestration), previous-work/075 for design rationale
+(session orchestration), previous-work/076 for the grand-total progress
+model (previous-work/075 for the original deterministic-scheduling design)
 
 ## Database Schema Patterns
 

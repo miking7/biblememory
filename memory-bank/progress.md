@@ -347,7 +347,7 @@ previous-work/043_legacy_codebase_removal.md).
 - [x] Review history charts (30-day activity bars + calendar heatmap)
 - [x] Verses by category breakdown (maturity funnel via effective category)
 - [x] Review completion ("Reviewed Today" tile: distinct verses vs the
-      deterministic daily quota target — see previous-work/075)
+      day's grand total — see previous-work/076)
 - [ ] Time spent reviewing (not possible — no per-review duration is stored)
 - [x] Verses added over time (cumulative growth curve)
 - [ ] Most reviewed verses (deferred)

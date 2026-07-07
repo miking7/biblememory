@@ -6,7 +6,7 @@ import type { Verse } from '../db';
 import type { DailyProgress } from '../utils/reviewScheduling';
 
 const EMPTY_PROGRESS: DailyProgress = {
-  reviewed: 0, total: 0, allTargetsMet: false, remaining: 0, totalEvents: 0, goal: 0,
+  reviewed: 0, dailyTarget: 0, remaining: 0, goalMet: false, totalEvents: 0,
 };
 
 // Navigation-guard regression tests (see previous-work/069): a second
@@ -29,13 +29,13 @@ vi.mock('../actions', async (importOriginal) => {
     getNextReviewLap: vi.fn(async () =>
       ['lap-1', 'lap-2', 'lap-3'].map((id) => ({ id } as Verse))
     ),
-    // Only exercised by finishSkippedCards()/loadReviewVerses() in the
-    // tests that explicitly call them — a minimal stub, same rationale as
-    // getNextReviewLap (no real IndexedDB in this node test env).
+    // Only exercised by loadReviewVerses() in the tests that explicitly
+    // call it — a minimal stub, same rationale as getNextReviewLap (no real
+    // IndexedDB in this node test env).
     getDailyReviewState: vi.fn(async () => ({
       queue: [],
       startIndex: 0,
-      progress: { reviewed: 0, total: 0, allTargetsMet: false, remaining: 0, totalEvents: 0, goal: 0 },
+      progress: { reviewed: 0, dailyTarget: 0, remaining: 0, goalMet: false, totalEvents: 0 },
       dateStr: '2027-01-01',
     })),
   };
@@ -148,9 +148,9 @@ describe('filtered review completion', () => {
 });
 
 describe('daily-goal celebration', () => {
-  it('fires once when all targets are met, then never again that day', async () => {
+  it('fires once when the daily goal is met, then never again that day', async () => {
     const review = setupReview(['v1', 'v2', 'v3']);
-    review.dailyProgress.value = { ...EMPTY_PROGRESS, reviewed: 3, total: 3, allTargetsMet: true, goal: 3 };
+    review.dailyProgress.value = { ...EMPTY_PROGRESS, reviewed: 3, dailyTarget: 3, goalMet: true };
 
     await review.navigate({ direction: 'next' });
     expect(review.showCelebration.value).toBe(true);
@@ -165,6 +165,26 @@ describe('daily-goal celebration', () => {
     await review.navigate({ direction: 'next' });
     expect(review.showCelebration.value).toBe(false);
     expect(review.currentReviewIndex.value).toBe(2);
+  });
+
+  it('dismissing the celebration at end-of-queue pauses on lap-complete when the refetched lap shrank below the auto-loop threshold', async () => {
+    const review = setupReview(['v1', 'v2', 'v3']);
+    await review.navigate({ direction: 'next' }); // index 1
+    await review.navigate({ direction: 'next' }); // index 2 (last card)
+    // Goal met, celebration up, sitting on the final card.
+    review.dailyProgress.value = { ...EMPTY_PROGRESS, reviewed: 3, dailyTarget: 3, goalMet: true };
+    review.showCelebration.value = true;
+
+    // Verses got paused/deleted while the celebration sat open — the
+    // refetched lap is now sub-threshold. Dismissing must pause on the
+    // lap-complete screen, not silently loop a 1-2 card lap.
+    vi.mocked(getNextReviewLap).mockResolvedValueOnce([{ id: 'v1' } as Verse, { id: 'v2' } as Verse]);
+    await review.keepReviewing();
+
+    expect(review.showCelebration.value).toBe(false);
+    expect(review.dailyLapComplete.value).toBe(true);
+    expect(review.lapVerseCount.value).toBe(2);
+    expect(review.dueForReview.value.map((v) => v.id)).toEqual(['v1', 'v2', 'v3']); // not appended
   });
 });
 
@@ -205,114 +225,6 @@ describe('card-footer hand size (high-water mark)', () => {
     await review.navigate({ direction: 'next' }); // appends a lap, advances to index 2
     await nextTick();
     expect(review.handSize.value).toBe(3); // ratcheted with the queue's natural growth, not reset
-  });
-});
-
-describe('skipped-cards prompt', () => {
-  it('shows when the daily quota is still outstanding at the end of a lap (>= 3 eligible)', async () => {
-    const review = setupReview(['v1', 'v2']);
-    review.dailyProgress.value = { ...EMPTY_PROGRESS, reviewed: 1, total: 3, remaining: 2 };
-    await review.navigate({ direction: 'next' }); // last card
-
-    await review.navigate({ direction: 'next' }); // reaches end of lap
-
-    expect(review.showSkippedCardsPrompt.value).toBe(true);
-    expect(review.dailyLapComplete.value).toBe(false);
-    // No silent auto-append while the prompt is up
-    expect(review.dueForReview.value.map((v) => v.id)).toEqual(['v1', 'v2']);
-    expect(review.currentReviewIndex.value).toBe(1);
-  });
-
-  it('does not show when the quota is already met (seamless loop, unchanged default)', async () => {
-    const review = setupReview(['v1', 'v2']);
-    review.dailyProgress.value = { ...EMPTY_PROGRESS, reviewed: 3, total: 3, remaining: 0 };
-    await review.navigate({ direction: 'next' });
-
-    await review.navigate({ direction: 'next' });
-
-    expect(review.showSkippedCardsPrompt.value).toBe(false);
-    expect(review.dueForReview.value.map((v) => v.id)).toEqual(['v1', 'v2', 'lap-1', 'lap-2', 'lap-3']);
-  });
-
-  it('"Skip For Now" (keepReviewing) dismisses the prompt and proceeds with the lap', async () => {
-    const review = setupReview(['v1', 'v2']);
-    review.dailyProgress.value = { ...EMPTY_PROGRESS, reviewed: 1, total: 3, remaining: 2 };
-    await review.navigate({ direction: 'next' });
-    await review.navigate({ direction: 'next' }); // prompt shows
-    expect(review.showSkippedCardsPrompt.value).toBe(true);
-
-    await review.keepReviewing();
-
-    expect(review.showSkippedCardsPrompt.value).toBe(false);
-    expect(review.dueForReview.value.map((v) => v.id)).toEqual(['v1', 'v2', 'lap-1', 'lap-2', 'lap-3']);
-    expect(review.currentReviewIndex.value).toBe(2);
-  });
-
-  it('routes to dailyLapComplete if the lap shrinks below the auto-loop threshold while the prompt is open', async () => {
-    const review = setupReview(['v1', 'v2']);
-    review.dailyProgress.value = { ...EMPTY_PROGRESS, reviewed: 1, total: 3, remaining: 2 };
-    await review.navigate({ direction: 'next' });
-    await review.navigate({ direction: 'next' }); // prompt shows (lap was 3, >= threshold)
-    expect(review.showSkippedCardsPrompt.value).toBe(true);
-
-    // Verses got paused/deleted while the prompt sat open — the lap is now
-    // small. "Skip For Now" must not silently loop it.
-    vi.mocked(getNextReviewLap).mockResolvedValueOnce([{ id: 'v1' } as Verse, { id: 'v2' } as Verse]);
-    await review.keepReviewing();
-
-    expect(review.showSkippedCardsPrompt.value).toBe(false);
-    expect(review.dailyLapComplete.value).toBe(true);
-    expect(review.lapVerseCount.value).toBe(2);
-    expect(review.dueForReview.value.map((v) => v.id)).toEqual(['v1', 'v2']); // not appended
-  });
-
-  it('"Finish Skipped Cards" rebuilds the queue via the same path as re-entering the tab', async () => {
-    const review = setupReview(['v1', 'v2']);
-    review.dailyProgress.value = { ...EMPTY_PROGRESS, reviewed: 1, total: 3, remaining: 2 };
-    await review.navigate({ direction: 'next' });
-    await review.navigate({ direction: 'next' }); // prompt shows
-    expect(review.showSkippedCardsPrompt.value).toBe(true);
-
-    const rebuiltProgress = { ...EMPTY_PROGRESS, reviewed: 1, total: 3, remaining: 2 };
-    vi.mocked(getDailyReviewState).mockResolvedValueOnce({
-      queue: [{ id: 'v2' } as Verse, { id: 'v1' } as Verse], // re-sorted: outstanding card first
-      startIndex: 0,
-      progress: rebuiltProgress,
-      dateStr: '2027-01-01',
-    });
-    await review.finishSkippedCards();
-
-    expect(review.showSkippedCardsPrompt.value).toBe(false);
-    expect(review.dueForReview.value.map((v) => v.id)).toEqual(['v2', 'v1']);
-    expect(review.currentReviewIndex.value).toBe(0);
-  });
-
-  it('does not show for small collections — dailyLapComplete already owns that case', async () => {
-    const review = setupReview(['v1', 'v2']);
-    vi.mocked(getNextReviewLap).mockResolvedValueOnce([{ id: 'v1' } as Verse, { id: 'v2' } as Verse]);
-    review.dailyProgress.value = { ...EMPTY_PROGRESS, reviewed: 1, total: 3, remaining: 2 };
-    await review.navigate({ direction: 'next' });
-
-    await review.navigate({ direction: 'next' });
-
-    expect(review.dailyLapComplete.value).toBe(true);
-    expect(review.showSkippedCardsPrompt.value).toBe(false);
-  });
-
-  it('"Finish Skipped Cards" defers to the new-day screen if the date rolled over while the prompt was open', async () => {
-    const review = setupReview(['v1', 'v2']);
-    review.dailyProgress.value = { ...EMPTY_PROGRESS, reviewed: 1, total: 3, remaining: 2 };
-    await review.navigate({ direction: 'next' });
-    await review.navigate({ direction: 'next' }); // prompt shows
-    expect(review.showSkippedCardsPrompt.value).toBe(true);
-
-    review.queueDate.value = '2000-01-01'; // the day rolled over while the prompt sat open
-    await review.finishSkippedCards();
-
-    expect(review.showNewDay.value).toBe(true);
-    expect(review.showSkippedCardsPrompt.value).toBe(false);
-    // No rebuild happened — dueForReview is untouched, unlike a real rebuild
-    expect(review.dueForReview.value.map((v) => v.id)).toEqual(['v1', 'v2']);
   });
 });
 

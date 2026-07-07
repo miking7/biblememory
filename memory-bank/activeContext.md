@@ -15,58 +15,40 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Deterministic review scheduling (075) shipped to production
-(commits 9864f18, f94af54; July 6–7 2026), with several rounds of
-production feedback since — the daily-progress display surfaces in
-particular have taken multiple iterations to get right (previous-work/075
-Rounds 5–8 have the full history; don't re-derive from first principles,
-read there first). Current design as of Round 8:
-- Card footer (daily mode): `x/max(handSize, totalEvents + remaining)` —
-  `x` = queue position, `handSize` = high-water mark of positions reached
-  this session (never shrinks going back; resets only on queue rebuild).
-  Known, accepted trade-off: skipping forward past `remaining` without
-  reviewing can show a premature "done"-looking reading — owner-confirmed,
-  ship-and-feel rather than provably safe.
-- StatsBar/StatsModal denominator: `dailyProgress.goal` — tracks the live
-  floor-adjusted total until every category is first simultaneously
-  satisfied, then freezes (pure chronological replay, not stored state).
-  `total`/`remaining` stay live (badge, footer) — three distinct
-  target-shaped numbers now exist, each with exactly one owner (see
-  AGENTS.md's Review-scheduling bullet for the map).
-- `showSkippedCardsPrompt`: reaching the end of a lap with quota still
-  outstanding (only possible via a skip) offers to rebuild the queue
-  (skipped cards re-sorted to front) or keep looping.
+**Status:** Daily-progress measurement simplified to a single grand total
+(previous-work/076), replacing the per-category `total`/`goal`/`remaining`
+machinery that took eight rounds of production feedback to stabilise (that
+design is archived in previous-work/075). Built on a fresh branch
+(`scheduling-v2`, based at `530e965` — the last commit before the original
+scheduling feature) so the six-commit saga collapses to clean history; the
+old master tip is preserved at tag `backup/pre-scheduling-cleanup`. NOT yet
+force-pushed to master — awaiting owner go-ahead after Herd testing.
 
-An 8-angle code review of the Round 8 diff found and fixed 8 issues before
-commit — most notably `keepReviewing()`'s reuse across three different
-dismiss-screens needed to distinguish which screen it was dismissing (a
-naive shared fix broke small-collection looping), a stale-`handSize`
-window in `returnToDailyReview()`, and a missing day-rollover guard in
-`finishSkippedCards()`. Full list in previous-work/075's Round 8 review
-section. Unit tests (126) + build green. Uncommitted in the working tree,
-ready to commit.
+**The change:** progress is measured against `dailyTarget` = Σ per-category
+targets — one number, fixed the moment the verse set and date are known.
+`reviewed` counts distinct ELIGIBLE verses reviewed today regardless of
+category; `remaining` = max(0, dailyTarget − reviewed); `goalMet` =
+reviewed ≥ dailyTarget. Because `dailyTarget` never drifts with over-review,
+the freeze machinery (`computeGoal`, the `total`-vs-`goal` split, the
+chronological replay) is gone, and Round 8's "let reviewed exceed the
+target" behaviour is now free by construction. Categories still drive the
+DECK (deck-first ordering unchanged) — they simply no longer split the
+progress readout.
 
-**Latest Work (075) — architecture summary:** the daily queue is a pure
-function of (verse set, today's reviews, local date) in
-`utils/reviewScheduling.ts`, replacing `getVersesForReview()`'s
-`Math.random` gating: date-seeded hash ordering, deck-first ordering
-within the unreviewed segment (Round 4 — pure hash order let overflow make
-the target unreachable), quota floors, reviewed-today history first,
-infinite lap-looping, one-time celebration, midnight-rollover interstitial,
-small-collection lap-complete pause, empty-state CTA, plus the Round 8
-refinements above. This also resolves the 066 deferred item (deterministic
-"due today" target).
+**Deliberately accepted (con #1, owner-agreed):** reaching the grand total
+with a skewed category mix reads as "done" even if a specific due verse was
+skipped — only reachable by deliberately skipping the dealt order (deck-first
+deals the due verses first). The `showSkippedCardsPrompt` interstitial
+(Round 8) is removed as part of this — no prompt.
 
-**Deferred candidates on record (previous-work/073):** double review-status
-lookup per navigation, gotIt/again consolidation, shared isVerseInactive
-helper, key-repeat pacing, navDirection stale-direction cosmetics, vue-tsc
-in the verification loop.
+**Footer:** kept as the "hand of dealt cards" (x = position, y =
+max(handSize, totalEvents + remaining)); only `remaining`'s definition
+simplified underneath it. handSize, the small-collection lap-complete
+screen, and the new-day interstitial are all unchanged.
 
-**Next:** remaining smaller review findings (F7 cohesion items:
-alert→toast, redundant status updates; immersive+completion Escape trap).
-The midnight-cache-rollover deferred item is now resolved: the 075 new-day
-interstitial refreshes `recentReviewsCache`, queue, targets, and streak on
-day change (detected via navigate/visibility/midnight timer).
+**Next:** owner tests on Herd; then force-push `scheduling-v2` over master to
+overwrite the complex history (backup tag already in place). Unit tests
+(117) + build green.
 
 ## Previous Work Index (Complete Archive)
 
@@ -152,3 +134,4 @@ This index provides titles and links for reference when needed.
 - **073** - Pre-Push Code Review & Fixes (Transition Batch) → [previous-work/073_prepush_code_review_fixes.md](previous-work/073_prepush_code_review_fixes.md)
 - **074** - Sync Health State Machine (Reconnect Toast Fix) → [previous-work/074_sync_status_state_machine.md](previous-work/074_sync_status_state_machine.md)
 - **075** - Deterministic Review Scheduling (Date-Seeded Daily Queue) → [previous-work/075_deterministic_review_scheduling.md](previous-work/075_deterministic_review_scheduling.md)
+- **076** - Grand-Total Daily Progress (Simplify Measurement) → [previous-work/076_grand_total_daily_progress.md](previous-work/076_grand_total_daily_progress.md)

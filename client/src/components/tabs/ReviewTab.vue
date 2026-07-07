@@ -34,8 +34,8 @@
         </button>
       </div>
 
-      <!-- One-time daily-goal celebration: shown once per day when every
-           category target is met; review continues indefinitely after. -->
+      <!-- One-time daily-goal celebration: shown once per day when the
+           day's goal is met; review continues indefinitely after. -->
       <div v-else-if="showCelebration" key="celebration" class="text-center py-16">
         <div class="text-5xl sm:text-7xl mb-4">🎉</div>
         <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">Daily Goal Reached!</p>
@@ -67,29 +67,6 @@
             @click="keepReviewing()"
             class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
             Review Again
-          </button>
-        </div>
-      </div>
-
-      <!-- Reached the end of today's stack while some needed cards were
-           skipped over — offer to go finish them (re-sorted to the front)
-           or keep going and defer them further. -->
-      <div v-else-if="showSkippedCardsPrompt" key="skippedprompt" class="text-center py-16">
-        <div class="text-5xl sm:text-7xl mb-4">🔍</div>
-        <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">Some Cards Were Skipped</p>
-        <p class="text-slate-500 mb-6 text-lg">
-          You've reached the end of today's stack, but {{ dailyProgress.remaining }} card{{ dailyProgress.remaining === 1 ? '' : 's' }} still {{ dailyProgress.remaining === 1 ? 'needs' : 'need' }} a review to hit today's goal.
-        </p>
-        <div class="flex gap-3 justify-center flex-wrap">
-          <button
-            @click="finishSkippedCards()"
-            class="px-6 py-3 rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all">
-            Finish Skipped Cards
-          </button>
-          <button
-            @click="keepReviewing()"
-            class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
-            Skip For Now
           </button>
         </div>
       </div>
@@ -316,7 +293,7 @@
                           v-text="formatTagForDisplay(tag)"></span>
                   </template>
                 </template>
-                <!-- Daily: distinct-verses-reviewed / today's target (the
+                <!-- Daily: position in today's dealt hand / hand size (the
                      queue itself is endless). Filtered: position in the set. -->
                 <div class="ml-auto text-slate-600 font-medium">
                   <span v-text="progressLabel"></span>
@@ -381,7 +358,6 @@ const {
   showNewDay,
   dailyLapComplete,
   lapVerseCount,
-  showSkippedCardsPrompt,
   isNavigating,
   navDirection,
   currentReviewVerse,
@@ -401,7 +377,6 @@ const {
   viewLastCard,
   keepReviewing,
   startNewDay,
-  finishSkippedCards,
   returnToDailyReview,
   toggleImmersiveMode,
   exitImmersiveMode,
@@ -432,10 +407,10 @@ const blockTransition = computed(() => {
 // Daily review has no last card — reaching the end of the queue appends
 // another lap over the collection — so "next" is always available there.
 // (This computed doesn't need to account for the interstitials that CAN
-// pause that flow — celebration/lap-complete/skipped-cards/new-day — since
-// their v-else-if branches replace this whole card+arrows block in the
-// template; the arrows and swipe handler this feeds simply aren't in the
-// DOM while any of them are showing.)
+// pause that flow — celebration/lap-complete/new-day — since their
+// v-else-if branches replace this whole card+arrows block in the template;
+// the arrows and swipe handler this feeds simply aren't in the DOM while
+// any of them are showing.)
 const canGoNext = computed(() =>
   (reviewSource.value === 'daily'
     ? totalReviewCount.value > 0
@@ -445,23 +420,18 @@ const canGoPrevious = computed(() =>
   currentReviewIndex.value > 0 && !isNavigating.value
 )
 
-// Daily mode: x = queue position (moves on skip either direction — the
-// "hand of dealt cards" feel). y = max(handSize, totalEvents + remaining):
-// the baseline denominator is today's raw-review-count-so-far plus what's
-// still outstanding, which (unlike the plain quota target) keeps growing
-// on a repeat review instead of falsely reaching "done" early — but if
-// position runs ahead of that (skipping forward without confirming a
-// review), y is dragged up to match rather than showing x > y. Known,
-// accepted trade-off: skipping past the remaining count this way *can*
-// show a premature "done"-looking N/N with no reviews recorded (see
-// memory-bank/previous-work/075, Round 7).
-//
-// y uses handSize (a high-water mark of positions reached this session —
-// Round 8), not the live position: once a card has been "dealt into the
-// hand" by skipping to it, going back to look at an earlier card must not
-// shrink the denominator again. handSize only resets when the queue is
-// rebuilt (re-entering the tab re-sorts). Filtered mode is unaffected:
-// position/size of the finite chosen set.
+// Daily mode footer — "a hand of dealt cards". x = queue position, so it
+// moves on a skip in either direction. y = max(handSize, totalEvents +
+// remaining): the baseline is today's raw-review-count-so-far plus what's
+// still outstanding toward the day's grand total, which keeps growing on a
+// repeat review instead of falsely reading "done" early. handSize is a
+// high-water mark of positions reached this session (not the live
+// position): once a card is dealt into the hand by skipping to it, going
+// back to an earlier card must not shrink the hand again; it resets only
+// when the queue is rebuilt (re-entering the tab re-sorts). Accepted
+// trade-off: skipping FORWARD past the outstanding count can momentarily
+// show a premature N/N with no reviews recorded. Filtered mode is
+// unaffected: plain position/size of the finite chosen set.
 const progressLabel = computed(() => {
   if (reviewSource.value !== 'daily') {
     return `${currentReviewIndex.value + 1}/${totalReviewCount.value}`

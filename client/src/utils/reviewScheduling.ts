@@ -49,15 +49,11 @@ export interface DailyTargets {
 }
 
 export interface DailyProgress {
-  reviewed: number;       // distinct verses reviewed today (all categories)
-  total: number;          // Σ max(target, reviewed) per category — grows with overflow, never shrinks
-  allTargetsMet: boolean;
-  remaining: number;      // max(0, total - reviewed) — single source for the tab badge + footer
-  totalEvents: number;    // raw review count today, NOT deduplicated (repeats count each time)
-  goal: number;           // display target: tracks `total` until every category is first
-                          // simultaneously satisfied, then freezes — so bonus reviews after that
-                          // grow `reviewed` past a fixed `goal` instead of `total` continuing to
-                          // chase it upward (previous-work/075, Round 8)
+  reviewed: number;     // distinct ELIGIBLE verses reviewed today (paused/future/deleted don't count)
+  dailyTarget: number;  // the day's grand total = Σ per-category targets; fixed once verse set + date are known
+  remaining: number;    // max(0, dailyTarget - reviewed) — single source for the tab badge + footer
+  goalMet: boolean;     // reviewed >= dailyTarget
+  totalEvents: number;  // raw review count today, NOT deduplicated (repeats count each time)
 }
 
 // 32-bit FNV-1a with a murmur3-style finalizer. Integer-only (Math.imul),
@@ -178,10 +174,9 @@ export function reviewCountsByVerse(todaysReviews: ReviewEvent[]): Map<string, n
 // Today's reviews in chronological order, tiebroken by verseId when two
 // events share a createdAt millisecond (plausible for synced/bulk writes):
 // without a tiebreak, Array.sort's stability falls back to each device's own
-// local storage-order for the tied events, which need not agree — a gap
-// that only affected cosmetic queue ordering before computeGoal started
-// depending on this same ordering for a number that's supposed to be
-// identical on every device.
+// local storage-order for the tied events, which need not agree, so the
+// queue's replayed history segment could differ across devices. The verseId
+// tiebreak keeps the rebuilt order identical everywhere.
 function sortChronologically(todaysReviews: ReviewEvent[]): ReviewEvent[] {
   return [...todaysReviews].sort(
     (a, b) => a.createdAt - b.createdAt || (a.verseId < b.verseId ? -1 : 1)
@@ -189,9 +184,8 @@ function sortChronologically(todaysReviews: ReviewEvent[]): ReviewEvent[] {
 }
 
 // The category a reviewed verse counts toward, or 'inactive' if it's out of
-// the rotation (paused, future, unstarted) — zero-target overflow that must
-// never satisfy a real quota. Shared by the live tally and the goal replay
-// below so they can never bucket a review differently.
+// the rotation (paused, future, unstarted) — overflow that carries no
+// target and never counts toward the day.
 function categoryBucket(verse: Verse, todayMidnight: number): string {
   return eligibleCategory(verse, todayMidnight) ?? 'inactive';
 }
@@ -215,13 +209,6 @@ function distinctReviewedByCategory(
   return reviewedByCat;
 }
 
-// Whether every category has met its target, for a given reviewedByCat
-// snapshot. Shared by the live `allTargetsMet` and the goal replay's
-// step-by-step check so "met" can't mean two different things.
-function allCategoriesMet(targets: DailyTargets, reviewedByCat: Map<string, number>): boolean {
-  return REVIEW_CATEGORIES.every(cat => (reviewedByCat.get(cat) || 0) >= targets[cat]);
-}
-
 // Shared by computeProgress and nextLap so quota state (targets + distinct-
 // reviewed-by-category) is derived by exactly one formula — the two must
 // never independently re-derive it and risk disagreeing.
@@ -237,88 +224,17 @@ function computeQuotaState(
   return { targets, reviewedByCat };
 }
 
-// Σ max(target[cat], reviewedByCat[cat]) for a given snapshot — the
-// floor-adjusted total. Shared by the live computation below and the
-// chronological replay in computeGoal so they can never independently
-// disagree on the formula.
-function totalFor(targets: DailyTargets, reviewedByCat: Map<string, number>): number {
-  const allCats = new Set<string>([...REVIEW_CATEGORIES, ...reviewedByCat.keys()]);
-  let total = 0;
-  for (const cat of allCats) {
-    const target = (REVIEW_CATEGORIES as string[]).includes(cat)
-      ? targets[cat as ReviewCategory]
-      : 0;
-    total += Math.max(target, reviewedByCat.get(cat) || 0);
-  }
-  return total;
-}
-
-function sumReviewed(reviewedByCat: Map<string, number>): number {
-  let sum = 0;
-  for (const count of reviewedByCat.values()) sum += count;
-  return sum;
-}
-
-// The display target (DailyProgress.goal): replays today's reviews in
-// chronological order, tracking the SAME floor-adjusted total as it goes,
-// until the exact instant every category first becomes simultaneously
-// satisfied — then returns that frozen snapshot for the rest of the day.
-// If the milestone is never reached today, returns the live total
-// unchanged (identical to today's current dynamic behavior pre-milestone).
-// Short-circuits on `liveAllTargetsMet`: category counts only grow through
-// the replay, so if the FULL day's tally doesn't satisfy every category,
-// no earlier prefix could either — skips the replay (and its versesById
-// build) entirely on every day the milestone isn't yet reached.
-//
-// Pure and replay-based rather than a stored "first crossed" flag: two
-// devices with the same synced review log always derive the identical
-// frozen value, with no per-device state to fall out of sync (the same
-// property everything else in this feature relies on). One consequence of
-// staying pure rather than storing a flag: the "freeze" is a replay of
-// (verses, todaysReviews) as they stand NOW, not a permanent record — if a
-// verse involved in reaching the milestone is later deleted, paused, or
-// recategorized THE SAME DAY, the next computeProgress call can recompute
-// a different (including smaller) frozen value. Narrow and cosmetic-only
-// (doesn't affect `remaining`/the celebration, both computed independently
-// from the live, unfrozen state) — accepted deliberately, since the only
-// alternative (persisting the crossing point) reintroduces the exact
-// per-device drift this design exists to avoid.
-function computeGoal(
-  verses: Verse[],
-  todaysReviews: ReviewEvent[],
-  targets: DailyTargets,
-  todayMidnight: number,
-  liveTotal: number,
-  liveAllTargetsMet: boolean
-): number {
-  if (!liveAllTargetsMet) return liveTotal;
-
-  const versesById = new Map(verses.map(v => [v.id, v]));
-  const runningByCat = new Map<string, number>();
-  const seen = new Set<string>();
-
-  for (const event of sortChronologically(todaysReviews)) {
-    if (seen.has(event.verseId)) continue;
-    seen.add(event.verseId);
-    const verse = versesById.get(event.verseId);
-    if (!verse) continue; // deleted verse
-
-    const bucket = categoryBucket(verse, todayMidnight);
-    runningByCat.set(bucket, (runningByCat.get(bucket) || 0) + 1);
-
-    if (allCategoriesMet(targets, runningByCat)) {
-      return totalFor(targets, runningByCat); // frozen at the instant of first completion
-    }
-  }
-
-  return liveTotal; // unreachable given liveAllTargetsMet, kept as a safe fallback
-}
-
-// Daily quota progress. Quotas are floors, not caps: reviewing more verses
-// in a category than targeted raises that category's effective total
-// (max(target, actual)), so `total` only ever grows during the day. Reviews
-// of verses outside the rotation (paused etc.) count as overflow of their
-// own zero-target bucket; reviews of deleted verses are dropped.
+// Daily progress, measured as one grand total rather than per category.
+// `dailyTarget` = Σ per-category targets: the number of verses today's plan
+// asks for, fixed the moment the verse set and date are known. Progress is
+// the count of distinct ELIGIBLE verses reviewed today, regardless of which
+// category each fell in — reviewing enough verses of any mix meets the goal
+// (categories still shape WHICH verses the deck deals first, see nextLap;
+// they no longer split the progress readout). Because `dailyTarget` never
+// moves in response to reviewing, `reviewed` simply climbs toward it — and
+// past it on bonus reviews — with no floor-adjusted total and no freeze
+// logic. Reviews of paused/future/deleted verses carry no target: they do
+// not count toward the day.
 export function computeProgress(
   verses: Verse[],
   todaysReviews: ReviewEvent[],
@@ -327,17 +243,15 @@ export function computeProgress(
 ): DailyProgress {
   const { targets, reviewedByCat } = computeQuotaState(verses, todaysReviews, dateStr, todayMidnight);
 
-  const reviewed = sumReviewed(reviewedByCat);
-  const total = totalFor(targets, reviewedByCat);
-  const allTargetsMet = allCategoriesMet(targets, reviewedByCat);
+  const dailyTarget = REVIEW_CATEGORIES.reduce((sum, cat) => sum + targets[cat], 0);
+  const reviewed = REVIEW_CATEGORIES.reduce((sum, cat) => sum + (reviewedByCat.get(cat) || 0), 0);
 
   return {
     reviewed,
-    total,
-    allTargetsMet,
-    remaining: Math.max(0, total - reviewed),
+    dailyTarget,
+    remaining: Math.max(0, dailyTarget - reviewed),
+    goalMet: reviewed >= dailyTarget,
     totalEvents: todaysReviews.length,
-    goal: computeGoal(verses, todaysReviews, targets, todayMidnight, total, allTargetsMet),
   };
 }
 

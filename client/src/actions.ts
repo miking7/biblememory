@@ -291,8 +291,8 @@ export async function getDailyReviewState(): Promise<{
   };
 }
 
-// Today's quota progress: distinct verses reviewed vs. the date-seeded
-// per-category targets (overflow raises the total — quotas are floors).
+// Today's progress: distinct eligible verses reviewed vs. the day's grand
+// total (dailyTarget = Σ per-category targets, fixed for the day).
 export async function getDailyProgress(): Promise<DailyProgress> {
   const { verses, reviews, dateStr, todayMidnight } = await getSchedulingInputs();
   return computeProgress(verses, reviews, dateStr, todayMidnight);

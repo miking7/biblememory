@@ -91,17 +91,20 @@ server `ops` table (monotonic seq) → other devices cursor-pull → LWW merge.
 - **Review scheduling:** deterministic and date-seeded. The algorithm
   lives in `utils/reviewScheduling.ts` (pure, unit-tested) and is
   documented in systemPatterns §Spaced Repetition Algorithm — that's the
-  source of truth for the mechanism (deck-first ordering, the `total`/
-  `goal`/`remaining` three-way split, `handSize`, `showSkippedCardsPrompt`);
-  don't restate it here. Invariants: category quotas are floors — reviewing
-  more than a category's target only raises its effective total, never
-  caps it — and they shape queue order without ever excluding a verse; the
-  queue is never persisted (rebuilt on every Review-tab entry from synced
-  state); reviews must never record into a session whose `queueDate` is
-  stale (new-day interstitial); `DailyProgress`'s `total`/`goal`/`remaining`
-  are three distinct target-shaped numbers with three distinct owners —
-  never let a UI surface blend two of them; never reintroduce `Math.random`
-  into scheduling.
+  source of truth for the mechanism (deck-first ordering, `dailyTarget`,
+  `handSize`); don't restate it here. Invariants: per-category quotas shape
+  the DECK (which verses are dealt first) and set `dailyTarget` (their sum),
+  but they do NOT split the progress readout — progress is one grand total
+  (`reviewed` = distinct eligible verses reviewed vs. `dailyTarget`),
+  measured regardless of category mix (accepted trade-off: reaching the
+  total with a skewed mix reads as done — only reachable by skipping the
+  dealt order). `dailyTarget` is fixed once the verse set and date are known;
+  it never drifts with over-review, so there is no freeze logic and
+  `reviewed` simply climbs past it on bonus reviews. Quotas shape queue
+  order without ever excluding a verse; the queue is never persisted (rebuilt
+  on every Review-tab entry from synced state); reviews must never record
+  into a session whose `queueDate` is stale (new-day interstitial); never
+  reintroduce `Math.random` into scheduling.
 - Logout wipes ALL local data (by design, with outbox warning).
 
 ## Documentation map (memory-bank/)

@@ -1,7 +1,13 @@
 # 075 — Deterministic Review Scheduling (Date-Seeded Daily Queue)
 
 **Date:** July 5–6, 2026
-**Status:** Shipped to production (commit 9864f18); Round 4/5 fixes on top, pending push.
+**Status:** Shipped, then partly superseded. The scheduling *engine*
+(deck-first queue, date-seeded hashing, midnight rollover, small-collection
+pause) is unchanged and current. The per-category progress *measurement*
+described below — `total`/`goal`/the freeze replay, and the skipped-cards
+prompt (Rounds 5–8) — was replaced by a single grand-total measure in
+previous-work/076 (July 7, 2026). Read 076 for the current progress model;
+the Round 5–8 sections here are historical.
 
 ## Problem
 
