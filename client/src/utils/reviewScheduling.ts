@@ -54,6 +54,10 @@ export interface DailyProgress {
   allTargetsMet: boolean;
   remaining: number;      // max(0, total - reviewed) — single source for the tab badge + footer
   totalEvents: number;    // raw review count today, NOT deduplicated (repeats count each time)
+  goal: number;           // display target: tracks `total` until every category is first
+                          // simultaneously satisfied, then freezes — so bonus reviews after that
+                          // grow `reviewed` past a fixed `goal` instead of `total` continuing to
+                          // chase it upward (previous-work/075, Round 8)
 }
 
 // 32-bit FNV-1a with a murmur3-style finalizer. Integer-only (Math.imul),
@@ -171,9 +175,28 @@ export function reviewCountsByVerse(todaysReviews: ReviewEvent[]): Map<string, n
   return counts;
 }
 
-// Distinct verses reviewed today, bucketed by scheduling category. An
-// out-of-rotation verse (paused, future, unstarted) buckets under
-// 'inactive' — zero-target overflow that must never satisfy a real quota.
+// Today's reviews in chronological order, tiebroken by verseId when two
+// events share a createdAt millisecond (plausible for synced/bulk writes):
+// without a tiebreak, Array.sort's stability falls back to each device's own
+// local storage-order for the tied events, which need not agree — a gap
+// that only affected cosmetic queue ordering before computeGoal started
+// depending on this same ordering for a number that's supposed to be
+// identical on every device.
+function sortChronologically(todaysReviews: ReviewEvent[]): ReviewEvent[] {
+  return [...todaysReviews].sort(
+    (a, b) => a.createdAt - b.createdAt || (a.verseId < b.verseId ? -1 : 1)
+  );
+}
+
+// The category a reviewed verse counts toward, or 'inactive' if it's out of
+// the rotation (paused, future, unstarted) — zero-target overflow that must
+// never satisfy a real quota. Shared by the live tally and the goal replay
+// below so they can never bucket a review differently.
+function categoryBucket(verse: Verse, todayMidnight: number): string {
+  return eligibleCategory(verse, todayMidnight) ?? 'inactive';
+}
+
+// Distinct verses reviewed today, bucketed by scheduling category.
 function distinctReviewedByCategory(
   versesById: Map<string, Verse>,
   todaysReviews: ReviewEvent[],
@@ -186,10 +209,17 @@ function distinctReviewedByCategory(
     seen.add(r.verseId);
     const verse = versesById.get(r.verseId);
     if (!verse) continue; // deleted verse
-    const bucket = eligibleCategory(verse, todayMidnight) ?? 'inactive';
+    const bucket = categoryBucket(verse, todayMidnight);
     reviewedByCat.set(bucket, (reviewedByCat.get(bucket) || 0) + 1);
   }
   return reviewedByCat;
+}
+
+// Whether every category has met its target, for a given reviewedByCat
+// snapshot. Shared by the live `allTargetsMet` and the goal replay's
+// step-by-step check so "met" can't mean two different things.
+function allCategoriesMet(targets: DailyTargets, reviewedByCat: Map<string, number>): boolean {
+  return REVIEW_CATEGORIES.every(cat => (reviewedByCat.get(cat) || 0) >= targets[cat]);
 }
 
 // Shared by computeProgress and nextLap so quota state (targets + distinct-
@@ -207,6 +237,83 @@ function computeQuotaState(
   return { targets, reviewedByCat };
 }
 
+// Σ max(target[cat], reviewedByCat[cat]) for a given snapshot — the
+// floor-adjusted total. Shared by the live computation below and the
+// chronological replay in computeGoal so they can never independently
+// disagree on the formula.
+function totalFor(targets: DailyTargets, reviewedByCat: Map<string, number>): number {
+  const allCats = new Set<string>([...REVIEW_CATEGORIES, ...reviewedByCat.keys()]);
+  let total = 0;
+  for (const cat of allCats) {
+    const target = (REVIEW_CATEGORIES as string[]).includes(cat)
+      ? targets[cat as ReviewCategory]
+      : 0;
+    total += Math.max(target, reviewedByCat.get(cat) || 0);
+  }
+  return total;
+}
+
+function sumReviewed(reviewedByCat: Map<string, number>): number {
+  let sum = 0;
+  for (const count of reviewedByCat.values()) sum += count;
+  return sum;
+}
+
+// The display target (DailyProgress.goal): replays today's reviews in
+// chronological order, tracking the SAME floor-adjusted total as it goes,
+// until the exact instant every category first becomes simultaneously
+// satisfied — then returns that frozen snapshot for the rest of the day.
+// If the milestone is never reached today, returns the live total
+// unchanged (identical to today's current dynamic behavior pre-milestone).
+// Short-circuits on `liveAllTargetsMet`: category counts only grow through
+// the replay, so if the FULL day's tally doesn't satisfy every category,
+// no earlier prefix could either — skips the replay (and its versesById
+// build) entirely on every day the milestone isn't yet reached.
+//
+// Pure and replay-based rather than a stored "first crossed" flag: two
+// devices with the same synced review log always derive the identical
+// frozen value, with no per-device state to fall out of sync (the same
+// property everything else in this feature relies on). One consequence of
+// staying pure rather than storing a flag: the "freeze" is a replay of
+// (verses, todaysReviews) as they stand NOW, not a permanent record — if a
+// verse involved in reaching the milestone is later deleted, paused, or
+// recategorized THE SAME DAY, the next computeProgress call can recompute
+// a different (including smaller) frozen value. Narrow and cosmetic-only
+// (doesn't affect `remaining`/the celebration, both computed independently
+// from the live, unfrozen state) — accepted deliberately, since the only
+// alternative (persisting the crossing point) reintroduces the exact
+// per-device drift this design exists to avoid.
+function computeGoal(
+  verses: Verse[],
+  todaysReviews: ReviewEvent[],
+  targets: DailyTargets,
+  todayMidnight: number,
+  liveTotal: number,
+  liveAllTargetsMet: boolean
+): number {
+  if (!liveAllTargetsMet) return liveTotal;
+
+  const versesById = new Map(verses.map(v => [v.id, v]));
+  const runningByCat = new Map<string, number>();
+  const seen = new Set<string>();
+
+  for (const event of sortChronologically(todaysReviews)) {
+    if (seen.has(event.verseId)) continue;
+    seen.add(event.verseId);
+    const verse = versesById.get(event.verseId);
+    if (!verse) continue; // deleted verse
+
+    const bucket = categoryBucket(verse, todayMidnight);
+    runningByCat.set(bucket, (runningByCat.get(bucket) || 0) + 1);
+
+    if (allCategoriesMet(targets, runningByCat)) {
+      return totalFor(targets, runningByCat); // frozen at the instant of first completion
+    }
+  }
+
+  return liveTotal; // unreachable given liveAllTargetsMet, kept as a safe fallback
+}
+
 // Daily quota progress. Quotas are floors, not caps: reviewing more verses
 // in a category than targeted raises that category's effective total
 // (max(target, actual)), so `total` only ever grows during the day. Reviews
@@ -220,21 +327,9 @@ export function computeProgress(
 ): DailyProgress {
   const { targets, reviewedByCat } = computeQuotaState(verses, todaysReviews, dateStr, todayMidnight);
 
-  let reviewed = 0;
-  let total = 0;
-  const allCats = new Set<string>([...REVIEW_CATEGORIES, ...reviewedByCat.keys()]);
-  for (const cat of allCats) {
-    const target = (REVIEW_CATEGORIES as string[]).includes(cat)
-      ? targets[cat as ReviewCategory]
-      : 0;
-    const actual = reviewedByCat.get(cat) || 0;
-    reviewed += actual;
-    total += Math.max(target, actual);
-  }
-
-  const allTargetsMet = REVIEW_CATEGORIES.every(
-    cat => (reviewedByCat.get(cat) || 0) >= targets[cat]
-  );
+  const reviewed = sumReviewed(reviewedByCat);
+  const total = totalFor(targets, reviewedByCat);
+  const allTargetsMet = allCategoriesMet(targets, reviewedByCat);
 
   return {
     reviewed,
@@ -242,6 +337,7 @@ export function computeProgress(
     allTargetsMet,
     remaining: Math.max(0, total - reviewed),
     totalEvents: todaysReviews.length,
+    goal: computeGoal(verses, todaysReviews, targets, todayMidnight, total, allTargetsMet),
   };
 }
 
@@ -337,7 +433,7 @@ export function buildDailyQueue(
   const versesById = new Map(verses.map(v => [v.id, v]));
 
   const history: Verse[] = [];
-  const chronological = [...todaysReviews].sort((a, b) => a.createdAt - b.createdAt);
+  const chronological = sortChronologically(todaysReviews);
   for (const r of chronological) {
     const verse = versesById.get(r.verseId);
     if (!verse) continue;

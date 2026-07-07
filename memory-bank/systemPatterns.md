@@ -931,14 +931,23 @@ Result: Device B's edit wins (Last-Write-Wins based on ts_server)
    ↓
 4. computeTargets(): learn/daily target = count; weekly = count/7;
    monthly = count/30 — fractional part resolved by a date-seeded coin.
-   Targets GATE the goal (celebration + X/Y progress); they never filter
-   which cards appear — beyond the deck prefix, the whole collection
-   still follows in the queue.
+   Targets GATE the goal (celebration + StatsBar/StatsModal denominator);
+   they never filter which cards appear — beyond the deck prefix, the
+   whole collection still follows in the queue.
    ↓
-5. User reviews; recordReview() stores the event + queues the op for sync
+5. User reviews; recordReview() stores the event + queues the op for sync.
+   computeProgress() also derives `goal`: a chronological replay of
+   today's reviews that tracks `total` until every category is FIRST
+   simultaneously satisfied, then freezes — so StatsBar's denominator
+   stops climbing once the day's goal is met, and further bonus reviews
+   show as reviewed > goal instead of the target chasing back to 100%.
    ↓
 6. Reaching the end of the queue appends another lap — daily review loops
-   indefinitely; skipped cards surface before any repeats
+   indefinitely; skipped cards surface before any repeats. If the quota is
+   STILL outstanding at that point (only possible via a skip — deck-first
+   ordering guarantees it's satisfied partway through otherwise), a prompt
+   offers to rebuild the queue (skipped cards re-sorted to the front) or
+   keep looping and defer them further.
 ```
 
 **Algorithm Thresholds (in human terms):**
@@ -955,6 +964,12 @@ Result: Device B's edit wins (Last-Write-Wins based on ts_server)
 - Quotas are floors, not caps: over-reviewing a category raises its
   effective total (`max(target, distinct-reviewed)`) — the day's total only
   grows; quota progress counts distinct verses, loop ordering counts events
+- `goal` (StatsBar/StatsModal's denominator) is a SEPARATE, frozen-at-
+  milestone view of that same total — computed by replay, not stored state,
+  so every device derives the identical frozen value once reviews sync
+- The card-footer denominator uses a session-local `handSize` high-water
+  mark, not live position — going back to an earlier card must not shrink
+  it (previous-work/075, Round 8)
 - No queue is persisted — it is a pure function of synced state, so sync
   lag self-corrects on the next rebuild
 - One-time-per-day "Daily Goal Reached" celebration, gated by a

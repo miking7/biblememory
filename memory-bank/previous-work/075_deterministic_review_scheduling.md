@@ -326,6 +326,152 @@ skip-triggered early-"done" reading feels wrong in practice, the documented
 fallback is `x = totalEvents` (drop position from the numerator too) —
 provably safe with no clamp needed, at the cost of not moving on a bare skip.
 
+## Round 8: three more owner requests, discussed before implementing
+
+**1. StatsBar's target was creeping up (root-caused, not a coding slip).**
+`StatsBar`/`StatsModal` were bound to `dailyProgress.total`, the SAME
+floor-adjusted total the footer and badge use — which is *supposed* to
+grow with overflow (an explicit, earlier-agreed design). The owner
+clarified the real requirement: that dynamic behavior is correct and
+wanted *before* the day's goal is met (overflow in one category genuinely
+needs to "conflate" with outstanding need in another), but *after* the
+milestone (all categories first simultaneously satisfied — the celebration
+instant), the displayed target should **freeze**, letting `reviewed`
+visibly exceed it on further bonus reviews instead of the target
+perpetually chasing back to 100%.
+
+Implementation: `DailyProgress.goal`, computed by `computeGoal()` in
+`reviewScheduling.ts` — a **pure chronological replay** of today's review
+events, tracking the same floor-adjusted total step by step, that returns
+the snapshot at the exact instant every category first becomes satisfied
+(or the live total, unchanged, if that never happens today). Deliberately
+NOT a stored "first crossed" flag: a stateful ref would let two
+not-yet-synced devices freeze at different values with no way to
+reconcile; the replay is a pure function of the (eventually-consistent)
+review log, so every device converges on the identical frozen value once
+reviews sync — the same property everything else in this feature relies
+on. `total`/`remaining`/`allTargetsMet` are unchanged (still feed the
+badge and celebration); only StatsBar/StatsModal's binding moved from
+`total` to `goal`.
+
+**2. Card footer's denominator shrank when navigating back over skipped
+cards** — felt unnatural against the "hand of dealt cards" framing (once
+a card is dealt into the hand by skipping to it, looking at an earlier
+card shouldn't remove it from the hand). Root cause: `y = max(x, ...)`
+was recomputed fresh from the LIVE position every render, with no memory
+of a prior high position. Fix: `handSize`, a high-water mark ref that
+ratchets up via a `watch(currentReviewIndex, ...)` and resets only when
+`loadReviewVerses()` rebuilds the queue (tab re-entry/re-sort) — never on
+ordinary lap continuation. The footer formula becomes `x/max(handSize,
+totalEvents + remaining)`. One bug caught before shipping: `loadReviewVerses`
+originally reset `handSize.value = 0` and relied on the watcher to ratchet
+it back up to `startIndex + 1` — but if `startIndex` happens to equal the
+ALREADY-current index (e.g. both 0 on first load), that reassignment is a
+no-op for Vue's reactivity and the watcher never fires, leaving `handSize`
+stuck at 0. Fixed by setting `handSize.value = startIndex + 1` directly
+rather than resetting-and-hoping the watcher fires.
+
+**3. "Finish skipped cards?" prompt at the end of the stack.** Reaching
+the literal end of a lap while `dailyProgress.remaining > 0` is an exact,
+already-available signal that needed cards were skipped — deck-first
+ordering guarantees `remaining` hits 0 partway through a lap under normal
+straight-through review, well before its end, so reaching the end with
+outstanding quota can only happen via a skip. `showSkippedCardsPrompt`
+gates on this (only for collections `>= MIN_VERSES_FOR_AUTO_LOOP` — small
+collections already pause every lap via `dailyLapComplete`): "Finish
+Skipped Cards" calls `finishSkippedCards()` (the same `loadReviewVerses()`
+rebuild as re-entering the tab — deck-first re-sort puts the outstanding
+cards immediately in front); "Skip For Now" reuses `keepReviewing()`
+(dismiss + append the already-fetched lap, same as celebration/lap-complete
+dismissal). Not gated to once-per-day — recurs at every lap boundary while
+outstanding, consistent with `dailyLapComplete`'s existing behavior;
+revisit if it feels naggy in practice.
+
+## Round 8 code review (8 finder angles) before committing
+
+Confirmed findings, all fixed:
+
+1. **`returnToDailyReview()` left `handSize` stale.** It resets
+   `currentReviewIndex` synchronously but only reassigns `handSize` inside
+   the awaited `loadReviewVerses()` — since the watcher only ratchets
+   *up*, a high mark from the prior session survived the reset, briefly
+   showing e.g. "1/12" during the rebuild's await. Fixed by resetting
+   `handSize.value = 1` alongside the synchronous index reset.
+2. **`keepReviewing()`'s "Skip For Now" reuse didn't re-check
+   `MIN_VERSES_FOR_AUTO_LOOP`.** If the collection shrinks below the
+   auto-loop threshold while `showSkippedCardsPrompt` sits open (verses
+   paused/deleted, locally or via sync), the refetched lap would be
+   silently appended instead of routing to `dailyLapComplete` — precisely
+   the "small lap loops silently" bug that threshold exists to prevent.
+   First fix attempt applied the check unconditionally and broke
+   `dailyLapComplete`'s own "Review Again" (which *always* refetches the
+   same small lap by design — that's the normal case, not an anomaly).
+   Corrected by capturing `wasLapComplete` before clearing the flags: only
+   re-route when a small lap surfaces while dismissing a *different*
+   screen (celebration/skipped-prompt), whose own trigger required a
+   larger lap at fetch time.
+3. **`finishSkippedCards()` skipped the day-rollover guard.** Every other
+   continuation path (`keepReviewing`) checks `checkDayRollover()`/
+   `showNewDay` before proceeding; `finishSkippedCards()` didn't, so a
+   date rollover while the prompt sat open would silently rebuild into the
+   new day (bypassing the "A New Day Has Begun" ceremony and, more
+   substantively, the review-status-cache/streak refresh that only
+   `startNewDay()` performs). Fixed by adding the same guard.
+4. **`sortChronologically` had no tiebreak for identical `createdAt`
+   values.** Previously only a cosmetic queue-ordering risk; now
+   `computeGoal`'s milestone-freeze depends on the same ordering for a
+   *number*, so an ambiguous tie (synced/bulk writes) could freeze `goal`
+   at different values on two devices replaying the same events —
+   silently reintroducing the cross-device disagreement this feature
+   exists to avoid. Fixed with a deterministic `verseId` tiebreak,
+   matching the same pattern `nextLap`'s hash-collision tiebreak already
+   uses.
+5. **Duplication risk, fixed cheaply:** extracted `allCategoriesMet()`
+   (shared by `computeProgress`'s `allTargetsMet` and `computeGoal`'s
+   step-by-step check — two independent spellings of "is the day's quota
+   met" could have silently diverged) and `categoryBucket()` (the
+   `eligibleCategory(...) ?? 'inactive'` one-liner, previously
+   hand-duplicated between `distinctReviewedByCategory` and
+   `computeGoal`'s replay).
+6. **Efficiency, fixed as a side effect of a correctness improvement:**
+   `computeGoal` now short-circuits on the caller's already-computed
+   `allTargetsMet` — category counts only grow through the replay, so if
+   the full day's tally doesn't satisfy every category, no earlier prefix
+   could either. Skips the entire replay (and its `versesById` build) on
+   every day the milestone isn't reached, which is the common case for
+   most of a typical day.
+7. **`canGoNext`'s comment** was stale relative to the new
+   `showSkippedCardsPrompt` pause; not a live bug (the template's
+   `v-else-if` ordering already means the card/arrows aren't in the DOM
+   while any interstitial shows), but corrected to say so explicitly.
+8. **AGENTS.md restated `goal`'s mechanism** near-verbatim from
+   systemPatterns.md, violating the project's own "one source of truth
+   per fact" rule. Trimmed to a pointer.
+
+**Consciously not fixed (flagged, deferred):** the "frozen" `goal` is a
+pure replay, not persisted state — if a verse involved in reaching the
+milestone is later deleted/paused/recategorized the *same day*, the next
+`computeProgress` call can recompute a different (including smaller)
+frozen value. Narrow (requires editing a verse the same day, after
+already meeting the goal) and cosmetic-only (`remaining`/celebration are
+computed independently from live state, unaffected). The only fix would
+be persisting the crossing point as stateful, per-device data — which
+reintroduces the exact cross-device drift this design exists to avoid, so
+the trade-off is accepted and documented in `computeGoal`'s comment rather
+than "fixed." Also deferred as pre-existing/hypothetical rather than
+addressed this round: `finishSkippedCards()`/`startNewDay()`'s structural
+duplication (only two instances — below the threshold that would justify
+a shared wrapper); the four-boolean interstitial pattern (`showCelebration`
+/`dailyLapComplete`/`showSkippedCardsPrompt`/`showNewDay`) not yet
+consolidated into a single enum, despite now needing manual updates at
+~5 call sites per flag — a real scaling concern flagged by multiple
+finder angles, worth revisiting if a fifth interstitial is ever added;
+`versesById` still built independently in three places (`computeQuotaState`,
+`buildDailyQueue`, `computeGoal`) — the short-circuit above (#6) already
+removes most of the practical cost, and a full shared-parameter refactor
+across `nextLap`'s signature too felt like more churn than the remaining
+sub-millisecond savings warranted.
+
 ## Notes / expected behaviors
 
 - Celebration is once per **device** per day (localStorage flag). Crossing

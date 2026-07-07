@@ -77,9 +77,9 @@ server `ops` table (monotonic seq) → other devices cursor-pull → LWW merge.
   reintroduce manual visibility/offset state for the card; the old
   hand-rolled engine caused invisible-card bugs (previous-work/067, 071).
 - **Navigation:** never bypass `useReview.navigate()` for card navigation;
-  the interstitial actions `keepReviewing()`/`startNewDay()` are its only
-  sanctioned siblings and share the same isNavigating guard
-  (previous-work/069, 075).
+  the interstitial actions `keepReviewing()`/`startNewDay()`/
+  `finishSkippedCards()` are its only sanctioned siblings and share the
+  same isNavigating guard (previous-work/069, 075).
 - **Unicode:** apostrophe/quote handling in `utils/` is encoded
   corruption-proof (code points / escapes) — never replace those constructs
   with literal glyphs (previous-work/068).
@@ -90,21 +90,18 @@ server `ops` table (monotonic seq) → other devices cursor-pull → LWW merge.
   (previous-work/074).
 - **Review scheduling:** deterministic and date-seeded. The algorithm
   lives in `utils/reviewScheduling.ts` (pure, unit-tested) and is
-  documented in systemPatterns §Spaced Repetition Algorithm. Invariants:
-  category quotas are floors — reviewing more than a category's target
-  only raises its effective total, never caps it — and they shape queue
-  order (today's outstanding deck comes first, "Round 4"/"Round 5" of
-  previous-work/075) without ever excluding a verse; the queue is never
-  persisted (rebuilt on every Review-tab entry from synced state); reviews
-  must never record into a session whose `queueDate` is stale (new-day
-  interstitial); the card-footer daily-mode indicator is `x/max(x,
-  totalEvents + remaining)` where `x` is queue position — a deliberate,
-  owner-chosen design (previous-work/075 Round 7) that can show a
-  premature "done"-looking reading if the user skips forward past the
-  remaining count without reviewing; `DailyProgress.remaining` and
-  `.totalEvents` are the single source for this and the tab badge — never
-  recompute `max(0, total - reviewed)` separately; never reintroduce
-  `Math.random` into scheduling.
+  documented in systemPatterns §Spaced Repetition Algorithm — that's the
+  source of truth for the mechanism (deck-first ordering, the `total`/
+  `goal`/`remaining` three-way split, `handSize`, `showSkippedCardsPrompt`);
+  don't restate it here. Invariants: category quotas are floors — reviewing
+  more than a category's target only raises its effective total, never
+  caps it — and they shape queue order without ever excluding a verse; the
+  queue is never persisted (rebuilt on every Review-tab entry from synced
+  state); reviews must never record into a session whose `queueDate` is
+  stale (new-day interstitial); `DailyProgress`'s `total`/`goal`/`remaining`
+  are three distinct target-shaped numbers with three distinct owners —
+  never let a UI surface blend two of them; never reintroduce `Math.random`
+  into scheduling.
 - Logout wipes ALL local data (by design, with outbox warning).
 
 ## Documentation map (memory-bank/)

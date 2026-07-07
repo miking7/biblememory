@@ -16,35 +16,46 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 ## Current Work Focus
 
 **Status:** Deterministic review scheduling (075) shipped to production
-(commits 9864f18, f94af54; July 6 2026), with several rounds of card-footer
-iteration since (previous-work/075 Rounds 5–7 — the exact denominator has
-been genuinely tricky to get right; full history there). Current design
-(Round 7, owner-specified): daily mode shows `x/max(x, totalEvents +
-remaining)` — `x` = queue position (moves on skip), `totalEvents` = raw
-review count today (repeats included), `remaining` = same number as the
-tab badge. Known, accepted trade-off: skipping forward past the remaining
-count without reviewing can show a premature "done"-looking reading —
-flagged before implementing, owner chose to ship and test by feel rather
-than by the math alone. `DailyProgress` gained `remaining`/`totalEvents`
-as single-sourced fields (badge and footer both read them, never
-recompute). Unit tests (112) + build green. Uncommitted in the working
-tree, not yet pushed.
+(commits 9864f18, f94af54; July 6–7 2026), with several rounds of
+production feedback since — the daily-progress display surfaces in
+particular have taken multiple iterations to get right (previous-work/075
+Rounds 5–8 have the full history; don't re-derive from first principles,
+read there first). Current design as of Round 8:
+- Card footer (daily mode): `x/max(handSize, totalEvents + remaining)` —
+  `x` = queue position, `handSize` = high-water mark of positions reached
+  this session (never shrinks going back; resets only on queue rebuild).
+  Known, accepted trade-off: skipping forward past `remaining` without
+  reviewing can show a premature "done"-looking reading — owner-confirmed,
+  ship-and-feel rather than provably safe.
+- StatsBar/StatsModal denominator: `dailyProgress.goal` — tracks the live
+  floor-adjusted total until every category is first simultaneously
+  satisfied, then freezes (pure chronological replay, not stored state).
+  `total`/`remaining` stay live (badge, footer) — three distinct
+  target-shaped numbers now exist, each with exactly one owner (see
+  AGENTS.md's Review-scheduling bullet for the map).
+- `showSkippedCardsPrompt`: reaching the end of a lap with quota still
+  outstanding (only possible via a skip) offers to rebuild the queue
+  (skipped cards re-sorted to front) or keep looping.
 
-**Latest Work (075):** the daily queue is a pure function of (verse set,
-today's reviews, local date) in `utils/reviewScheduling.ts`, replacing
-`getVersesForReview()`'s `Math.random` gating. Rounds 1–3 (shipped):
-date-seeded hash ordering, quota floors, reviewed-today history first,
+An 8-angle code review of the Round 8 diff found and fixed 8 issues before
+commit — most notably `keepReviewing()`'s reuse across three different
+dismiss-screens needed to distinguish which screen it was dismissing (a
+naive shared fix broke small-collection looping), a stale-`handSize`
+window in `returnToDailyReview()`, and a missing day-rollover guard in
+`finishSkippedCards()`. Full list in previous-work/075's Round 8 review
+section. Unit tests (126) + build green. Uncommitted in the working tree,
+ready to commit.
+
+**Latest Work (075) — architecture summary:** the daily queue is a pure
+function of (verse set, today's reviews, local date) in
+`utils/reviewScheduling.ts`, replacing `getVersesForReview()`'s
+`Math.random` gating: date-seeded hash ordering, deck-first ordering
+within the unreviewed segment (Round 4 — pure hash order let overflow make
+the target unreachable), quota floors, reviewed-today history first,
 infinite lap-looping, one-time celebration, midnight-rollover interstitial,
-small-collection lap-complete pause, empty-state CTA. Round 4 (production
-fix): the unreviewed segment is now ordered **deck-first** — verses filling
-each category's outstanding target come before the rest of the hash-ordered
-collection — because pure hash order let interleaved weekly/monthly verses
-force unreachable target growth. Round 5 (pre-push review of Round 4):
-reverted the card-footer indicator to plain queue position (a
-target-capped version looked "done" while the real goal wasn't met, and
-disagreed with StatsBar); deduplicated quota-state derivation between
-`computeProgress`/`nextLap`. Full detail in previous-work/075.
-This also resolves the 066 deferred item (deterministic "due today" target).
+small-collection lap-complete pause, empty-state CTA, plus the Round 8
+refinements above. This also resolves the 066 deferred item (deterministic
+"due today" target).
 
 **Deferred candidates on record (previous-work/073):** double review-status
 lookup per navigation, gotIt/again consolidation, shared isVerseInactive

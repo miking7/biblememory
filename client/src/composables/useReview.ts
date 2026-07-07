@@ -74,6 +74,18 @@ export function useReview() {
   const reviewComplete = ref(false);
   const dueForReview = ref<Verse[]>([]);
 
+  // "Hand size" for the card-footer denominator (Round 8, physical-hand-of-
+  // cards framing): once a position has been reached — a card "added to
+  // the hand" — going back to review an earlier one must not shrink the
+  // denominator again. A high-water mark, not the live position: ratchets
+  // up on every advance, resets only when the queue is rebuilt (tab
+  // re-entry/re-sort via loadReviewVerses), never on ordinary lap
+  // continuation.
+  const handSize = ref(1); // "index 0" is already one card dealt
+  watch(currentReviewIndex, (idx) => {
+    handSize.value = Math.max(handSize.value, idx + 1);
+  });
+
   // Daily quota progress (distinct verses reviewed vs. date-seeded targets).
   // `total` grows when the user over-reviews a category — never shrinks.
   const dailyProgress = ref<DailyProgress>({
@@ -82,6 +94,7 @@ export function useReview() {
     allTargetsMet: false,
     remaining: 0,
     totalEvents: 0,
+    goal: 0,
   });
 
   // One-time "daily goal reached" screen (pattern: celebrate once, then
@@ -104,6 +117,16 @@ export function useReview() {
   // Eligible-collection size when the lap-complete screen was shown (its copy)
   const lapVerseCount = ref(0);
 
+  // Reaching the end of a lap while the day's quota is still outstanding
+  // (dailyProgress.remaining > 0) means some needed-today cards were
+  // skipped over — deck-first ordering guarantees remaining hits 0 partway
+  // through a lap if you review straight through, well before its literal
+  // end, so reaching the end with remaining > 0 can only happen via a skip
+  // (previous-work/075, Round 8). Offers a choice instead of silently
+  // looping past them; only applies to the seamless-loop case (small
+  // collections already pause every lap via dailyLapComplete above).
+  const showSkippedCardsPrompt = ref(false);
+
   // Any full-screen block replacing the card (drives control visibility and
   // keyboard routing). Gated on a non-empty queue — with 0 verses the
   // empty state renders instead, and keys must not act on a hidden screen.
@@ -113,6 +136,7 @@ export function useReview() {
     totalReviewCount.value > 0 && (
       showCelebration.value ||
       dailyLapComplete.value ||
+      showSkippedCardsPrompt.value ||
       (showNewDay.value && reviewSource.value === 'daily')
     )
   );
@@ -190,6 +214,13 @@ export function useReview() {
     try {
       const { queue, startIndex, progress, dateStr } = await getDailyReviewState();
       dueForReview.value = queue;
+      // Set directly rather than resetting to 0 and relying on the watcher
+      // to ratchet it back up: if startIndex happens to equal the ALREADY
+      // current index (e.g. both 0 on first load), reassigning to the same
+      // value is a no-op for Vue's reactivity and the watcher never fires,
+      // leaving handSize stuck at 0. (Not before the await, so a failed
+      // fetch leaves handSize untouched too — all-or-nothing.)
+      handSize.value = startIndex + 1;
       currentReviewIndex.value = startIndex;
       dailyProgress.value = progress;
       queueDate.value = dateStr;
@@ -199,6 +230,7 @@ export function useReview() {
       // unacknowledged, maybeTriggerCelebration re-derives it.
       showNewDay.value = false;
       dailyLapComplete.value = false;
+      showSkippedCardsPrompt.value = false;
       showCelebration.value = false;
       maybeTriggerCelebration();
     } catch (error) {
@@ -236,6 +268,35 @@ export function useReview() {
       await updateCurrentVerseReviewStatus();
     } catch (error) {
       console.error("Failed to start today's review:", error);
+    } finally {
+      isNavigating.value = false;
+    }
+  };
+
+  // "Finish Skipped Cards" on the skipped-cards prompt: same rebuild as
+  // re-entering the tab — deck-first re-sort puts the still-outstanding
+  // cards immediately in front (previous-work/075, Round 8).
+  const finishSkippedCards = async () => {
+    if (isNavigating.value) return;
+
+    // The day may have changed while the prompt sat open — never rebuild
+    // straight into a new day without the explicit ceremony (which also
+    // refreshes the review-status cache and streak that a bare
+    // loadReviewVerses() here would leave stale). Matches keepReviewing()'s
+    // same guard.
+    checkDayRollover();
+    if (showNewDay.value && reviewSource.value === 'daily') {
+      showSkippedCardsPrompt.value = false;
+      return; // the new-day screen takes over
+    }
+
+    isNavigating.value = true;
+    try {
+      navDirection.value = 'restart';
+      switchToReference();
+      await loadReviewVerses(); // clears showSkippedCardsPrompt, re-sorts deck-first
+    } catch (error) {
+      console.error("Failed to rebuild for skipped cards:", error);
     } finally {
       isNavigating.value = false;
     }
@@ -345,8 +406,19 @@ export function useReview() {
     if (showNewDay.value && reviewSource.value === 'daily') {
       showCelebration.value = false;
       dailyLapComplete.value = false;
+      showSkippedCardsPrompt.value = false;
       return; // the new-day screen takes over
     }
+
+    // Capture which screen is being dismissed BEFORE clearing the flags: a
+    // refetched lap below MIN_VERSES_FOR_AUTO_LOOP is the NORMAL case when
+    // dismissing dailyLapComplete itself (a small collection always
+    // refetches the same small lap — that's the whole point of "Review
+    // Again"), but a genuine anomaly when dismissing celebration or
+    // showSkippedCardsPrompt (whose own trigger required a large-enough
+    // lap at fetch time) — only the latter should re-route to
+    // dailyLapComplete instead of silently looping a now-small lap.
+    const wasLapComplete = dailyLapComplete.value;
 
     isNavigating.value = true;
     try {
@@ -360,12 +432,16 @@ export function useReview() {
       if (showCelebration.value) markCelebrationShown();
       showCelebration.value = false;
       dailyLapComplete.value = false;
+      showSkippedCardsPrompt.value = false;
 
       if (lap !== null) {
         if (lap.length === 0) {
           // Nothing eligible remains (e.g. everything paused mid-session):
           // resync with reality instead of dead-ending.
           await loadReviewVerses();
+        } else if (!wasLapComplete && lap.length < MIN_VERSES_FOR_AUTO_LOOP) {
+          lapVerseCount.value = lap.length;
+          dailyLapComplete.value = true;
         } else {
           await appendLapAndAdvance(lap);
         }
@@ -714,6 +790,7 @@ export function useReview() {
     // for the day; showNewDay survives — it's re-checked on return to daily)
     showCelebration.value = false;
     dailyLapComplete.value = false;
+    showSkippedCardsPrompt.value = false;
     switchToReference();
   };
 
@@ -725,8 +802,13 @@ export function useReview() {
     reviewSource.value = 'daily';
     filteredReviewVerses.value = [];
     // Reset synchronously: a filtered-mode index applied to the old daily
-    // queue would render out-of-bounds (blank card) until the rebuild lands
+    // queue would render out-of-bounds (blank card) until the rebuild lands.
+    // handSize resets alongside it — the watcher only ratchets UP, so
+    // leaving it would strand a high mark from the prior daily session
+    // across the rebuild's await (briefly showing e.g. "1/12" instead of a
+    // value consistent with the fresh session).
     currentReviewIndex.value = 0;
+    handSize.value = 1;
     reviewComplete.value = false;
     switchToReference();
     await loadReviewVerses(); // sets currentReviewIndex to first unreviewed
@@ -765,10 +847,10 @@ export function useReview() {
     checkDayRollover();
     if (showNewDay.value && reviewSource.value === 'daily') return;
 
-    // Celebration / lap-complete screens own the interaction until
-    // dismissed; a plain "next" triggers their continue action (so every
-    // next-shaped input behaves consistently)
-    if (showCelebration.value || dailyLapComplete.value) {
+    // Celebration / lap-complete / skipped-cards screens own the
+    // interaction until dismissed; a plain "next" triggers their continue
+    // action (so every next-shaped input behaves consistently)
+    if (showCelebration.value || dailyLapComplete.value || showSkippedCardsPrompt.value) {
       if (options.direction === 'next' && options.recordReview === undefined) {
         void keepReviewing();
       }
@@ -810,10 +892,13 @@ export function useReview() {
           await nextVerse();
         } else if (reviewSource.value === 'daily') {
           // End of the daily queue. With enough eligible verses, append
-          // another least-reviewed-first lap and keep going seamlessly.
-          // With a small collection, pause on an explicit lap-complete
-          // screen instead — a silent 1-2 card loop looks like a frozen
-          // card to a new user.
+          // another least-reviewed-first lap and keep going seamlessly —
+          // UNLESS today's quota is still outstanding, which (given
+          // deck-first ordering) can only mean some needed cards were
+          // skipped over; offer a choice instead of silently looping past
+          // them. With a small collection, pause on an explicit
+          // lap-complete screen instead — a silent 1-2 card loop looks
+          // like a frozen card to a new user.
           const lap = await fetchRotatedLap();
           if (lap.length === 0) {
             // No eligible verses left (e.g. everything paused mid-session):
@@ -822,6 +907,8 @@ export function useReview() {
           } else if (lap.length < MIN_VERSES_FOR_AUTO_LOOP) {
             lapVerseCount.value = lap.length;
             dailyLapComplete.value = true;
+          } else if (dailyProgress.value.remaining > 0) {
+            showSkippedCardsPrompt.value = true;
           } else {
             await appendLapAndAdvance(lap);
           }
@@ -856,11 +943,13 @@ export function useReview() {
     currentReviewIndex,
     reviewComplete,
     dueForReview,
+    handSize,
     dailyProgress,
     showCelebration,
     showNewDay,
     dailyLapComplete,
     lapVerseCount,
+    showSkippedCardsPrompt,
     showingInterstitial,
     queueDate,
     currentStreak,
@@ -898,6 +987,7 @@ export function useReview() {
     markReview,
     keepReviewing,
     startNewDay,
+    finishSkippedCards,
     checkDayRollover,
     completeReview,
     uncompleteReview,

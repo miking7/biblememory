@@ -214,6 +214,7 @@ describe('computeProgress', () => {
       allTargetsMet: true,
       remaining: 0,
       totalEvents: 0,
+      goal: 0,
     });
   });
 
@@ -228,6 +229,85 @@ describe('computeProgress', () => {
     expect(p.totalEvents).toBe(3); // 3 raw events, not deduplicated
     expect(p.reviewed).toBe(1); // 1 distinct verse
     expect(p.remaining).toBe(0); // target (1) met
+  });
+});
+
+describe('goal (frozen display target)', () => {
+  it('tracks the live total before the milestone is reached', () => {
+    const v = makeVerse({ startedAt: age.daily });
+    const p = computeProgress([v, makeVerse({ startedAt: age.daily })], [], DATE, TODAY);
+    expect(p.goal).toBe(p.total);
+    expect(p.allTargetsMet).toBe(false);
+  });
+
+  it('freezes at the exact instant every category first becomes satisfied, then never grows again', () => {
+    // daily (target=count=2) and learn (target=count=1) can never show true
+    // overflow — their target always equals their count, so adding a verse
+    // raises the target in lockstep. 30 monthly verses give an EXACTLY
+    // deterministic target of 1 (30/30 has zero fractional part, so no
+    // rounding-coin involved) — reviewing a SECOND monthly verse afterward
+    // is genuine overflow without changing the verse set between the two
+    // computations below (only the reviews list grows).
+    const a1 = makeVerse({ id: 'a-1', startedAt: age.daily });
+    const a2 = makeVerse({ id: 'a-2', startedAt: age.daily });
+    const b1 = makeVerse({ id: 'b-1', startedAt: age.learn });
+    const monthlyVerses = Array.from({ length: 30 }, (_, i) => makeVerse({ id: `m-${i}`, startedAt: age.monthly }));
+    const verses = [a1, a2, b1, ...monthlyVerses];
+    expect(computeTargets(verses, DATE, TODAY).monthly).toBe(1);
+
+    // Order: a1 (daily partial), b1 (learn done), m-0 (monthly done), a2 (daily done -> milestone)
+    const reviews = [
+      review('a-1', TODAY + 1),
+      review('b-1', TODAY + 2),
+      review('m-0', TODAY + 3),
+      review('a-2', TODAY + 4),
+    ];
+    const p = computeProgress(verses, reviews, DATE, TODAY);
+    expect(p.allTargetsMet).toBe(true);
+    expect(p.reviewed).toBe(4);
+    expect(p.goal).toBe(4); // frozen exactly at reviewed=4, the milestone instant
+    expect(p.total).toBe(4); // total and goal coincide right at the milestone
+
+    // Bonus: a SECOND distinct monthly verse — genuine overflow (target is
+    // still exactly 1) — must grow total/reviewed but leave goal frozen.
+    const withBonus = computeProgress(verses, [...reviews, review('m-1', TODAY + 5)], DATE, TODAY);
+    expect(withBonus.reviewed).toBe(5);
+    expect(withBonus.total).toBe(5); // total keeps growing with overflow (unchanged existing behavior)
+    expect(withBonus.goal).toBe(4); // goal stays frozen at the original milestone value
+    expect(withBonus.reviewed).toBeGreaterThan(withBonus.goal); // x (5) now visibly exceeds y (4)
+  });
+
+  it('conflates overflow-in-one-category with outstanding-in-another before freezing', () => {
+    // monthly's target is 0 or 1 for 5 verses (5/30), always < 5 — computed
+    // rather than assumed, so this doesn't depend on the rounding coin's
+    // outcome. daily's target = count = 3 (deterministic, no coin at all).
+    const monthlyVerses = [0, 1, 2, 3, 4].map(i => makeVerse({ id: `m-${i}`, startedAt: age.monthly }));
+    const dailyVerses = [0, 1, 2].map(i => makeVerse({ id: `d-${i}`, startedAt: age.daily }));
+    const verses = [...monthlyVerses, ...dailyVerses];
+    expect(computeTargets(verses, DATE, TODAY).monthly).toBeLessThan(5); // room to overflow
+
+    // Review order: overflow monthly first (all 5, already past its tiny
+    // target), then catch daily up to its target (3) — the milestone lands
+    // on the very last review, since monthly was satisfied all along.
+    const reviews = [
+      ...monthlyVerses.map((v, i) => review(v.id, TODAY + i)),
+      ...dailyVerses.map((v, i) => review(v.id, TODAY + 10 + i)),
+    ];
+    const p = computeProgress(verses, reviews, DATE, TODAY);
+    expect(p.allTargetsMet).toBe(true);
+    expect(p.reviewed).toBe(8); // 5 monthly + 3 daily, all distinct
+    // goal folds in monthly's overflow (5, not its target) alongside
+    // daily's exact catch-up (3) — exactly the "conflating" described.
+    expect(p.goal).toBe(8);
+    expect(p.goal).toBe(p.total);
+  });
+
+  it('never met today: goal equals the (still dynamic) live total, matching pre-Round-8 behavior', () => {
+    const a = makeVerse({ startedAt: age.daily });
+    const b = makeVerse({ startedAt: age.daily });
+    const p = computeProgress([a, b], [review(a.id, TODAY + 1)], DATE, TODAY);
+    expect(p.allTargetsMet).toBe(false);
+    expect(p.goal).toBe(p.total);
   });
 });
 
@@ -322,6 +402,7 @@ describe('deck-first ordering (mixed categories)', () => {
       allTargetsMet: true,
       remaining: 0,
       totalEvents: 7,
+      goal: 7,
     });
   });
 

@@ -28,11 +28,16 @@
     />
 
     <!-- Stats Bar - Hidden in immersive mode. Reviewed-today is distinct
-         verses toward the day's quota target (overflow grows the target). -->
+         verses; the target (dailyProgress.goal) tracks the day's true
+         outstanding-work total until every category is first satisfied,
+         then freezes — bonus reviews after that show as reviewed > target
+         instead of the target endlessly chasing back up to 100%
+         (previous-work/075, Round 8). dailyProgress.total (unfrozen, used
+         for `remaining`/the tab badge below) is NOT what this displays. -->
     <StatsBar
       :total-verses="verses.length"
       :reviewed-today="dailyProgress.reviewed"
-      :review-target="dailyProgress.total"
+      :review-target="dailyProgress.goal"
       :current-streak="currentStreak"
       :is-immersive-mode-active="isImmersiveModeActive"
       @open="onOpenStats"
@@ -120,7 +125,7 @@
     <StatsModal
       :show="showStatsModal"
       :initial-tab="activeStatsTab"
-      :review-target="dailyProgress.total"
+      :review-target="dailyProgress.goal"
       :reviewed-distinct="dailyProgress.reviewed"
       @close="showStatsModal = false"
     />

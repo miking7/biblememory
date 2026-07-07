@@ -71,6 +71,29 @@
         </div>
       </div>
 
+      <!-- Reached the end of today's stack while some needed cards were
+           skipped over — offer to go finish them (re-sorted to the front)
+           or keep going and defer them further. -->
+      <div v-else-if="showSkippedCardsPrompt" key="skippedprompt" class="text-center py-16">
+        <div class="text-5xl sm:text-7xl mb-4">🔍</div>
+        <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">Some Cards Were Skipped</p>
+        <p class="text-slate-500 mb-6 text-lg">
+          You've reached the end of today's stack, but {{ dailyProgress.remaining }} card{{ dailyProgress.remaining === 1 ? '' : 's' }} still {{ dailyProgress.remaining === 1 ? 'needs' : 'need' }} a review to hit today's goal.
+        </p>
+        <div class="flex gap-3 justify-center flex-wrap">
+          <button
+            @click="finishSkippedCards()"
+            class="px-6 py-3 rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all">
+            Finish Skipped Cards
+          </button>
+          <button
+            @click="keepReviewing()"
+            class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
+            Skip For Now
+          </button>
+        </div>
+      </div>
+
       <div v-else-if="!reviewComplete" key="review">
         <!-- Header: Title + Back Button (filtered mode) + Immersive Toggle -->
         <div v-show="!isImmersiveModeActive" class="flex justify-between items-center mb-6">
@@ -352,11 +375,13 @@ const {
   totalReviewCount,
   reviewComplete,
   currentReviewIndex,
+  handSize,
   dailyProgress,
   showCelebration,
   showNewDay,
   dailyLapComplete,
   lapVerseCount,
+  showSkippedCardsPrompt,
   isNavigating,
   navDirection,
   currentReviewVerse,
@@ -376,6 +401,7 @@ const {
   viewLastCard,
   keepReviewing,
   startNewDay,
+  finishSkippedCards,
   returnToDailyReview,
   toggleImmersiveMode,
   exitImmersiveMode,
@@ -405,6 +431,11 @@ const blockTransition = computed(() => {
 // transform mid-sequence (navigate()'s guard would drop the release anyway).
 // Daily review has no last card — reaching the end of the queue appends
 // another lap over the collection — so "next" is always available there.
+// (This computed doesn't need to account for the interstitials that CAN
+// pause that flow — celebration/lap-complete/skipped-cards/new-day — since
+// their v-else-if branches replace this whole card+arrows block in the
+// template; the arrows and swipe handler this feeds simply aren't in the
+// DOM while any of them are showing.)
 const canGoNext = computed(() =>
   (reviewSource.value === 'daily'
     ? totalReviewCount.value > 0
@@ -415,24 +446,28 @@ const canGoPrevious = computed(() =>
 )
 
 // Daily mode: x = queue position (moves on skip either direction — the
-// "hand of dealt cards" feel). y = max(x, totalEvents + remaining): the
-// deliberate baseline denominator is today's raw-review-count-so-far plus
-// what's still outstanding, which (unlike the plain quota target) keeps
-// growing on a repeat review instead of falsely reaching "done" early —
-// but if x runs ahead of that (skipping forward without confirming a
+// "hand of dealt cards" feel). y = max(handSize, totalEvents + remaining):
+// the baseline denominator is today's raw-review-count-so-far plus what's
+// still outstanding, which (unlike the plain quota target) keeps growing
+// on a repeat review instead of falsely reaching "done" early — but if
+// position runs ahead of that (skipping forward without confirming a
 // review), y is dragged up to match rather than showing x > y. Known,
 // accepted trade-off: skipping past the remaining count this way *can*
-// show a premature "done"-looking N/N with no reviews recorded — chosen
-// deliberately over yet another skip-unresponsive attempt (see
-// memory-bank/previous-work/075, Round 7); revisit if it feels wrong in
-// practice. Filtered mode is unaffected: position/size of the finite
-// chosen set.
+// show a premature "done"-looking N/N with no reviews recorded (see
+// memory-bank/previous-work/075, Round 7).
+//
+// y uses handSize (a high-water mark of positions reached this session —
+// Round 8), not the live position: once a card has been "dealt into the
+// hand" by skipping to it, going back to look at an earlier card must not
+// shrink the denominator again. handSize only resets when the queue is
+// rebuilt (re-entering the tab re-sorts). Filtered mode is unaffected:
+// position/size of the finite chosen set.
 const progressLabel = computed(() => {
   if (reviewSource.value !== 'daily') {
     return `${currentReviewIndex.value + 1}/${totalReviewCount.value}`
   }
   const x = currentReviewIndex.value + 1
-  const y = Math.max(x, dailyProgress.value.totalEvents + dailyProgress.value.remaining)
+  const y = Math.max(handSize.value, dailyProgress.value.totalEvents + dailyProgress.value.remaining)
   return `${x}/${y}`
 })
 
