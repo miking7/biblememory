@@ -90,7 +90,6 @@ export function useStats() {
   const yearWindow = ref<WindowStat>({ active: 0, total: 0 });
 
   // Today tab
-  const reviewedToday = ref(0);
   const avg7 = ref(0);
   const avg30 = ref(0);
   const avg365 = ref(0);
@@ -135,7 +134,6 @@ export function useStats() {
       const firstOrd = sortedOrds.length ? sortedOrds[0] : todayOrd;
       firstReviewDate.value = sortedOrds.length ? ordToDate.get(firstOrd) || null : null;
       daysSinceFirstReview.value = Math.max(0, todayOrd - firstOrd);
-      reviewedToday.value = dateCount.get(todayStr) || 0;
 
       // ---- Streak runs (maximal consecutive-day runs) ----
       const rawRuns: Array<{ start: number; end: number }> = [];
@@ -282,7 +280,6 @@ export function useStats() {
     monthWindow,
     yearWindow,
     // today
-    reviewedToday,
     avg7,
     avg30,
     avg365,

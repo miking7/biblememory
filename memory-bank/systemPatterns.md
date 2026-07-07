@@ -909,26 +909,45 @@ Result: Device B's edit wins (Last-Write-Wins based on ts_server)
 
 **See:** `server/api/login.php`, `server/api/lib.php` (auth functions), `client/src/composables/useAuth.ts`
 
-### Spaced Repetition Algorithm
+### Spaced Repetition Algorithm (deterministic, date-seeded)
 
 ```
-1. User opens Review tab
+1. User opens Review tab (every entry rebuilds — order self-heals)
    ↓
-2. getVersesForReview() called from useReview composable
+2. getDailyReviewState() (actions.ts) fetches one snapshot: all verses +
+   today's review events, then delegates to the PURE module
+   utils/reviewScheduling.ts
    ↓
-3. For each verse:
-   a. Calculate days since startedAt
-   b. Determine category (learn/daily/weekly/monthly based on thresholds)
-   c. For weekly/monthly, apply probability (1-in-7, 1-in-30)
-   d. Check if due based on last review time
+3. buildDailyQueue():
+   a. History segment — verses reviewed today, in review order
+      (consecutive duplicates collapsed)
+   b. Lap segment — all eligible verses sorted by
+      (times-reviewed-today ASC, today's-deck-first, hash32(verseId|date));
+      the deck = the verses filling each category's still-outstanding
+      target, chosen in hash order. Deck-first matters: without it,
+      reviewing toward the goal forces overflow of interleaved
+      weekly/monthly verses and the day's total grows unreachably.
+   c. startIndex lands on the first card after the history
    ↓
-4. Return verses due for review (sorted by priority)
+4. computeTargets(): learn/daily target = count; weekly = count/7;
+   monthly = count/30 — fractional part resolved by a date-seeded coin.
+   Targets GATE the goal (celebration + StatsBar/StatsModal denominator);
+   they never filter which cards appear — beyond the deck prefix, the
+   whole collection still follows in the queue.
    ↓
-5. User reviews and marks "Got it" or "Need Practice"
+5. User reviews; recordReview() stores the event + queues the op for sync.
+   computeProgress() also derives `goal`: a chronological replay of
+   today's reviews that tracks `total` until every category is FIRST
+   simultaneously satisfied, then freezes — so StatsBar's denominator
+   stops climbing once the day's goal is met, and further bonus reviews
+   show as reviewed > goal instead of the target chasing back to 100%.
    ↓
-6. recordReview() creates review entry with timestamp
-   ↓
-7. Review stored locally + operation queued for sync
+6. Reaching the end of the queue appends another lap — daily review loops
+   indefinitely; skipped cards surface before any repeats. If the quota is
+   STILL outstanding at that point (only possible via a skip — deck-first
+   ordering guarantees it's satisfied partway through otherwise), a prompt
+   offers to rebuild the queue (skipped cards re-sorted to the front) or
+   keep looping and defer them further.
 ```
 
 **Algorithm Thresholds (in human terms):**
@@ -937,13 +956,29 @@ Result: Device B's edit wins (Last-Write-Wins based on ts_server)
 - 2-4 months (56-112 days): Review weekly — solidifying retention
 - 4+ months (112+ days): Review monthly — long-term maintenance
 
-**Why These Thresholds:**
-- Based on spaced repetition research
-- Clean multiples of 7 (8 weeks, 16 weeks) align with weekly review rhythm
-- Probability approach for older verses (1-in-7, 1-in-30) keeps review load manageable
-- Per-session probability (not per-day) allows multiple reviews per day
+**Why This Approach:**
+- Thresholds based on spaced repetition research; clean multiples of 7
+- Deterministic per-verse hash ranking (not a global shuffle): every device
+  with the same synced data derives the identical queue for the date, and
+  adding/removing/pausing verses never perturbs other verses' order
+- Quotas are floors, not caps: over-reviewing a category raises its
+  effective total (`max(target, distinct-reviewed)`) — the day's total only
+  grows; quota progress counts distinct verses, loop ordering counts events
+- `goal` (StatsBar/StatsModal's denominator) is a SEPARATE, frozen-at-
+  milestone view of that same total — computed by replay, not stored state,
+  so every device derives the identical frozen value once reviews sync
+- The card-footer denominator uses a session-local `handSize` high-water
+  mark, not live position — going back to an earlier card must not shrink
+  it (previous-work/075, Round 8)
+- No queue is persisted — it is a pure function of synced state, so sync
+  lag self-corrects on the next rebuild
+- One-time-per-day "Daily Goal Reached" celebration, gated by a
+  device-local localStorage date flag (the settings table syncs, which
+  would wrongly suppress it on other devices)
 
-**See:** `client/src/composables/useReview.ts`, productContext.md for business logic details
+**See:** `client/src/utils/reviewScheduling.ts` (pure algorithm + tests),
+`client/src/actions.ts` (DB wrappers), `client/src/composables/useReview.ts`
+(session orchestration), previous-work/075 for design rationale
 
 ## Database Schema Patterns
 

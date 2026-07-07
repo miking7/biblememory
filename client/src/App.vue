@@ -27,11 +27,17 @@
       @trigger-sync-toast="triggerSyncToast()"
     />
 
-    <!-- Stats Bar - Hidden in immersive mode -->
+    <!-- Stats Bar - Hidden in immersive mode. Reviewed-today is distinct
+         verses; the target (dailyProgress.goal) tracks the day's true
+         outstanding-work total until every category is first satisfied,
+         then freezes — bonus reviews after that show as reviewed > target
+         instead of the target endlessly chasing back up to 100%
+         (previous-work/075, Round 8). dailyProgress.total (unfrozen, used
+         for `remaining`/the tab badge below) is NOT what this displays. -->
     <StatsBar
       :total-verses="verses.length"
-      :reviewed-today="reviewedToday"
-      :review-target="dueForReview.length"
+      :reviewed-today="dailyProgress.reviewed"
+      :review-target="dailyProgress.goal"
       :current-streak="currentStreak"
       :is-immersive-mode-active="isImmersiveModeActive"
       @open="onOpenStats"
@@ -39,13 +45,16 @@
 
     <!-- Tab Navigation - Hidden in immersive mode -->
     <div class="-mx-4 sm:mx-0 glass-card rounded-none sm:rounded-2xl shadow-2xl overflow-hidden fade-in">
+      <!-- Badge counts down the verses still needed to hit today's target.
+           Selecting Review rebuilds the daily queue (reviewed-today first,
+           then the date-seeded order) — the re-entry reordering behavior. -->
       <TabNavigation
         :current-tab="currentTab"
         :is-immersive-mode-active="isImmersiveModeActive"
-        :show-badge="reviewSource === 'daily' && dueForReview.length > 0"
-        :badge-count="dueForReview.length"
+        :show-badge="dailyProgress.remaining > 0"
+        :badge-count="dailyProgress.remaining"
         @update:current-tab="currentTab = $event"
-        @select-review="currentTab = 'review'; returnToDailyReview(); loadReviewVerses()"
+        @select-review="currentTab = 'review'; returnToDailyReview()"
       />
 
       <!-- Add Verse Tab -->
@@ -86,12 +95,14 @@
         @copy-verse="copyVerseToClipboard"
         @view-online="viewVerseOnline"
         @edit-verse="startEditVerse"
+        @add-verses="currentTab = 'add'"
       />
     </div>
 
-    <!-- Review Mode Buttons -->
+    <!-- Review Mode Buttons (hidden while any full-screen block replaces
+         the card: celebration, new-day, lap-complete, completion) -->
     <ReviewModeButtons
-      v-if="currentTab === 'review' && totalReviewCount > 0 && !reviewComplete"
+      v-if="currentTab === 'review' && totalReviewCount > 0 && !reviewComplete && !showingInterstitial"
       :review="review"
     />
 
@@ -114,7 +125,8 @@
     <StatsModal
       :show="showStatsModal"
       :initial-tab="activeStatsTab"
-      :review-target="dueForReview.length"
+      :review-target="dailyProgress.goal"
+      :reviewed-distinct="dailyProgress.reviewed"
       @close="showStatsModal = false"
     />
     </div><!-- End main app (v-else) -->
@@ -135,7 +147,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { bibleMemoryApp } from './app';
 import LandingPage from './LandingPage.vue';
 import EditVerseModal from './components/modals/EditVerseModal.vue';
@@ -176,12 +188,10 @@ const {
   // plus the pieces App's own template binds directly
   review,
   reviewComplete,
-  dueForReview,
-  reviewedToday,
+  dailyProgress,
+  showingInterstitial,
   currentStreak,
   totalReviewCount,
-  reviewSource,
-  loadReviewVerses,
   returnToDailyReview,
   handleKeyPress,
   isImmersiveModeActive,
@@ -259,7 +269,7 @@ const handleVerseAdded = async () => {
   currentTab.value = 'list';
 };
 
-// Set up keyboard shortcuts
+// Set up keyboard shortcuts + day-rollover watchers
 onMounted(() => {
   const keyHandler = (event: KeyboardEvent) => {
     // Review shortcuts apply only on the Review tab with no modal on top —
@@ -272,9 +282,31 @@ onMounted(() => {
   };
   window.addEventListener('keydown', keyHandler);
 
+  // Midnight rollover detection for idle sessions: a resumed PWA (visibility)
+  // and a session sitting open at midnight (timer) both flag the stale daily
+  // queue; navigate() itself re-checks as a backstop.
+  const visibilityHandler = () => {
+    if (!document.hidden) review.checkDayRollover();
+  };
+  document.addEventListener('visibilitychange', visibilityHandler);
+
+  let midnightTimer: ReturnType<typeof setTimeout>;
+  const scheduleMidnightCheck = () => {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(24, 0, 5, 0); // a few seconds past next local midnight
+    midnightTimer = setTimeout(() => {
+      review.checkDayRollover();
+      scheduleMidnightCheck();
+    }, next.getTime() - now.getTime());
+  };
+  scheduleMidnightCheck();
+
   // Clean up on unmount
   onUnmounted(() => {
     window.removeEventListener('keydown', keyHandler);
+    document.removeEventListener('visibilitychange', visibilityHandler);
+    clearTimeout(midnightTimer);
   });
 });
 </script>

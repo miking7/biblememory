@@ -11,9 +11,87 @@
       @after-leave="onCardLeaveDone">
 
       <div v-if="totalReviewCount === 0" key="empty" class="text-center py-16">
+        <div class="text-5xl sm:text-7xl mb-4">📖</div>
+        <p class="text-xl sm:text-2xl text-slate-700 mb-2 font-semibold">Nothing to review</p>
+        <p class="text-slate-500 mb-6 text-lg">Add or unpause verses to start reviewing.</p>
+        <button
+          @click="$emit('addVerses')"
+          class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
+          Add Your First Verse
+        </button>
+      </div>
+
+      <!-- Midnight rollover: the open session's queue/targets belong to a
+           previous day — reviewing stays blocked until today's list loads. -->
+      <div v-else-if="reviewSource === 'daily' && showNewDay" key="newday" class="text-center py-16">
+        <div class="text-5xl sm:text-7xl mb-4">🌅</div>
+        <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">A New Day Has Begun!</p>
+        <p class="text-slate-500 mb-6 text-lg">Yesterday's session is done — let's load today's review list.</p>
+        <button
+          @click="startNewDay()"
+          class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
+          Start Today's Review
+        </button>
+      </div>
+
+      <!-- One-time daily-goal celebration: shown once per day when every
+           category target is met; review continues indefinitely after. -->
+      <div v-else-if="showCelebration" key="celebration" class="text-center py-16">
         <div class="text-5xl sm:text-7xl mb-4">🎉</div>
-        <p class="text-xl sm:text-2xl text-slate-700 mb-2 font-semibold">All caught up!</p>
-        <p class="text-slate-500 text-lg">No verses due for review today.</p>
+        <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">Daily Goal Reached!</p>
+        <p class="text-slate-500 mb-6 text-lg">
+          You've reviewed {{ dailyProgress.reviewed }} verse{{ dailyProgress.reviewed === 1 ? '' : 's' }} today. Well done!
+        </p>
+        <button
+          @click="keepReviewing()"
+          class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
+          Keep Reviewing
+        </button>
+      </div>
+
+      <!-- Small collections pause at the end of each lap instead of looping
+           silently (a 1-2 card loop reads as a frozen card). -->
+      <div v-else-if="dailyLapComplete" key="lapcomplete" class="text-center py-16">
+        <div class="text-4xl sm:text-6xl mb-4 text-slate-600">✓</div>
+        <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">All Verses Reviewed!</p>
+        <p class="text-slate-500 mb-6 text-lg">
+          You've been through {{ lapVerseCount === 1 ? 'your verse' : `all ${lapVerseCount} of your verses` }}.
+        </p>
+        <div class="flex gap-3 justify-center flex-wrap">
+          <button
+            @click="$emit('addVerses')"
+            class="px-6 py-3 rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all">
+            Add More Verses
+          </button>
+          <button
+            @click="keepReviewing()"
+            class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
+            Review Again
+          </button>
+        </div>
+      </div>
+
+      <!-- Reached the end of today's stack while some needed cards were
+           skipped over — offer to go finish them (re-sorted to the front)
+           or keep going and defer them further. -->
+      <div v-else-if="showSkippedCardsPrompt" key="skippedprompt" class="text-center py-16">
+        <div class="text-5xl sm:text-7xl mb-4">🔍</div>
+        <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">Some Cards Were Skipped</p>
+        <p class="text-slate-500 mb-6 text-lg">
+          You've reached the end of today's stack, but {{ dailyProgress.remaining }} card{{ dailyProgress.remaining === 1 ? '' : 's' }} still {{ dailyProgress.remaining === 1 ? 'needs' : 'need' }} a review to hit today's goal.
+        </p>
+        <div class="flex gap-3 justify-center flex-wrap">
+          <button
+            @click="finishSkippedCards()"
+            class="px-6 py-3 rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all">
+            Finish Skipped Cards
+          </button>
+          <button
+            @click="keepReviewing()"
+            class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
+            Skip For Now
+          </button>
+        </div>
       </div>
 
       <div v-else-if="!reviewComplete" key="review">
@@ -238,8 +316,10 @@
                           v-text="formatTagForDisplay(tag)"></span>
                   </template>
                 </template>
+                <!-- Daily: distinct-verses-reviewed / today's target (the
+                     queue itself is endless). Filtered: position in the set. -->
                 <div class="ml-auto text-slate-600 font-medium">
-                  <span v-text="currentReviewIndex + 1"></span>/<span v-text="totalReviewCount"></span>
+                  <span v-text="progressLabel"></span>
                 </div>
               </div>
 
@@ -250,44 +330,24 @@
         </template>
       </div>
 
+      <!-- Filtered mode completion (informational). Daily review never
+           completes — its queue loops over the collection indefinitely. -->
       <div v-else key="complete" class="text-center py-16">
-        <!-- Daily mode completion (celebratory) -->
-        <template v-if="reviewSource === 'daily'">
-          <div class="text-5xl sm:text-7xl mb-4">🎉</div>
-          <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">Review Complete!</p>
-          <p class="text-slate-500 mb-6 text-lg">Great job reviewing today's verses.</p>
-          <div class="flex gap-3 justify-center flex-wrap">
-            <button
-              @click="viewLastCard()"
-              class="px-6 py-3 rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all">
-              View Last Card
-            </button>
-            <button
-              @click="resetReview()"
-              class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
-              Review More
-            </button>
-          </div>
-        </template>
-
-        <!-- Filtered mode completion (informational) -->
-        <template v-else>
-          <div class="text-4xl sm:text-6xl mb-4 text-slate-600">✓</div>
-          <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">End of Filtered Set</p>
-          <p class="text-slate-500 mb-6 text-lg">You've reviewed all {{ totalReviewCount }} cards in this filtered set.</p>
-          <div class="flex gap-3 justify-center flex-wrap">
-            <button
-              @click="viewLastCard()"
-              class="px-6 py-3 rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all">
-              View Last Card
-            </button>
-            <button
-              @click="returnToDailyReview()"
-              class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
-              Return to Daily Review
-            </button>
-          </div>
-        </template>
+        <div class="text-4xl sm:text-6xl mb-4 text-slate-600">✓</div>
+        <p class="text-2xl sm:text-3xl text-slate-700 mb-3 font-bold">End of Filtered Set</p>
+        <p class="text-slate-500 mb-6 text-lg">You've reviewed all {{ totalReviewCount }} cards in this filtered set.</p>
+        <div class="flex gap-3 justify-center flex-wrap">
+          <button
+            @click="viewLastCard()"
+            class="px-6 py-3 rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all">
+            View Last Card
+          </button>
+          <button
+            @click="returnToDailyReview()"
+            class="btn-premium px-8 py-4 text-white rounded-xl font-semibold text-lg">
+            Return to Daily Review
+          </button>
+        </div>
       </div>
 
     </Transition>
@@ -315,6 +375,13 @@ const {
   totalReviewCount,
   reviewComplete,
   currentReviewIndex,
+  handSize,
+  dailyProgress,
+  showCelebration,
+  showNewDay,
+  dailyLapComplete,
+  lapVerseCount,
+  showSkippedCardsPrompt,
   isNavigating,
   navDirection,
   currentReviewVerse,
@@ -332,7 +399,9 @@ const {
   revealWord,
   revealFirstLetterChunk,
   viewLastCard,
-  resetReview,
+  keepReviewing,
+  startNewDay,
+  finishSkippedCards,
   returnToDailyReview,
   toggleImmersiveMode,
   exitImmersiveMode,
@@ -360,12 +429,47 @@ const blockTransition = computed(() => {
 // the swipe guards so they can never disagree. Both directions are blocked
 // while a navigation is in flight, so a drag can't hijack the card
 // transform mid-sequence (navigate()'s guard would drop the release anyway).
+// Daily review has no last card — reaching the end of the queue appends
+// another lap over the collection — so "next" is always available there.
+// (This computed doesn't need to account for the interstitials that CAN
+// pause that flow — celebration/lap-complete/skipped-cards/new-day — since
+// their v-else-if branches replace this whole card+arrows block in the
+// template; the arrows and swipe handler this feeds simply aren't in the
+// DOM while any of them are showing.)
 const canGoNext = computed(() =>
-  currentReviewIndex.value < totalReviewCount.value - 1 && !isNavigating.value
+  (reviewSource.value === 'daily'
+    ? totalReviewCount.value > 0
+    : currentReviewIndex.value < totalReviewCount.value - 1) && !isNavigating.value
 )
 const canGoPrevious = computed(() =>
   currentReviewIndex.value > 0 && !isNavigating.value
 )
+
+// Daily mode: x = queue position (moves on skip either direction — the
+// "hand of dealt cards" feel). y = max(handSize, totalEvents + remaining):
+// the baseline denominator is today's raw-review-count-so-far plus what's
+// still outstanding, which (unlike the plain quota target) keeps growing
+// on a repeat review instead of falsely reaching "done" early — but if
+// position runs ahead of that (skipping forward without confirming a
+// review), y is dragged up to match rather than showing x > y. Known,
+// accepted trade-off: skipping past the remaining count this way *can*
+// show a premature "done"-looking N/N with no reviews recorded (see
+// memory-bank/previous-work/075, Round 7).
+//
+// y uses handSize (a high-water mark of positions reached this session —
+// Round 8), not the live position: once a card has been "dealt into the
+// hand" by skipping to it, going back to look at an earlier card must not
+// shrink the denominator again. handSize only resets when the queue is
+// rebuilt (re-entering the tab re-sorts). Filtered mode is unaffected:
+// position/size of the finite chosen set.
+const progressLabel = computed(() => {
+  if (reviewSource.value !== 'daily') {
+    return `${currentReviewIndex.value + 1}/${totalReviewCount.value}`
+  }
+  const x = currentReviewIndex.value + 1
+  const y = Math.max(handSize.value, dailyProgress.value.totalEvents + dailyProgress.value.remaining)
+  return `${x}/${y}`
+})
 
 // Verse-dependent helpers, cached per verse (re-parsing the reference on
 // every render/reactive tick was wasteful — these only change with the verse).
@@ -387,6 +491,7 @@ const emit = defineEmits<{
   copyVerse: [verse: Verse]
   viewOnline: [verse: Verse]
   editVerse: [verse: Verse]
+  addVerses: [] // navigate to the Add Verse tab (non-review concern → App)
 }>()
 
 // Local state for menu

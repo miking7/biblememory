@@ -15,38 +15,58 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Sync health state machine implemented (074) — fixes the stale
-"currently offline" toast firing on reconnect — and an 8-angle pre-push code
-review round found 6 confirmed bugs in the first cut, all fixed (body-read
-timeout wedge, login timeout regression, performSync serialization with
-trailing rerun, doomed-sync join, stale-success settle, reconnect-probe
-fast-path). Uncommitted in the working tree; awaiting Herd re-verification
-(recovery toast within ~1 s, sync-error badge/toast, AI parse) before
-commit/push. The prior transition batch (069-073) is in production as of
-July 5, 2026.
+**Status:** Deterministic review scheduling (075) shipped to production
+(commits 9864f18, f94af54; July 6–7 2026), with several rounds of
+production feedback since — the daily-progress display surfaces in
+particular have taken multiple iterations to get right (previous-work/075
+Rounds 5–8 have the full history; don't re-derive from first principles,
+read there first). Current design as of Round 8:
+- Card footer (daily mode): `x/max(handSize, totalEvents + remaining)` —
+  `x` = queue position, `handSize` = high-water mark of positions reached
+  this session (never shrinks going back; resets only on queue rebuild).
+  Known, accepted trade-off: skipping forward past `remaining` without
+  reviewing can show a premature "done"-looking reading — owner-confirmed,
+  ship-and-feel rather than provably safe.
+- StatsBar/StatsModal denominator: `dailyProgress.goal` — tracks the live
+  floor-adjusted total until every category is first simultaneously
+  satisfied, then freezes (pure chronological replay, not stored state).
+  `total`/`remaining` stay live (badge, footer) — three distinct
+  target-shaped numbers now exist, each with exactly one owner (see
+  AGENTS.md's Review-scheduling bullet for the map).
+- `showSkippedCardsPrompt`: reaching the end of a lap with quota still
+  outstanding (only possible via a skip) offers to rebuild the queue
+  (skipped cards re-sorted to front) or keep looping.
 
-**Latest Work (074):** `useSync` rewritten as a settled-verdict state machine
-(`syncHealth` flips healthy only after a *completed* sync, never on
-`navigator.onLine` alone); serialized sync passes with a trailing rerun;
-`online`/`offline` listeners with trust asymmetry; verdict-keyed toast;
-body-covering `fetchWithTimeout` in `utils/http.ts` (shared with the AddVerse
-wizard); shared-promise `syncNow`; push failures fail the sync. Deferred:
-scheduler lifecycle/backoff (incl. the multi-tab logout error loop) + smaller
-server-side findings (listed in 074).
+An 8-angle code review of the Round 8 diff found and fixed 8 issues before
+commit — most notably `keepReviewing()`'s reuse across three different
+dismiss-screens needed to distinguish which screen it was dismissing (a
+naive shared fix broke small-collection looping), a stale-`handSize`
+window in `returnToDailyReview()`, and a missing day-rollover guard in
+`finishSkippedCards()`. Full list in previous-work/075's Round 8 review
+section. Unit tests (126) + build green. Uncommitted in the working tree,
+ready to commit.
+
+**Latest Work (075) — architecture summary:** the daily queue is a pure
+function of (verse set, today's reviews, local date) in
+`utils/reviewScheduling.ts`, replacing `getVersesForReview()`'s
+`Math.random` gating: date-seeded hash ordering, deck-first ordering
+within the unreviewed segment (Round 4 — pure hash order let overflow make
+the target unreachable), quota floors, reviewed-today history first,
+infinite lap-looping, one-time celebration, midnight-rollover interstitial,
+small-collection lap-complete pause, empty-state CTA, plus the Round 8
+refinements above. This also resolves the 066 deferred item (deterministic
+"due today" target).
 
 **Deferred candidates on record (previous-work/073):** double review-status
 lookup per navigation, gotIt/again consolidation, shared isVerseInactive
 helper, key-repeat pacing, navDirection stale-direction cosmetics, vue-tsc
 in the verification loop.
 
-**Standing notes:**
-- Stats dashboard deferred item: deterministic "due today" target (progress-bar
-  denominator still rides `getVersesForReview()`'s `Math.random()` gating)
-  (previous-work/066_statistics_dashboard.md).
-
-**Next after item 5:** remaining smaller review findings (F7 cohesion items:
-400ms delay placement, alert→toast, redundant status updates; midnight cache
-rollover; immersive+completion Escape trap).
+**Next:** remaining smaller review findings (F7 cohesion items:
+alert→toast, redundant status updates; immersive+completion Escape trap).
+The midnight-cache-rollover deferred item is now resolved: the 075 new-day
+interstitial refreshes `recentReviewsCache`, queue, targets, and streak on
+day change (detected via navigate/visibility/midnight timer).
 
 ## Previous Work Index (Complete Archive)
 
@@ -131,3 +151,4 @@ This index provides titles and links for reference when needed.
 - **072** - Single `review` Prop Consolidation → [previous-work/072_review_prop_consolidation.md](previous-work/072_review_prop_consolidation.md)
 - **073** - Pre-Push Code Review & Fixes (Transition Batch) → [previous-work/073_prepush_code_review_fixes.md](previous-work/073_prepush_code_review_fixes.md)
 - **074** - Sync Health State Machine (Reconnect Toast Fix) → [previous-work/074_sync_status_state_machine.md](previous-work/074_sync_status_state_machine.md)
+- **075** - Deterministic Review Scheduling (Date-Seeded Daily Queue) → [previous-work/075_deterministic_review_scheduling.md](previous-work/075_deterministic_review_scheduling.md)

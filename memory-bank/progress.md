@@ -346,7 +346,8 @@ previous-work/043_legacy_codebase_removal.md).
 #### Statistics Dashboard (✅ Complete — see previous-work/066)
 - [x] Review history charts (30-day activity bars + calendar heatmap)
 - [x] Verses by category breakdown (maturity funnel via effective category)
-- [x] Review completion ("Reviewed Today" progress tile vs live due target)
+- [x] Review completion ("Reviewed Today" tile: distinct verses vs the
+      deterministic daily quota target — see previous-work/075)
 - [ ] Time spent reviewing (not possible — no per-review duration is stored)
 - [x] Verses added over time (cumulative growth curve)
 - [ ] Most reviewed verses (deferred)
@@ -543,7 +544,8 @@ to GitHub `master`; releases are tested locally on Laravel Herd first.
 
 ### Phase 1 Clarifications
 - Manual refSort entry (auto-parsing deferred)
-- Per-session probability (not per-day)
+- Per-session probability (not per-day) — superseded July 2026 by the
+  deterministic date-seeded scheduler (previous-work/075)
 - Token hashing in database
 - Vue.js 3 for scalability and TypeScript integration
 - Manual testing only
