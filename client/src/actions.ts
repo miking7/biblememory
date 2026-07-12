@@ -1,4 +1,5 @@
 import { db, Verse } from "./db";
+import { ref } from "vue";
 import { v4 as uuid } from "uuid";
 import {
   buildDailyQueue,
@@ -354,12 +355,35 @@ export interface RecentReviewEntry {
 // In-memory cache: Map<verseId, RecentReviewEntry>
 const recentReviewsCache = new Map<string, RecentReviewEntry>();
 
+// A plain Map is invisible to Vue's reactivity, so render functions that paint
+// the "reviewed today" highlight (My Verses' getReviewStatus, via
+// getCachedReviewStatus) could not repaint when the Map changed — the colour
+// only refreshed on remount/reload. This counter is bumped on every cache
+// mutation and read inside getCachedReviewStatus, giving those render functions
+// a real reactive dependency to re-run on.
+const reviewCacheVersion = ref(0);
+
+// The local calendar day the cache currently represents. Lets the midnight
+// watchers rebuild it exactly once when the day flips (see
+// refreshReviewCacheForToday) regardless of which tab is showing, instead of
+// the highlight lingering on yesterday until a reload.
+let cacheDateString: string | null = null;
+
 // Load today's reviews into cache (call on session start)
 export async function loadTodaysReviewsIntoCache(): Promise<void> {
   const todaysReviews = await getTodaysReviewEvents();
+  const todayMidnight = getTodayMidnight();
 
-  // Clear existing cache and populate with today's reviews
-  recentReviewsCache.clear();
+  // Prune only STALE (pre-today) entries — e.g. yesterday's, after a midnight
+  // rollover. Deliberately NOT a blanket clear(): this runs after an await and
+  // (now that handleDayRollover drives it from background watchers) a review
+  // can be recorded concurrently during that await. Such an entry is
+  // today-dated, so it must survive the rebuild — a clear() would wipe it while
+  // the snapshot above doesn't contain it yet, silently dropping the tint
+  // (lost-update race). Deleting during Map iteration is safe per spec.
+  for (const [verseId, entry] of recentReviewsCache) {
+    if (entry.lastReviewedAt < todayMidnight) recentReviewsCache.delete(verseId);
+  }
 
   for (const review of todaysReviews) {
     const existing = recentReviewsCache.get(review.verseId);
@@ -371,6 +395,9 @@ export async function loadTodaysReviewsIntoCache(): Promise<void> {
       });
     }
   }
+
+  cacheDateString = getTodayDateString();
+  reviewCacheVersion.value++;
 }
 
 // Update cache entry (call after recording a review or on sync pull)
@@ -386,6 +413,7 @@ export function updateReviewCache(verseId: string, reviewType: 'recall' | 'pract
         lastReviewedAt: timestamp,
         lastReviewType: reviewType
       });
+      reviewCacheVersion.value++;
     }
   }
 }
@@ -415,6 +443,7 @@ export async function getRecentReviewStatus(verseId: string): Promise<RecentRevi
     };
     // Populate cache for next lookup
     recentReviewsCache.set(verseId, entry);
+    reviewCacheVersion.value++;
     return entry;
   }
 
@@ -424,5 +453,25 @@ export async function getRecentReviewStatus(verseId: string): Promise<RecentRevi
 // Get cached review status synchronously (for computed properties)
 // Returns null if not in cache - use getRecentReviewStatus for DB fallback
 export function getCachedReviewStatus(verseId: string): RecentReviewEntry | null {
-  return recentReviewsCache.get(verseId) || null;
+  // Read the reactive version so Vue render functions that call this (the My
+  // Verses highlight) register a dependency and re-run when the cache is
+  // rebuilt or updated — the Map itself is not a reactive source. The read is
+  // folded into the return path (not a bare `void` expression) so a minifier
+  // can't drop it as a no-op, which would silently break the highlight in the
+  // production build only. The guard is always true (the version only climbs
+  // from 0); it exists solely to make the dependency load-bearing.
+  return reviewCacheVersion.value >= 0
+    ? recentReviewsCache.get(verseId) ?? null
+    : null;
+}
+
+// Rebuild the review-status cache for the current day, but only if the calendar
+// day has changed since it was last built — a cheap no-op within the same day.
+// Called by App.vue's midnight timer and visibilitychange listener so the
+// "reviewed today" highlight clears app-wide at rollover without a reload, even
+// when the Review tab is never opened. Returns whether a rebuild happened.
+export async function refreshReviewCacheForToday(): Promise<boolean> {
+  if (cacheDateString === getTodayDateString()) return false;
+  await loadTodaysReviewsIntoCache();
+  return true;
 }

@@ -281,9 +281,11 @@ onMounted(() => {
 
   // Midnight rollover detection for idle sessions: a resumed PWA (visibility)
   // and a session sitting open at midnight (timer) both flag the stale daily
-  // queue; navigate() itself re-checks as a backstop.
+  // queue AND rebuild the day-scoped review-status cache app-wide (so the My
+  // Verses highlight clears without a reload); navigate() re-checks the queue
+  // as a backstop.
   const visibilityHandler = () => {
-    if (!document.hidden) review.checkDayRollover();
+    if (!document.hidden) void review.handleDayRollover();
   };
   document.addEventListener('visibilitychange', visibilityHandler);
 
@@ -293,7 +295,7 @@ onMounted(() => {
     const next = new Date(now);
     next.setHours(24, 0, 5, 0); // a few seconds past next local midnight
     midnightTimer = setTimeout(() => {
-      review.checkDayRollover();
+      void review.handleDayRollover();
       scheduleMidnightCheck();
     }, next.getTime() - now.getTime());
   };

@@ -15,40 +15,36 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Daily-progress measurement simplified to a single grand total
-(previous-work/076), replacing the per-category `total`/`goal`/`remaining`
-machinery that took eight rounds of production feedback to stabilise (that
-design is archived in previous-work/075). Built on a fresh branch
-(`scheduling-v2`, based at `530e965` — the last commit before the original
-scheduling feature) so the six-commit saga collapses to clean history; the
-old master tip is preserved at tag `backup/pre-scheduling-cleanup`. NOT yet
-force-pushed to master — awaiting owner go-ahead after Herd testing.
+**Status:** Fixed the midnight review-status highlight bug (previous-work/077).
+After the local day rolled over, the soft "reviewed today" tint on My Verses
+kept showing *yesterday's* cards until a browser reload — midnight detection
+(the Review-tab new-day interstitial) itself worked. Implemented,
+code-reviewed (findings applied), and unit-tested (`npm test` 122 green;
+`npm run build` green); awaiting Herd verification. The change is uncommitted
+in the working tree.
 
-**The change:** progress is measured against `dailyTarget` = Σ per-category
-targets — one number, fixed the moment the verse set and date are known.
-`reviewed` counts distinct ELIGIBLE verses reviewed today regardless of
-category; `remaining` = max(0, dailyTarget − reviewed); `goalMet` =
-reviewed ≥ dailyTarget. Because `dailyTarget` never drifts with over-review,
-the freeze machinery (`computeGoal`, the `total`-vs-`goal` split, the
-chronological replay) is gone, and Round 8's "let reviewed exceed the
-target" behaviour is now free by construction. Categories still drive the
-DECK (deck-first ordering unchanged) — they simply no longer split the
-progress readout.
+**Root cause (two stacked):** (1) the tint reads `recentReviewsCache`, an
+in-memory Map rebuilt only at app startup or via "Start Today's Review" — the
+automatic midnight watchers (App.vue visibility listener + midnight timer) only
+raised the Review-tab `showNewDay` flag and never touched the cache; (2)
+`getCachedReviewStatus` read a plain (non-reactive) Map, so even a clear
+wouldn't repaint My Verses without a remount. A reload was the only thing that
+rebuilt the cache against the new day.
 
-**Deliberately accepted (con #1, owner-agreed):** reaching the grand total
-with a skewed category mix reads as "done" even if a specific due verse was
-skipped — only reachable by deliberately skipping the dealt order (deck-first
-deals the due verses first). The `showSkippedCardsPrompt` interstitial
-(Round 8) is removed as part of this — no prompt.
+**The fix:** a `reviewCacheVersion` ref bumped on every cache mutation and read
+by `getCachedReviewStatus` (consumers now repaint on any cache change), plus
+`refreshReviewCacheForToday` driven by a new `useReview.handleDayRollover` that
+App.vue's visibility/midnight watchers now call — refreshing the tint, the
+current-card status, and the header streak / daily-progress app-wide at rollover
+regardless of tab. The rebuild prunes only stale entries (not a blanket clear)
+to avoid a lost-update race. Invariant recorded in AGENTS.md → Review-status
+highlight.
 
-**Footer:** kept as the "hand of dealt cards" (x = position, y =
-max(handSize, totalEvents + remaining)); only `remaining`'s definition
-simplified underneath it. handSize, the small-collection lap-complete
-screen, and the new-day interstitial are all unchanged.
+**Prior context:** the deterministic scheduling (075) and grand-total daily
+progress (076) work has landed on `master` as clean commits (`20b10c9`,
+`ab8f988`); `backup/pre-scheduling-cleanup` still preserves the old tip.
 
-**Next:** owner tests on Herd; then force-push `scheduling-v2` over master to
-overwrite the complex history (backup tag already in place). Unit tests
-(117) + build green.
+**Next:** owner tests on Herd; commit + push when given the go-ahead.
 
 ## Previous Work Index (Complete Archive)
 
@@ -135,3 +131,4 @@ This index provides titles and links for reference when needed.
 - **074** - Sync Health State Machine (Reconnect Toast Fix) → [previous-work/074_sync_status_state_machine.md](previous-work/074_sync_status_state_machine.md)
 - **075** - Deterministic Review Scheduling (Date-Seeded Daily Queue) → [previous-work/075_deterministic_review_scheduling.md](previous-work/075_deterministic_review_scheduling.md)
 - **076** - Grand-Total Daily Progress (Simplify Measurement) → [previous-work/076_grand_total_daily_progress.md](previous-work/076_grand_total_daily_progress.md)
+- **077** - Midnight Review-Status Highlight Refresh → [previous-work/077_midnight_review_status_refresh.md](previous-work/077_midnight_review_status_refresh.md)

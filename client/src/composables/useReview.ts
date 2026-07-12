@@ -8,6 +8,7 @@ import {
   getTodayDateString,
   getCurrentStreak,
   loadTodaysReviewsIntoCache,
+  refreshReviewCacheForToday,
   updateReviewCache,
   getCachedReviewStatus,
   getRecentReviewStatus,
@@ -301,6 +302,29 @@ export function useReview() {
   // Initialize review cache (call on session start)
   const initReviewCache = async () => {
     await loadTodaysReviewsIntoCache();
+  };
+
+  // App-level day-rollover handler for App.vue's visibilitychange listener and
+  // midnight timer.
+  const handleDayRollover = async () => {
+    try {
+      // Synchronous first (kept inside try so a throw surfaces as the
+      // console.error below rather than an unhandled rejection via the `void`
+      // callers): raise the Review-tab new-day screen, timing unchanged.
+      checkDayRollover();
+      // Then, independent of tab or reviewSource, refresh everything day-scoped
+      // the moment the calendar day actually flips: the review-status cache (My
+      // Verses tint + current-card indicator) AND the header streak / daily
+      // progress. Refreshing only the tint would leave the "reviewed today"
+      // count, target, and Review badge lingering on yesterday until the user
+      // taps Start Today's Review — a worse, half-updated view.
+      if (await refreshReviewCacheForToday()) {
+        await updateCurrentVerseReviewStatus();
+        await updateStats();
+      }
+    } catch (error) {
+      console.error("Failed to refresh state on day rollover:", error);
+    }
   };
 
   const markReview = async (success: boolean) => {
@@ -937,6 +961,7 @@ export function useReview() {
     keepReviewing,
     startNewDay,
     checkDayRollover,
+    handleDayRollover,
     completeReview,
     uncompleteReview,
 

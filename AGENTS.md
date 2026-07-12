@@ -105,6 +105,15 @@ server `ops` table (monotonic seq) → other devices cursor-pull → LWW merge.
   on every Review-tab entry from synced state); reviews must never record
   into a session whose `queueDate` is stale (new-day interstitial); never
   reintroduce `Math.random` into scheduling.
+- **Review-status highlight:** the "reviewed today" card tint reads an
+  in-memory `Map` (`recentReviewsCache` in actions.ts) via
+  `getCachedReviewStatus`. Two rules keep it correct: (1) every mutation bumps
+  the `reviewCacheVersion` ref that `getCachedReviewStatus` reads, so consumers
+  actually repaint — a plain Map is not a reactive source, so never read it
+  without touching that version; (2) the cache is day-scoped, so the midnight
+  watchers must rebuild it app-wide (`refreshReviewCacheForToday`, via
+  `useReview.handleDayRollover`), not merely raise the Review-tab new-day flag
+  — otherwise the tint lingers on yesterday until reload (previous-work/077).
 - Logout wipes ALL local data (by design, with outbox warning).
 
 ## Documentation map (memory-bank/)
