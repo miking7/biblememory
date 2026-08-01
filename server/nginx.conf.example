@@ -2,6 +2,16 @@
 # 
 # This is a sample Nginx configuration for the Bible Memory App.
 # Adjust paths and server names according to your setup.
+#
+# NOTE: public/.htaccess is Apache-only and is INERT under nginx. Every
+# protection it describes must be restated here or it does not exist in
+# production.
+
+# Throttle the endpoints that are expensive or that mint credentials. These
+# must live at http{} level; if the host does not allow that, the PHP-side
+# limits in api/lib.php (rate_limit_ok) still apply and are the real guard.
+limit_req_zone $binary_remote_addr zone=bm_auth:10m rate=10r/m;
+limit_req_zone $binary_remote_addr zone=bm_ai:10m   rate=20r/m;
 
 server {
     listen 80;
@@ -15,12 +25,26 @@ server {
     access_log /var/log/nginx/biblememory-access.log;
     error_log /var/log/nginx/biblememory-error.log;
     
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    
+    # Security headers.
+    #
+    # GOTCHA: nginx's add_header is replace-not-merge across levels — any
+    # location block with its own add_header DROPS every header set here.
+    # The /assets/ block below sets Cache-Control, so it must repeat these.
+    # Keeping them in one included file avoids the two copies drifting.
+    include /etc/nginx/snippets/biblememory-security-headers.conf;
+    # ...where that snippet contains:
+    #   add_header X-Frame-Options "SAMEORIGIN" always;
+    #   add_header X-Content-Type-Options "nosniff" always;
+    #   add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    #   add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    #   add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
+    # X-XSS-Protection is deliberately omitted: it is deprecated and its
+    # filter has itself been a vulnerability source. CSP replaces it.
+
+    # Cap request bodies. /api/push is the largest legitimate body (up to
+    # 1000 ops); the PHP side enforces the real per-op limits.
+    client_max_body_size 8m;
+
     # Gzip compression
     gzip on;
     gzip_vary on;
@@ -31,15 +55,37 @@ server {
     location /assets/ {
         alias /path/to/biblememory/server/public/dist/assets/;
         expires 1y;
+        # This add_header would otherwise discard the server-level security
+        # headers for every asset response, so re-include them here.
+        include /etc/nginx/snippets/biblememory-security-headers.conf;
         add_header Cache-Control "public, immutable";
         access_log off;
     }
-    
+
+    # Credential endpoints - throttled (each attempt costs a bcrypt hash)
+    location = /api/login {
+        limit_req zone=bm_auth burst=5 nodelay;
+        try_files $uri /index.php?$query_string;
+    }
+
+    location = /api/register {
+        limit_req zone=bm_auth burst=3 nodelay;
+        try_files $uri /index.php?$query_string;
+    }
+
+    # Spends the operator's Anthropic credits - throttled and slow, so give it
+    # a longer read timeout than the default but keep the request rate low.
+    location = /api/parse-verse {
+        limit_req zone=bm_ai burst=5 nodelay;
+        fastcgi_read_timeout 45s;
+        try_files $uri /index.php?$query_string;
+    }
+
     # API endpoints - route to PHP
     location /api/ {
         try_files $uri $uri/ /index.php?$query_string;
     }
-    
+
     # PHP processing
     location ~ \.php$ {
         fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;  # Adjust PHP version as needed
@@ -60,7 +106,9 @@ server {
         log_not_found off;
     }
     
-    location ~ \.(env|sql|md|log)$ {
+    # The database lives above the docroot, but deny it by name as well in
+    # case the root is ever pointed at the repo instead of server/public.
+    location ~ \.(env|sql|md|log|sqlite|sqlite-wal|sqlite-shm|db)$ {
         deny all;
         access_log off;
         log_not_found off;
@@ -74,8 +122,13 @@ server {
     }
 }
 
-# SSL Configuration (recommended for production)
-# Uncomment and configure after obtaining SSL certificate
+# SSL Configuration — REQUIRED in production, not optional.
+#
+# Auth tokens travel in the X-Auth-Token header on every sync request, so
+# serving this app over plaintext HTTP exposes them to anyone on the network.
+# The server block above should be reduced to the redirect at the bottom of
+# this file once certificates are in place, and Strict-Transport-Security in
+# the headers snippet only takes effect over HTTPS.
 #
 # server {
 #     listen 443 ssl http2;

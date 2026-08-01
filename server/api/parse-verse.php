@@ -9,19 +9,32 @@ handle_cors();
 // Get authenticated user (require authentication for API usage)
 $user_id = current_user_id();
 
-// Parse request body
-$raw = file_get_contents('php://input');
-$body = json_decode($raw, true);
+// This endpoint spends the operator's Anthropic credits, so it is metered per
+// account. Registration is open, so without a quota one throwaway account can
+// bill an unbounded amount. Input is capped too — input tokens are billed.
+const MAX_VERSE_TEXT_BYTES = 20000;
+const PARSE_QUOTA_PER_HOUR = 40;
+const PARSE_QUOTA_PER_DAY  = 200;
 
-if (!$body || !isset($body['text'])) {
-  json_out(['error' => 'Invalid request body - text field required'], 400);
-}
+$body = read_json_body(64 * 1024);
+$text = require_string($body, 'text', MAX_VERSE_TEXT_BYTES);
 
-$text = trim($body['text']);
-
-if (empty($text)) {
+if ($text === '') {
   json_out(['error' => 'Text cannot be empty'], 400);
 }
+
+enforce_rate_limit(
+  'parse:hour:' . $user_id,
+  PARSE_QUOTA_PER_HOUR,
+  3600,
+  'Too many verse parses in the last hour - please try again later or enter the verse manually'
+);
+enforce_rate_limit(
+  'parse:day:' . $user_id,
+  PARSE_QUOTA_PER_DAY,
+  86400,
+  'Daily verse-parsing limit reached - please enter the verse manually or try again tomorrow'
+);
 
 // Load environment variables
 loadEnv();
@@ -54,10 +67,11 @@ try {
   ]);
   
 } catch (Exception $e) {
+  // Detail stays in the server log — it can carry upstream API messages and
+  // key-validity hints that should not reach the client.
   error_log('AI parsing error: ' . $e->getMessage());
   json_out([
-    'error' => 'Unable to parse verse - please try again or enter manually',
-    'errorDetails' => $e->getMessage()
+    'error' => 'Unable to parse verse - please try again or enter manually'
   ], 500);
 }
 
@@ -72,10 +86,17 @@ function loadEnv() {
       // Skip comments
       if (strpos(trim($line), '#') === 0) continue;
       
-      // Parse KEY=VALUE
+      // Parse KEY=VALUE, stripping surrounding quotes so a quoted key is not
+      // sent to the upstream API verbatim.
       if (strpos($line, '=') !== false) {
         list($key, $value) = explode('=', $line, 2);
-        putenv(trim($key) . '=' . trim($value));
+        $value = trim($value);
+        if (strlen($value) >= 2 &&
+            (($value[0] === '"' && substr($value, -1) === '"') ||
+             ($value[0] === "'" && substr($value, -1) === "'"))) {
+          $value = substr($value, 1, -1);
+        }
+        putenv(trim($key) . '=' . $value);
       }
     }
   }

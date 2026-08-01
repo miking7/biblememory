@@ -15,7 +15,30 @@ KEY QUESTION THIS FILE ANSWERS: "What am I working on in this session?"
 
 ## Current Work Focus
 
-**Status:** Fixed the midnight review-status highlight bug (previous-work/077).
+**Status:** Backend security review + hardening (previous-work/078). First
+dedicated audit of `server/`. No SQL injection and no tenant-isolation breaks
+were found; the real problems were an unauthenticated `POST /api/migrate` route,
+an unmetered `/api/parse-verse` spending the operator's Anthropic credits, no
+rate limiting anywhere, disabled accounts whose tokens kept working, and
+uncaught `TypeError`s on hostile JSON. All fixed and verified live against a
+throwaway database copy (`npm test` 122 green, `npm run build` green). Client
+untouched; sync protocol unchanged.
+
+A max-effort code review then caught four ways the hardening could itself have
+broken users — a login-path password cap that would have locked out anyone whose
+password predates it, a non-deterministic case-insensitive account lookup, a
+push batch that stalled sync on one oversized op, and a body-size cap checked
+after the body was already read. All corrected before the work settled; see
+previous-work/078 → "Traps found while hardening", which explains why those
+pieces are shaped the way they are so they don't get re-broken.
+
+Deliberately deferred: `ops.op_id` is `UNIQUE` globally rather than per-user
+(cross-tenant collisions are silently dropped *and* acked) — fixing it means
+rebuilding the table against production data, so it wants its own migration.
+There is also still no password-change/reset flow, hence no way to bulk-revoke
+a user's sessions.
+
+**Previously:** fixed the midnight review-status highlight bug (previous-work/077).
 After the local day rolled over, the soft "reviewed today" tint on My Verses
 kept showing *yesterday's* cards until a browser reload — midnight detection
 (the Review-tab new-day interstitial) itself worked. Implemented,
@@ -132,3 +155,4 @@ This index provides titles and links for reference when needed.
 - **075** - Deterministic Review Scheduling (Date-Seeded Daily Queue) → [previous-work/075_deterministic_review_scheduling.md](previous-work/075_deterministic_review_scheduling.md)
 - **076** - Grand-Total Daily Progress (Simplify Measurement) → [previous-work/076_grand_total_daily_progress.md](previous-work/076_grand_total_daily_progress.md)
 - **077** - Midnight Review-Status Highlight Refresh → [previous-work/077_midnight_review_status_refresh.md](previous-work/077_midnight_review_status_refresh.md)
+- **078** - Backend Security Hardening → [previous-work/078_backend_security_hardening.md](previous-work/078_backend_security_hardening.md)

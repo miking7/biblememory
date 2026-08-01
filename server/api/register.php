@@ -5,16 +5,17 @@ require_once __DIR__ . '/lib.php';
 
 handle_cors();
 
-// Parse request body
-$raw = file_get_contents('php://input');
-$body = json_decode($raw, true);
+// Account creation is unauthenticated and each attempt costs a bcrypt hash, so
+// cap how many any one address can trigger.
+enforce_rate_limit('register:ip:' . client_ip(), 5, 3600,
+  'Too many registration attempts - please try again later');
 
-if (!$body || !isset($body['email']) || !isset($body['password'])) {
-  json_out(['error' => 'Email and password are required'], 400);
-}
+$body = read_json_body(8 * 1024);
 
-$email = trim($body['email']);
-$password = $body['password'];
+$email = normalize_email(require_string($body, 'email', 254));
+// bcrypt silently ignores everything past 72 bytes, so reject longer passwords
+// outright rather than truncating them without telling the user.
+$password = require_string($body, 'password', 72, false);
 
 // Validate email format
 if (!is_valid_email($email)) {
@@ -28,8 +29,10 @@ if (strlen($password) < 8) {
 
 $pdo = db();
 
-// Check if email already exists
-$stmt = $pdo->prepare('SELECT user_id FROM users WHERE email = ?');
+// Check if email already exists. Matching is case-insensitive to agree with
+// normalize_email, so an address cannot be registered twice under
+// different casing.
+$stmt = $pdo->prepare('SELECT user_id FROM users WHERE email = ? COLLATE NOCASE');
 $stmt->execute([$email]);
 if ($stmt->fetch()) {
   json_out(['error' => 'Email already registered'], 409);

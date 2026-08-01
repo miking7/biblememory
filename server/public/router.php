@@ -10,9 +10,16 @@ $requestUri = $_SERVER['REQUEST_URI'];
 $requestPath = parse_url($requestUri, PHP_URL_PATH);
 
 // Serve static files from dist/ directory
-if (preg_match('/\.(js|css|html|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|webmanifest|json|xml|txt)$/', $requestPath)) {
-    $file = __DIR__ . '/dist' . $requestPath;
-    if (file_exists($file) && is_file($file)) {
+if (preg_match('/\.(js|css|html|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|webmanifest|json|xml|txt)$/D', $requestPath)) {
+    // Resolve and confine to dist/ before reading: concatenating the request
+    // path directly let "/../../secrets.json" escape the directory.
+    $realFile = realpath(__DIR__ . '/dist' . $requestPath);
+    $realDist = realpath(__DIR__ . '/dist');
+
+    if ($realFile && $realDist &&
+        strpos($realFile, $realDist . DIRECTORY_SEPARATOR) === 0 &&
+        is_file($realFile)) {
+        $file = $realFile;
         // Determine content type
         $ext = pathinfo($file, PATHINFO_EXTENSION);
         $contentTypes = [

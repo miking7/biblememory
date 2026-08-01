@@ -3,6 +3,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/lib.php';
 
+// Defence in depth: this script creates tables and reports row counts, so it
+// must never be reachable over HTTP even if it is re-routed by accident.
+if (PHP_SAPI !== 'cli') {
+  http_response_code(404);
+  exit;
+}
+
 echo "Bible Memory App - Database Migration\n";
 echo "=====================================\n\n";
 
@@ -22,47 +29,13 @@ try {
   $pdo->exec($schema);
   echo "✓ Tables created successfully\n\n";
   
-  // Check if we should create a test user
+  // No test-user bootstrap: it seeded a known-credential account
+  // (test@example.com / password123) on any empty database. Create accounts
+  // through /api/register instead.
   $stmt = $pdo->query('SELECT COUNT(*) FROM users');
   $user_count = (int)$stmt->fetchColumn();
-  
-  if ($user_count === 0) {
-    echo "No users found. Creating test user...\n";
-    
-    $user_id = generate_uuid();
-    $email = 'test@example.com';
-    $password = 'password123';
-    $password_hash = hash_password($password);
-    $now = now_ms();
-    
-    // Create user
-    $stmt = $pdo->prepare('
-      INSERT INTO users (user_id, email, password_hash, created_at, is_active)
-      VALUES (?, ?, ?, ?, 1)
-    ');
-    $stmt->execute([$user_id, $email, $password_hash, $now]);
-    
-    // Generate token
-    $token = generate_token();
-    $token_hash = hash('sha256', $token);
-    
-    $stmt = $pdo->prepare('
-      INSERT INTO tokens (token, user_id, created_at)
-      VALUES (?, ?, ?)
-    ');
-    $stmt->execute([$token_hash, $user_id, $now]);
-    
-    echo "✓ Test user created\n";
-    echo "\nTest User Credentials:\n";
-    echo "  Email: $email\n";
-    echo "  Password: $password\n";
-    echo "  User ID: $user_id\n";
-    echo "  Token: $token\n";
-    echo "\nIMPORTANT: Change these credentials in production!\n";
-  } else {
-    echo "Database already has $user_count user(s)\n";
-  }
-  
+  echo "Database has $user_count user(s)\n";
+
   echo "\n✓ Migration completed successfully!\n";
   
 } catch (Exception $e) {

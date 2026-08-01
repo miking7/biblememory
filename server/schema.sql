@@ -26,6 +26,16 @@ CREATE TABLE IF NOT EXISTS tokens (
 CREATE INDEX IF NOT EXISTS idx_tokens_user ON tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_tokens_revoked ON tokens(revoked_at);
 
+-- Sliding-window counters for login/registration throttling and the
+-- per-account parse-verse quota. Rows are pruned as their window expires;
+-- see rate_limit_ok() in api/lib.php.
+CREATE TABLE IF NOT EXISTS rate_limits (
+  bucket TEXT NOT NULL,               -- e.g. "login:ip:1.2.3.4", "parse:day:<user_id>"
+  ts INTEGER NOT NULL                 -- Epoch ms of the attempt
+);
+
+CREATE INDEX IF NOT EXISTS idx_rate_limits_bucket_ts ON rate_limits(bucket, ts);
+
 -- Operation log (source of truth - from oplog pattern)
 CREATE TABLE IF NOT EXISTS ops (
   seq INTEGER PRIMARY KEY AUTOINCREMENT,  -- Monotonic sequence

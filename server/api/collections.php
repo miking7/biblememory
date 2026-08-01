@@ -8,8 +8,14 @@ handle_cors();
 // Get authenticated user (require authentication for API usage)
 $user_id = current_user_id();
 
-// Determine if this is a list request or a specific collection request
+// Determine if this is a list request or a specific collection request.
+// ?id[]=x arrives as an array, which would raise a TypeError on the
+// string-typed parameter below.
 $collection_id = $_GET['id'] ?? null;
+
+if ($collection_id !== null && !is_string($collection_id)) {
+  json_out(['error' => 'Invalid collection ID'], 400);
+}
 
 if ($collection_id) {
   // Get specific collection verses
@@ -43,8 +49,10 @@ function list_collections(): void {
  * Get verses for a specific collection
  */
 function get_collection_verses(string $collection_id): void {
-  // Validate collection ID format (alphanumeric and hyphens only)
-  if (!preg_match('/^[a-z0-9\-]+$/', $collection_id)) {
+  // Validate collection ID format (alphanumeric and hyphens only).
+  // The D modifier stops '$' from also matching before a trailing newline,
+  // which would otherwise let "fav-kjv\n" through the filter.
+  if (!preg_match('/^[a-z0-9\-]{1,64}$/D', $collection_id)) {
     json_out(['error' => 'Invalid collection ID'], 400);
   }
 

@@ -8,9 +8,18 @@ handle_cors();
 // Get authenticated user
 $user_id = current_user_id();
 
-// Get query parameters
-$since = isset($_GET['since']) ? (int)$_GET['since'] : 0;
-$limit = isset($_GET['limit']) ? min(2000, max(1, (int)$_GET['limit'])) : 500;
+// Get query parameters. ?since[]=1 arrives as an array, so require scalars
+// before casting rather than letting PHP coerce an array to int.
+$since_raw = $_GET['since'] ?? null;
+$limit_raw = $_GET['limit'] ?? null;
+
+if (($since_raw !== null && !is_scalar($since_raw)) ||
+    ($limit_raw !== null && !is_scalar($limit_raw))) {
+  json_out(['error' => 'Invalid query parameters'], 400);
+}
+
+$since = $since_raw !== null ? max(0, (int)$since_raw) : 0;
+$limit = $limit_raw !== null ? min(2000, max(1, (int)$limit_raw)) : 500;
 
 // Fetch operations since cursor
 $pdo = db();

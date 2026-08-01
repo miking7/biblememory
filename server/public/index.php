@@ -22,7 +22,9 @@ $apiRoutes = [
     'POST /api/logout' => __DIR__ . '/../api/logout.php',
     'POST /api/push' => __DIR__ . '/../api/push.php',
     'GET /api/pull' => __DIR__ . '/../api/pull.php',
-    'POST /api/migrate' => __DIR__ . '/../api/migrate.php',
+    // NOTE: migrate is a CLI-only tool (`npm run migrate`) and is deliberately
+    // NOT routed over HTTP — it ran DDL and disclosed the user count to any
+    // anonymous caller. migrate.php now refuses to run outside the CLI too.
     'POST /api/parse-verse' => __DIR__ . '/../api/parse-verse.php',
     'GET /api/collections' => __DIR__ . '/../api/collections.php',
 ];
@@ -81,8 +83,10 @@ if (in_array($ext, $allowedExtensions, true)) {
     $realAssetPath = realpath($assetPath);
     $realDistPath = realpath(__DIR__ . '/dist');
 
+    // The separator matters: a bare prefix compare also accepts a sibling
+    // directory whose name merely starts with "dist" (e.g. dist-backup).
     if ($realAssetPath && $realDistPath &&
-        strpos($realAssetPath, $realDistPath) === 0 &&
+        strpos($realAssetPath, $realDistPath . DIRECTORY_SEPARATOR) === 0 &&
         is_file($realAssetPath)) {
 
         // Determine content type

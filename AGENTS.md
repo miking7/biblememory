@@ -114,6 +114,23 @@ server `ops` table (monotonic seq) → other devices cursor-pull → LWW merge.
   watchers must rebuild it app-wide (`refreshReviewCacheForToday`, via
   `useReview.handleDayRollover`), not merely raise the Review-tab new-day flag
   — otherwise the tint lingers on yesterday until reload (previous-work/077).
+- **Server security** (previous-work/078 is the reference): `migrate.php` is
+  CLI-only — never re-add it to the `$apiRoutes` table in `public/index.php`.
+  Every endpoint that touches user data calls `current_user_id()`, which is
+  also where `is_active` and token expiry are enforced — checking `is_active`
+  at login alone left disabled accounts working. JSON bodies go through
+  `read_json_body()`/`require_string()` in `lib.php`: under
+  `declare(strict_types=1)` a raw `trim()` on an attacker-supplied array is a
+  fatal 500. CORS is an allowlist (`ALLOWED_ORIGINS`), never `*`. `/api/parse-verse`
+  spends the operator's Anthropic credits, so it must keep its input cap and
+  per-account quota, checked BEFORE the upstream call. Push limits are
+  per-request by design — a cumulative storage quota would brick long-lived
+  users, because the oplog is never compacted and a rejected batch stalls the
+  client outbox permanently. Any new push cap must stay above the client's
+  500-op batch (`sync.ts`).
+- **`.htaccess` is Apache-only and inert in production** (nginx). Anything it
+  protects must be restated in the nginx config — see `server/nginx.conf.example`,
+  which also documents nginx's `add_header` replace-not-merge trap.
 - Logout wipes ALL local data (by design, with outbox warning).
 
 ## Documentation map (memory-bank/)

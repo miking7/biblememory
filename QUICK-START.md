@@ -34,10 +34,18 @@ php -S localhost:8000 router.php
 
 Open your browser to: **http://localhost:8000**
 
-## Default Login
+## First Login
 
-- **Email**: test@example.com
-- **Password**: password123
+There is no default account — the migration no longer seeds one. Create your
+own from the app's sign-up screen, or with:
+
+```bash
+curl -X POST http://localhost:8000/api/register \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"you@example.com","password":"choose-a-real-password"}'
+```
+
+Registration is throttled to 5 attempts per hour per IP address.
 
 ## Development Mode
 

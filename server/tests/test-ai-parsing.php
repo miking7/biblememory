@@ -206,9 +206,18 @@ function loadEnv($envFile) {
     $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
       if (strpos(trim($line), '#') === 0) continue;
+      // Keep the quote handling in step with parse-verse.php's loadEnv();
+      // without it a quoted key is passed to the API verbatim and fails as a
+      // 401 that looks like a bad key.
       if (strpos($line, '=') !== false) {
         list($key, $value) = explode('=', $line, 2);
-        putenv(trim($key) . '=' . trim($value));
+        $value = trim($value);
+        if (strlen($value) >= 2 &&
+            (($value[0] === '"' && substr($value, -1) === '"') ||
+             ($value[0] === "'" && substr($value, -1) === "'"))) {
+          $value = substr($value, 1, -1);
+        }
+        putenv(trim($key) . '=' . $value);
       }
     }
   }
